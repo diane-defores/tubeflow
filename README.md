@@ -84,7 +84,7 @@ Requirements:
 Install dependencies:
 
 ```bash
-cd "tubesflow lab"
+cd /home/claude/tubeflow_lab
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -93,7 +93,7 @@ pip install -r requirements.txt
 Run:
 
 ```bash
-cd "tubesflow lab"
+cd /home/claude/tubeflow_lab
 cp .env.example .env
 set -a
 source .env
@@ -107,7 +107,7 @@ If you run it under PM2 / ShipFlow, the worker also accepts the generic `PORT`
 environment variable and can be started with:
 
 ```bash
-cd "tubesflow lab"
+cd /home/claude/tubeflow_lab
 ./.venv/bin/python main.py
 ```
 
@@ -129,7 +129,7 @@ You should see:
 Build:
 
 ```bash
-cd "tubesflow lab"
+cd /home/claude/tubeflow_lab
 docker build -t tubeflow-transcript-worker .
 ```
 
@@ -154,7 +154,7 @@ If you deploy to a cloud container platform, keep the same contract:
 Recommended architecture on the current server:
 
 - keep the main TubeFlow app as its own PM2 environment
-- run the transcript worker as a second PM2 environment from `tubesflow lab`
+- run the transcript worker as a second PM2 environment from `tubeflow_lab`
 - publish it through your existing reverse proxy on its own path or subdomain
 
 ### Server prerequisites
@@ -173,7 +173,7 @@ sudo apt-get install -y ffmpeg
 Create the virtualenv once:
 
 ```bash
-cd "/home/claude/tubeflow/tubesflow lab"
+cd /home/claude/tubeflow_lab
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -182,7 +182,7 @@ pip install -r requirements.txt
 Then start it with the provided PM2 config:
 
 ```bash
-cd "/home/claude/tubeflow/tubesflow lab"
+cd /home/claude/tubeflow_lab
 pm2 start ecosystem.config.cjs
 pm2 save
 ```
