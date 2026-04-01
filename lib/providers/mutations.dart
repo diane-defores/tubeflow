@@ -1,0 +1,223 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:tubeflow_app/convex/convex_provider.dart';
+
+// =============================================================================
+// Convex mutation helpers for the TubeFlow app.
+//
+// Each function accepts a [Ref] (or [WidgetRef]) so it can access the
+// [ConvexService] singleton through Riverpod, then calls the appropriate
+// Convex mutation and returns the decoded result.
+//
+// Usage from a widget:
+//
+//   ElevatedButton(
+//     onPressed: () => createNote(ref,
+//       videoId: video.youtubeVideoId,
+//       content: _controller.text,
+//       timestamp: _player.position.inSeconds.toDouble(),
+//     ),
+//     child: Text('Save Note'),
+//   )
+//
+// Usage from another provider / notifier:
+//
+//   await createNote(ref, videoId: id, content: text);
+//
+// After a mutation that changes data read by a FutureProvider, callers should
+// invalidate the relevant provider:
+//
+//   ref.invalidate(hiddenItemsProvider);
+//
+// StreamProvider-backed data updates automatically via Convex subscriptions.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Notes
+// ---------------------------------------------------------------------------
+
+/// Creates a new note, optionally linked to a video at a timestamp.
+///
+/// Returns the Convex document ID of the created note.
+Future<dynamic> createNote(
+  Ref ref, {
+  required String videoId,
+  required String content,
+  double? timestamp,
+  String? title,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('notes:createNote', {
+    'youtubeVideoId': videoId,
+    'content': content,
+    if (timestamp != null) 'timestamp': timestamp,
+    if (title != null) 'title': title,
+  });
+}
+
+/// Deletes a note by its Convex document ID.
+Future<dynamic> deleteNote(Ref ref, String noteId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('notes:deleteNote', {
+    'noteId': noteId,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Hidden items
+// ---------------------------------------------------------------------------
+
+/// Hides a video from the user's feed.
+Future<dynamic> hideVideo(Ref ref, String videoId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('hidden:hideItem', {
+    'youtubeId': videoId,
+    'itemType': 'video',
+  });
+}
+
+/// Un-hides a previously hidden video, restoring it to the feed.
+Future<dynamic> unhideVideo(Ref ref, String videoId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('hidden:unhideItem', {
+    'youtubeId': videoId,
+    'itemType': 'video',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Watch history
+// ---------------------------------------------------------------------------
+
+/// Marks a video as watched.
+Future<dynamic> markWatched(Ref ref, String videoId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('watched:markWatched', {
+    'youtubeVideoId': videoId,
+  });
+}
+
+/// Removes the watched mark from a video.
+Future<dynamic> unmarkWatched(Ref ref, String videoId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('watched:unmarkWatched', {
+    'youtubeVideoId': videoId,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Playback progress
+// ---------------------------------------------------------------------------
+
+/// Saves (upserts) the user's playback progress for a video.
+///
+/// [seconds] is the current playback position. [duration] is the total video
+/// length in seconds. Both values use fractional seconds.
+Future<dynamic> saveProgress(
+  Ref ref,
+  String videoId,
+  double seconds,
+  double duration,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('progress:saveProgress', {
+    'youtubeVideoId': videoId,
+    'progressSeconds': seconds,
+    'durationSeconds': duration,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Playlists
+// ---------------------------------------------------------------------------
+
+/// Creates a new playlist.
+///
+/// Returns the Convex document ID of the created playlist.
+Future<dynamic> createPlaylist(
+  Ref ref, {
+  required String name,
+  String? description,
+  bool isPublic = false,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('youtube:createPlaylist', {
+    'name': name,
+    if (description != null) 'description': description,
+    'isPublic': isPublic,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Likes
+// ---------------------------------------------------------------------------
+
+/// Toggles a like or dislike on a video.
+///
+/// [type] should be `'like'` or `'dislike'`. Toggling the same type twice
+/// removes the interaction.
+Future<dynamic> toggleLike(
+  Ref ref,
+  String videoId,
+  String type,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('likes:toggleLike', {
+    'youtubeVideoId': videoId,
+    'type': type,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+/// Creates a comment on a video.
+///
+/// Returns the Convex document ID of the created comment.
+Future<dynamic> createComment(
+  Ref ref,
+  String videoId,
+  String content,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('comments:createComment', {
+    'youtubeVideoId': videoId,
+    'content': content,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+
+/// Updates user settings. Only the provided fields are patched; omitted fields
+/// remain unchanged on the server.
+///
+/// Accepts the same shape as [UserSettings.toJson] but every field is optional.
+///
+/// Example:
+/// ```dart
+/// await updateSettings(ref, theme: 'dark', language: 'fr');
+/// ```
+Future<dynamic> updateSettings(
+  Ref ref, {
+  String? theme,
+  String? language,
+  Map<String, dynamic>? notifications,
+  Map<String, dynamic>? playback,
+  Map<String, dynamic>? notes,
+  Map<String, dynamic>? channelSync,
+  Map<String, dynamic>? transcripts,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('settings:updateSettings', {
+    if (theme != null) 'theme': theme,
+    if (language != null) 'language': language,
+    if (notifications != null) 'notifications': notifications,
+    if (playback != null) 'playback': playback,
+    if (notes != null) 'notes': notes,
+    if (channelSync != null) 'channelSync': channelSync,
+    if (transcripts != null) 'transcripts': transcripts,
+  });
+}
