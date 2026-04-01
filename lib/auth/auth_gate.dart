@@ -24,7 +24,8 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
-    return switch (authState) {
+    final AuthState state = authState;
+    return switch (state) {
       AuthAuthenticated() => child,
       AuthLoading() => const _SignInScreen(isLoading: true),
       AuthUnauthenticated(:final error) => _SignInScreen(

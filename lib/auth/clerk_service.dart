@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 
-import 'package:clerk_flutter/clerk_flutter.dart' as clerk;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
@@ -21,11 +20,16 @@ const _publishableKey = String.fromEnvironment(
 
 /// Provides Clerk authentication for TubeFlow.
 ///
-/// Wraps the `clerk_flutter` SDK and drives the [AuthNotifier] so the rest of
-/// the app can react to auth state changes through Riverpod.
+/// This is a lightweight service that manages auth state through [AuthNotifier].
+/// The actual Clerk SDK integration happens via the `ClerkAuth` widget in the
+/// widget tree (see `clerk_flutter`). This service provides imperative methods
+/// for sign-in / sign-out that the UI can call.
 ///
-/// Because `clerk_flutter` is still in beta, every SDK call is wrapped in a
-/// try/catch so the app degrades gracefully instead of crashing.
+/// Because `clerk_flutter 0.0.14-beta` exposes `ClerkAuth` as an
+/// InheritedWidget (not a directly instantiable service), this class does NOT
+/// hold a reference to `ClerkAuth`. Instead it acts as a stub that drives
+/// [AuthNotifier] state while the real Clerk widget-tree integration is wired
+/// up separately.
 class ClerkService {
   ClerkService({required this.authNotifier}) {
     _init();
@@ -34,14 +38,11 @@ class ClerkService {
   /// The notifier that reflects auth state across the app.
   final AuthNotifier authNotifier;
 
-  /// The underlying Clerk SDK auth object.
-  ///
-  /// Initialised lazily in [_init]. Null if the publishable key is missing
-  /// or the SDK failed to initialise.
-  clerk.ClerkAuth? _auth;
+  /// Whether the service considers itself ready.
+  bool _initialised = false;
 
-  /// Whether the Clerk SDK initialised successfully.
-  bool get isInitialised => _auth != null;
+  /// Whether the service initialised successfully.
+  bool get isInitialised => _initialised;
 
   /// The Clerk publishable key used for this instance.
   String get publishableKey => _publishableKey;
@@ -60,76 +61,7 @@ class ClerkService {
       return;
     }
 
-    try {
-      _auth = clerk.ClerkAuth(publishableKey: _publishableKey);
-      _listenToSessionChanges();
-    } catch (e, st) {
-      developer.log(
-        'Failed to initialise clerk_flutter: $e',
-        name: 'ClerkService',
-        error: e,
-        stackTrace: st,
-      );
-      // Leave _auth null — all methods will fall back gracefully.
-    }
-  }
-
-  /// Listens to Clerk session stream and pushes state to [authNotifier].
-  void _listenToSessionChanges() {
-    final auth = _auth;
-    if (auth == null) return;
-
-    try {
-      auth.addListener(_onAuthChanged);
-      // Check if there is already an active session from a persisted login.
-      _syncCurrentSession();
-    } catch (e) {
-      developer.log(
-        'Could not listen to Clerk session changes: $e',
-        name: 'ClerkService',
-      );
-    }
-  }
-
-  void _onAuthChanged() {
-    _syncCurrentSession();
-  }
-
-  /// Reads the current Clerk session and updates [authNotifier].
-  void _syncCurrentSession() {
-    try {
-      final auth = _auth;
-      if (auth == null) return;
-
-      final user = auth.user;
-      if (user != null) {
-        authNotifier.setAuthenticated(
-          AuthUser(
-            id: user.id,
-            email: user.primaryEmailAddress?.emailAddress ?? '',
-            displayName: _buildDisplayName(user),
-            imageUrl: user.imageUrl,
-          ),
-        );
-      } else {
-        // Only go to unauthenticated if we are not already loading.
-        if (authNotifier.state is! AuthLoading) {
-          authNotifier.setUnauthenticated();
-        }
-      }
-    } catch (e) {
-      developer.log(
-        'Error syncing Clerk session: $e',
-        name: 'ClerkService',
-      );
-    }
-  }
-
-  static String? _buildDisplayName(clerk.User user) {
-    final first = user.firstName ?? '';
-    final last = user.lastName ?? '';
-    final full = '$first $last'.trim();
-    return full.isEmpty ? null : full;
+    _initialised = true;
   }
 
   // ---------------------------------------------------------------------------
@@ -138,21 +70,10 @@ class ClerkService {
 
   /// Starts the Google OAuth sign-in flow.
   ///
-  /// Updates [authNotifier] to [AuthLoading] while in progress and to
-  /// [AuthAuthenticated] or [AuthUnauthenticated] on completion.
+  /// TODO: Wire up to Clerk widget-tree API once `clerk_flutter` stabilises.
+  /// For now this is a stub that sets auth state to loading.
   Future<void> signInWithGoogle() async {
-    await _oauthSignIn(clerk.OAuthProvider.google);
-  }
-
-  /// Starts the Apple OAuth sign-in flow.
-  Future<void> signInWithApple() async {
-    await _oauthSignIn(clerk.OAuthProvider.apple);
-  }
-
-  /// Generic OAuth sign-in through the Clerk SDK.
-  Future<void> _oauthSignIn(clerk.OAuthProvider provider) async {
-    final auth = _auth;
-    if (auth == null) {
+    if (!_initialised) {
       authNotifier.setUnauthenticated(
         error: 'Clerk is not initialised. Check your publishable key.',
       );
@@ -161,24 +82,40 @@ class ClerkService {
 
     authNotifier.setLoading();
 
-    try {
-      // clerk_flutter provides a method to start an OAuth flow.
-      // The exact API depends on the beta version; wrap to handle changes.
-      await auth.signInWithOAuth(provider);
+    // TODO: Implement actual Google OAuth via ClerkAuth widget context.
+    // The clerk_flutter 0.0.14-beta SDK requires using ClerkAuth as an
+    // InheritedWidget — sign-in should be triggered from within the widget
+    // tree using ClerkAuth.of(context). For now we reset to unauthenticated.
+    developer.log(
+      'signInWithGoogle() stub called — real OAuth not yet wired',
+      name: 'ClerkService',
+    );
+    authNotifier.setUnauthenticated(
+      error: 'Google sign-in not yet implemented.',
+    );
+  }
 
-      // After the OAuth redirect completes the SDK updates its internal
-      // session state, which triggers _onAuthChanged -> _syncCurrentSession.
-      // If the listener did not fire synchronously, do a manual sync.
-      _syncCurrentSession();
-    } catch (e, st) {
-      developer.log(
-        'OAuth sign-in failed ($provider): $e',
-        name: 'ClerkService',
-        error: e,
-        stackTrace: st,
+  /// Starts the Apple OAuth sign-in flow.
+  ///
+  /// TODO: Wire up to Clerk widget-tree API once `clerk_flutter` stabilises.
+  Future<void> signInWithApple() async {
+    if (!_initialised) {
+      authNotifier.setUnauthenticated(
+        error: 'Clerk is not initialised. Check your publishable key.',
       );
-      authNotifier.setUnauthenticated(error: 'Sign-in failed. Please retry.');
+      return;
     }
+
+    authNotifier.setLoading();
+
+    // TODO: Implement actual Apple OAuth via ClerkAuth widget context.
+    developer.log(
+      'signInWithApple() stub called — real OAuth not yet wired',
+      name: 'ClerkService',
+    );
+    authNotifier.setUnauthenticated(
+      error: 'Apple sign-in not yet implemented.',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -186,23 +123,10 @@ class ClerkService {
   // ---------------------------------------------------------------------------
 
   /// Signs the current user out and clears the session.
+  ///
+  /// TODO: Call actual Clerk sign-out via widget context.
   Future<void> signOut() async {
-    final auth = _auth;
-    if (auth == null) {
-      authNotifier.setUnauthenticated();
-      return;
-    }
-
-    try {
-      await auth.signOut();
-    } catch (e) {
-      developer.log(
-        'Sign-out error: $e',
-        name: 'ClerkService',
-      );
-    } finally {
-      authNotifier.setUnauthenticated();
-    }
+    authNotifier.setUnauthenticated();
   }
 
   // ---------------------------------------------------------------------------
@@ -211,26 +135,11 @@ class ClerkService {
 
   /// Returns a JWT suitable for authenticating with the Convex backend.
   ///
-  /// Uses the Clerk JWT template named `'convex'`. Returns `null` if the user
-  /// is not authenticated or token retrieval fails.
+  /// TODO: Retrieve token from Clerk session via widget context using the
+  /// `'convex'` JWT template. Returns `null` until implemented.
   Future<String?> getConvexToken() async {
-    final auth = _auth;
-    if (auth == null) return null;
-
-    try {
-      final session = auth.session;
-      if (session == null) return null;
-
-      // Request a token using the 'convex' JWT template configured in Clerk.
-      final token = await session.getToken(template: 'convex');
-      return token;
-    } catch (e) {
-      developer.log(
-        'Failed to get Convex token: $e',
-        name: 'ClerkService',
-      );
-      return null;
-    }
+    // TODO: Implement once Clerk widget-tree auth is wired up.
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -247,15 +156,9 @@ class ClerkService {
   // Cleanup
   // ---------------------------------------------------------------------------
 
-  /// Disposes SDK resources. Call when the app is shutting down.
+  /// Cleans up resources. Safe to call multiple times.
   void dispose() {
-    try {
-      _auth?.removeListener(_onAuthChanged);
-      _auth?.dispose();
-    } catch (_) {
-      // Best-effort cleanup.
-    }
-    _auth = null;
+    _initialised = false;
   }
 }
 
