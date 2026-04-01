@@ -1,18 +1,20 @@
 /// Theme preference for the application.
-enum ThemeMode {
+///
+/// Named [AppThemeMode] to avoid collision with Flutter's [ThemeMode].
+enum AppThemeMode {
   light,
   dark,
   system;
 
-  static ThemeMode fromJson(String? value) {
+  static AppThemeMode fromJson(String? value) {
     switch (value) {
       case 'light':
-        return ThemeMode.light;
+        return AppThemeMode.light;
       case 'dark':
-        return ThemeMode.dark;
+        return AppThemeMode.dark;
       case 'system':
       default:
-        return ThemeMode.system;
+        return AppThemeMode.system;
     }
   }
 
@@ -125,7 +127,20 @@ enum TranscriptSortBy {
     }
   }
 
-  String toJson() => name;
+  String toJson() {
+    switch (this) {
+      case TranscriptSortBy.recommended:
+        return 'recommended';
+      case TranscriptSortBy.price:
+        return 'price';
+      case TranscriptSortBy.speed:
+        return 'speed';
+      case TranscriptSortBy.quality:
+        return 'quality';
+      case TranscriptSortBy.name:
+        return 'name';
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -422,7 +437,7 @@ class UserSettings {
   final String userId;
 
   /// App theme preference.
-  final ThemeMode theme;
+  final AppThemeMode theme;
 
   /// BCP-47 language code (e.g. "en", "fr").
   final String? language;
@@ -448,7 +463,7 @@ class UserSettings {
   const UserSettings({
     required this.id,
     required this.userId,
-    this.theme = ThemeMode.system,
+    this.theme = AppThemeMode.system,
     this.language,
     this.notifications = const NotificationSettings(),
     this.playback = const PlaybackSettings(),
@@ -462,7 +477,7 @@ class UserSettings {
     return UserSettings(
       id: json['_id'] as String,
       userId: json['userId'] as String,
-      theme: ThemeMode.fromJson(json['theme'] as String?),
+      theme: AppThemeMode.fromJson(json['theme'] as String?),
       language: json['language'] as String?,
       notifications: NotificationSettings.fromJson(
           json['notifications'] as Map<String, dynamic>?),
@@ -496,7 +511,7 @@ class UserSettings {
   UserSettings copyWith({
     String? id,
     String? userId,
-    ThemeMode? theme,
+    AppThemeMode? theme,
     String? language,
     NotificationSettings? notifications,
     PlaybackSettings? playback,

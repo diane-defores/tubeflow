@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// Manages light/dark/system theme switching across the app.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+final themeModeProvider = Provider<ThemeMode>((ref) => ThemeMode.system);
 
 /// Design tokens for the TubeFlow app.
 ///

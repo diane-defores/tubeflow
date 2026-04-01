@@ -99,7 +99,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     AsyncValue<TubeFlowUser?> userAsync,
   ) {
     // Use defaults when settings are null (new user).
-    final darkMode = settings?.theme == ThemeMode.dark;
+    final darkMode = settings?.theme == AppThemeMode.dark;
     final autoPlay = settings?.playback.autoplay ?? true;
     final playbackSpeed = settings?.playback.defaultSpeed ?? 1.0;
     final timestampOnPause = settings?.notes.defaultTimestamped ?? false;

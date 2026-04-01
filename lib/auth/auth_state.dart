@@ -79,15 +79,16 @@ class AuthAuthenticated extends AuthState {
 }
 
 // ---------------------------------------------------------------------------
-// StateNotifier
+// Notifier
 // ---------------------------------------------------------------------------
 
 /// Manages transitions between [AuthState] variants.
 ///
 /// The [ClerkService] drives this notifier — call [setLoading],
 /// [setAuthenticated], or [setUnauthenticated] as the Clerk session changes.
-class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthUnauthenticated());
+class AuthNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() => const AuthUnauthenticated();
 
   /// Transition to the loading state (sign-in initiated).
   void setLoading() => state = const AuthLoading();
@@ -126,6 +127,4 @@ class AuthNotifier extends StateNotifier<AuthState> {
 /// ref.read(authStateProvider.notifier).setAuthenticated(user);
 /// ```
 final authStateProvider =
-    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier();
-});
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
