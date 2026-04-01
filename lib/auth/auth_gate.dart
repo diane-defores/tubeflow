@@ -1,20 +1,77 @@
+import 'dart:developer' as developer;
+
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:tubeflow_app/auth/auth_state.dart';
 
 // ---------------------------------------------------------------------------
 // AuthGate
 // ---------------------------------------------------------------------------
 
-/// Sign-in screen shown when the user is not authenticated.
+/// Sign-in screen that uses [ClerkAuthBuilder] to react to Clerk auth state.
 ///
-/// Uses Clerk's pre-built [ClerkAuthentication] widget which handles Google
-/// and Apple OAuth flows natively. When the user signs in, the
-/// [_ClerkAuthSync] bridge in `main.dart` picks up the state change and
-/// updates [AuthNotifier], causing GoRouter to redirect to the app.
-class AuthGate extends StatelessWidget {
+/// - **Signed out**: shows branding + [ClerkAuthentication] (Google, Apple, etc.)
+/// - **Signed in**: syncs user to [AuthNotifier] → GoRouter redirects to app
+class AuthGate extends ConsumerWidget {
   const AuthGate({super.key, required this.child});
 
-  /// Unused — the router redirects away before this is shown.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ClerkAuthBuilder(
+      signedInBuilder: (context, authState) {
+        // Clerk signed the user in — sync to our AuthNotifier so the
+        // router picks it up and redirects away from /sign-in.
+        _syncSignedIn(ref, context);
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
+      signedOutBuilder: (context, authState) {
+        return _SignInScreen(child: child);
+      },
+    );
+  }
+
+  void _syncSignedIn(WidgetRef ref, BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(authStateProvider.notifier);
+      if (notifier.isAuthenticated) return;
+
+      try {
+        final clerk = ClerkAuth.of(context);
+        final user = clerk.user;
+        if (user != null) {
+          notifier.setAuthenticated(AuthUser(
+            id: user.id,
+            email: user.emailAddresses?.firstOrNull?.identifier ?? '',
+            displayName:
+                '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
+            imageUrl: user.imageUrl,
+          ));
+          return;
+        }
+      } catch (e) {
+        developer.log('Failed to read Clerk user', error: e);
+      }
+
+      // Fallback: mark as authenticated even without user details so
+      // the router can redirect away from the sign-in screen.
+      notifier.setAuthenticated(const AuthUser(id: 'clerk-user', email: ''));
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-in screen
+// ---------------------------------------------------------------------------
+
+class _SignInScreen extends StatelessWidget {
+  const _SignInScreen({required this.child});
+
   final Widget child;
 
   @override

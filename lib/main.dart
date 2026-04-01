@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/app/theme.dart';
-import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
@@ -97,77 +96,10 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
     return ClerkAuth(
       config: ClerkAuthConfig(publishableKey: _clerkPublishableKey),
-      child: ClerkErrorListener(
-        child: _ClerkAuthSync(child: const TubeFlowApp()),
+      child: const ClerkErrorListener(
+        child: TubeFlowApp(),
       ),
     );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Clerk ↔ AuthNotifier bridge
-// ---------------------------------------------------------------------------
-
-/// Listens to Clerk auth state via [ClerkAuthBuilder] and syncs it to
-/// the app's [AuthNotifier] so GoRouter redirects work automatically.
-class _ClerkAuthSync extends ConsumerStatefulWidget {
-  const _ClerkAuthSync({required this.child});
-  final Widget child;
-
-  @override
-  ConsumerState<_ClerkAuthSync> createState() => _ClerkAuthSyncState();
-}
-
-class _ClerkAuthSyncState extends ConsumerState<_ClerkAuthSync> {
-  @override
-  Widget build(BuildContext context) {
-    return ClerkAuthBuilder(
-      signedInBuilder: (context, authState) {
-        _syncSignedIn(context);
-        return widget.child;
-      },
-      signedOutBuilder: (context, authState) {
-        _syncSignedOut();
-        return widget.child;
-      },
-    );
-  }
-
-  void _syncSignedIn(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final notifier = ref.read(authStateProvider.notifier);
-      if (notifier.isAuthenticated) return;
-
-      try {
-        final clerk = ClerkAuth.of(context);
-        final user = clerk.user;
-        if (user != null) {
-          notifier.setAuthenticated(AuthUser(
-            id: user.id,
-            email: user.emailAddresses?.firstOrNull?.identifier ?? '',
-            displayName:
-                '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
-            imageUrl: user.imageUrl,
-          ));
-        }
-      } catch (e) {
-        developer.log('Failed to sync Clerk user', error: e);
-        notifier.setAuthenticated(const AuthUser(
-          id: 'clerk-user',
-          email: '',
-        ));
-      }
-    });
-  }
-
-  void _syncSignedOut() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final notifier = ref.read(authStateProvider.notifier);
-      if (!notifier.isAuthenticated) return;
-      notifier.setUnauthenticated();
-    });
   }
 }
 
