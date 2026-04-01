@@ -145,7 +145,9 @@ class _ClerkAuthSyncState extends ConsumerState<_ClerkAuthSync> {
         if (user != null) {
           notifier.setAuthenticated(AuthUser(
             id: user.id,
-            email: user.primaryEmailAddress?.toString() ?? '',
+            email: user.emailAddresses.isNotEmpty
+                ? user.emailAddresses.first.emailAddress
+                : '',
             displayName:
                 '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
             imageUrl: user.imageUrl,
