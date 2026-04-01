@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,10 +7,18 @@ import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/app/theme.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise the Convex client before Riverpod providers can read it.
+  const convexUrl = String.fromEnvironment(
+    'CONVEX_URL',
+    defaultValue: 'https://your-deployment.convex.cloud',
+  );
+  await ConvexService.initialize(convexUrl);
 
   runApp(
     const ProviderScope(
@@ -48,13 +58,17 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   }
 
   void _bootstrap() {
-    // 1. Eagerly read the ClerkService so it initialises and starts
-    //    listening for session changes.
-    final clerk = ref.read(clerkServiceProvider);
+    try {
+      // 1. Eagerly read the ClerkService so it initialises and starts
+      //    listening for session changes.
+      final clerk = ref.read(clerkServiceProvider);
 
-    // 2. Wire the Convex client to use Clerk tokens for auth.
-    final convex = ref.read(convexServiceProvider);
-    convex.setAuth(() => clerk.getConvexToken());
+      // 2. Wire the Convex client to use Clerk tokens for auth.
+      final convex = ref.read(convexServiceProvider);
+      convex.setAuth(() => clerk.getConvexToken());
+    } catch (e, st) {
+      developer.log('Bootstrap failed', error: e, stackTrace: st);
+    }
 
     if (mounted) {
       setState(() => _initialised = true);

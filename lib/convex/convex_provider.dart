@@ -3,25 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 
 // ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
-
-/// The Convex deployment URL.
-///
-/// Replace with your actual deployment URL or load from environment / config.
-const _convexUrl = String.fromEnvironment(
-  'CONVEX_URL',
-  defaultValue: 'https://your-deployment.convex.cloud',
-);
-
-// ---------------------------------------------------------------------------
 // Singleton Convex service
 // ---------------------------------------------------------------------------
 
 /// Provides a single, app-wide [ConvexService] instance.
 ///
-/// The service must be initialised before the provider is first read — call
-/// `ConvexService.initialize(_convexUrl)` in `main()` before `runApp()`.
+/// The service must be initialised before the provider is first read —
+/// `ConvexService.initialize()` is called in `main()` before `runApp()`.
 ///
 /// The service is disposed when the provider scope is destroyed.
 final convexServiceProvider = Provider<ConvexService>((ref) {
