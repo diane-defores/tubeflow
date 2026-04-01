@@ -65,66 +65,13 @@ class ClerkService {
   }
 
   // ---------------------------------------------------------------------------
-  // Sign-in methods
-  // ---------------------------------------------------------------------------
-
-  /// Starts the Google OAuth sign-in flow.
-  ///
-  /// TODO: Wire up to Clerk widget-tree API once `clerk_flutter` stabilises.
-  /// For now this is a stub that sets auth state to loading.
-  Future<void> signInWithGoogle() async {
-    if (!_initialised) {
-      authNotifier.setUnauthenticated(
-        error: 'Clerk is not initialised. Check your publishable key.',
-      );
-      return;
-    }
-
-    authNotifier.setLoading();
-
-    // TODO: Implement actual Google OAuth via ClerkAuth widget context.
-    // The clerk_flutter 0.0.14-beta SDK requires using ClerkAuth as an
-    // InheritedWidget — sign-in should be triggered from within the widget
-    // tree using ClerkAuth.of(context). For now we reset to unauthenticated.
-    developer.log(
-      'signInWithGoogle() stub called — real OAuth not yet wired',
-      name: 'ClerkService',
-    );
-    authNotifier.setUnauthenticated(
-      error: 'Google sign-in not yet implemented.',
-    );
-  }
-
-  /// Starts the Apple OAuth sign-in flow.
-  ///
-  /// TODO: Wire up to Clerk widget-tree API once `clerk_flutter` stabilises.
-  Future<void> signInWithApple() async {
-    if (!_initialised) {
-      authNotifier.setUnauthenticated(
-        error: 'Clerk is not initialised. Check your publishable key.',
-      );
-      return;
-    }
-
-    authNotifier.setLoading();
-
-    // TODO: Implement actual Apple OAuth via ClerkAuth widget context.
-    developer.log(
-      'signInWithApple() stub called — real OAuth not yet wired',
-      name: 'ClerkService',
-    );
-    authNotifier.setUnauthenticated(
-      error: 'Apple sign-in not yet implemented.',
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // Sign-out
   // ---------------------------------------------------------------------------
 
   /// Signs the current user out and clears the session.
   ///
-  /// TODO: Call actual Clerk sign-out via widget context.
+  /// Note: Sign-in is handled by the [ClerkAuthentication] widget in the
+  /// widget tree. This method only handles sign-out via [AuthNotifier].
   Future<void> signOut() async {
     authNotifier.setUnauthenticated();
   }

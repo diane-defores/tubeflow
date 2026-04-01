@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,10 +11,15 @@ import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 
+/// Clerk publishable key injected at build time via `--dart-define`.
+const _clerkPublishableKey = String.fromEnvironment(
+  'CLERK_PUBLISHABLE_KEY',
+  defaultValue: '',
+);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialise the Convex client before Riverpod providers can read it.
   const convexUrl = String.fromEnvironment(
     'CONVEX_URL',
     defaultValue: 'https://your-deployment.convex.cloud',
@@ -77,7 +83,6 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
   @override
   Widget build(BuildContext context) {
-    // Show a minimal splash while bootstrapping (typically < 1 frame).
     if (!_initialised) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -85,14 +90,84 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
         home: const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
+          body: Center(child: CircularProgressIndicator()),
         ),
       );
     }
 
-    return const TubeFlowApp();
+    return ClerkAuth(
+      config: ClerkAuthConfig(publishableKey: _clerkPublishableKey),
+      child: ClerkErrorListener(
+        child: _ClerkAuthSync(child: const TubeFlowApp()),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Clerk ↔ AuthNotifier bridge
+// ---------------------------------------------------------------------------
+
+/// Listens to Clerk auth state via [ClerkAuthBuilder] and syncs it to
+/// the app's [AuthNotifier] so GoRouter redirects work automatically.
+class _ClerkAuthSync extends ConsumerStatefulWidget {
+  const _ClerkAuthSync({required this.child});
+  final Widget child;
+
+  @override
+  ConsumerState<_ClerkAuthSync> createState() => _ClerkAuthSyncState();
+}
+
+class _ClerkAuthSyncState extends ConsumerState<_ClerkAuthSync> {
+  @override
+  Widget build(BuildContext context) {
+    return ClerkAuthBuilder(
+      signedInBuilder: (context, authState) {
+        _syncSignedIn(context);
+        return widget.child;
+      },
+      signedOutBuilder: (context, authState) {
+        _syncSignedOut();
+        return widget.child;
+      },
+    );
+  }
+
+  void _syncSignedIn(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(authStateProvider.notifier);
+      if (notifier.isAuthenticated) return;
+
+      try {
+        final clerk = ClerkAuth.of(context);
+        final user = clerk.user;
+        if (user != null) {
+          notifier.setAuthenticated(AuthUser(
+            id: user.id,
+            email: user.primaryEmailAddress?.toString() ?? '',
+            displayName:
+                '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
+            imageUrl: user.imageUrl,
+          ));
+        }
+      } catch (e) {
+        developer.log('Failed to sync Clerk user', error: e);
+        notifier.setAuthenticated(const AuthUser(
+          id: 'clerk-user',
+          email: '',
+        ));
+      }
+    });
+  }
+
+  void _syncSignedOut() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(authStateProvider.notifier);
+      if (!notifier.isAuthenticated) return;
+      notifier.setUnauthenticated();
+    });
   }
 }
 
