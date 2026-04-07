@@ -252,3 +252,37 @@
 .blog-content ol { list-style-type: decimal; }
 .blog-content li { margin-bottom: 0.5rem; }
 .blog-content li::marker { color: var(--muted-foreground); }
+.blog-content blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.blog-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+.blog-content code {
+  font-size: 0.875em;
+  background: var(--muted);
+  color: var(--foreground);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, monospace;
+}
+.blog-content pre {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+.blog-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+  border-radius: 0;
+}

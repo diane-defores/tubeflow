@@ -135,18 +135,18 @@ const jsonLd = [{
                 </td>
                 <td class="py-4 text-center">
                   {item.youtube === true ? (
-                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Yes" role="img"><path d="M20 6 9 17l-5-5"/></svg>
                   ) : item.youtube === false ? (
-                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="No" role="img"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   ) : (
                     <span class="text-sm text-muted-foreground">{item.youtube}</span>
                   )}
                 </td>
                 <td class="py-4 text-center">
                   {item.tubeflow === true ? (
-                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Yes" role="img"><path d="M20 6 9 17l-5-5"/></svg>
                   ) : item.tubeflow === false ? (
-                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="No" role="img"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   ) : (
                     <span class="text-sm text-muted-foreground">{item.tubeflow}</span>
                   )}

@@ -118,12 +118,15 @@ const jsonLd = [
     <section class="bg-card py-16 sm:py-24">
       <div class="max-w-3xl mx-auto px-4">
         <h2 class="text-center text-3xl font-bold text-foreground mb-12" style="font-family: var(--font-instrument-sans);">Frequently Asked Questions</h2>
-        <div class="space-y-8">
+        <div class="space-y-2">
           {faqs.map((faq) => (
-            <div>
-              <h3 class="text-lg font-semibold text-foreground">{faq.q}</h3>
-              <p class="mt-2 text-muted-foreground">{faq.a}</p>
-            </div>
+            <details class="group border border-border rounded-xl overflow-hidden">
+              <summary class="flex items-center justify-between gap-4 cursor-pointer px-6 py-5 text-base font-semibold text-foreground list-none hover:bg-muted/40 transition-colors">
+                {faq.q}
+                <svg class="w-5 h-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </summary>
+              <p class="px-6 pb-5 pt-1 text-muted-foreground leading-relaxed">{faq.a}</p>
+            </details>
           ))}
         </div>
       </div>

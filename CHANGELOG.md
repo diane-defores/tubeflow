@@ -20,6 +20,13 @@ All notable changes to this project will be documented in this file.
 - Custom blog prose CSS styles
 - Footer links updated to point to real pages
 
+### Fixed
+- Newsletter: submit feedback with success (emerald) / error (red) states, loading + disabled button during request, aria-live region for screen readers
+- Pricing FAQ: converted static divs to native `<details>`/`<summary>` accordion — keyboard accessible, chevron animates on open
+- Blog prose: added blockquote, `<hr>`, inline `<code>`, and `<pre><code>` styles to `.blog-content`
+- Compare table: added `aria-label="Yes/No"` + `role="img"` to all check/x SVGs in feature table cells
+- Benefits section: replaced generic "note-taking app" copy with video-learning specific content (Timestamped Notes, Searchable Knowledge Base, Distraction-Free Learning, AI Summaries)
+
 ### Changed
 - All placeholder "Apex" copy replaced with real TubeFlow product content from apps/web i18n
 - Hero: "Stop Fighting YouTube's Algorithm. Start Enjoying Your Content."
