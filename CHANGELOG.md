@@ -6,21 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Full landing page migrated from Next.js (v0-winflowz-landing) to Astro 6
-- 7 Astro components: Navbar, Hero, LogoMarquee, BentoGrid, Pricing, FinalCTA, Footer
 - Tailwind CSS 4 with dark theme (oklch color tokens)
-- Lenis smooth scroll
-- CSS animations replacing Framer Motion: text reveal, fade-up, scroll-triggered reveals via IntersectionObserver
-- Navbar sliding hover pill effect
-- Interactive billing cycle toggle (monthly/yearly) with vanilla JS
-- Responsive mobile menu with hamburger toggle
-- Micro-animations: system status dots flickering, keyboard shortcut press effect
-- All CSS effects ported: shimmer buttons, pulse glow, marquee, chart draw-line, border beam
-- Social proof headshot images
+- Lenis smooth scroll, navbar hover pill, micro-animations
+- CSS animations replacing Framer Motion: text reveal, fade-up, scroll-triggered reveals
+- Homepage sections from apps/web: ProblemSection, SolutionSection, Benefits, Testimonials, Newsletter
+- Features page (/features) with 8-card grid + How It Works 3-step flow
+- Pricing page (/pricing) with Free/Pro plans + FAQ section + Product JSON-LD
+- Compare page (/compare) — YouTube vs TubeFlow: feature table, use cases, pricing comparison, verdict
+- Blog with Astro content collections: 3 MDX posts migrated, index page, dynamic [slug] routes
+- Terms of Service (/terms) and Privacy Policy (/privacy) pages
+- SEO: Open Graph, Twitter Card, canonical URLs on all pages
+- JSON-LD structured data: WebSite, Organization, WebApplication, BreadcrumbList, BlogPosting, Product, FAQ schemas
+- Custom blog prose CSS styles
+- Footer links updated to point to real pages
 
 ### Changed
-- All placeholder "Apex" copy replaced with real TubeFlow product content
-- Hero: "Ship faster. Scale smarter." → "Watch. Note. Remember."
-- Features: generic SaaS features → Timestamped Notes, Keyboard-first, Smart Playlists, Instant Search, Export Anywhere
-- Pricing: Starter/Pro/Enterprise → Free/Premium/Team with real TubeFlow feature sets
-- LogoMarquee: tech company logos → video/learning platforms (YouTube, Coursera, Obsidian, etc.)
-- FinalCTA, Footer, meta tags updated with TubeFlow messaging
+- All placeholder "Apex" copy replaced with real TubeFlow product content from apps/web i18n
+- Hero: "Stop Fighting YouTube's Algorithm. Start Enjoying Your Content."
+- Features: Smart Organization, Subscription Dashboard, Intelligent Search, Distraction-Free, Cross-Device Sync, Privacy-First
+- Pricing: Free ($0) / Pro ($9) / Team ($29) matching real i18n values
+- Testimonials: 3 real reviews (Ryan Lowry, John Collins, Moe Partuj)
+- LogoMarquee removed (not in source app)

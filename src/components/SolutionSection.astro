@@ -1,0 +1,44 @@
+---
+const solutions = [
+  {
+    icon: '✨',
+    title: 'Thematic Playlists',
+    description: 'Create playlists by topic, mood, or project. Make them your primary way to navigate YouTube.',
+  },
+  {
+    icon: '🏛️',
+    title: 'Subscription Control',
+    description: "Group channels into categories. See what's new from your favorites without the noise.",
+  },
+  {
+    icon: '🚫',
+    title: 'Zero Algorithmic Interference',
+    description: 'No suggestions. No rabbit holes. Just the content you chose to watch.',
+  },
+]
+---
+
+<section class="py-16 sm:py-24 bg-background">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12 sm:mb-16" data-reveal>
+      <h2
+        class="animate-fade-up text-3xl sm:text-4xl font-bold text-foreground mb-4"
+        style="font-family: var(--font-instrument-sans);"
+      >
+        Your Content, Your Rules
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-reveal>
+      {solutions.map((solution, index) => (
+        <div
+          class={`animate-fade-up delay-${(index + 1) * 100} group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 text-center`}
+        >
+          <span class="text-4xl sm:text-5xl block mb-4">{solution.icon}</span>
+          <h3 class="text-xl sm:text-2xl font-semibold text-foreground mb-3">{solution.title}</h3>
+          <p class="text-base text-muted-foreground leading-relaxed">{solution.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

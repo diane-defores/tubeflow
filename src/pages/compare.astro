@@ -1,0 +1,236 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Navbar from '../components/Navbar.astro'
+import Footer from '../components/Footer.astro'
+
+const features = [
+  { feature: 'Timestamped Notes', desc: 'Take notes linked to specific moments in videos', youtube: false, tubeflow: true },
+  { feature: 'Click to Seek', desc: 'Click a note to jump to that exact moment', youtube: false, tubeflow: true },
+  { feature: 'Search Across All Notes', desc: 'Find any insight from any video instantly', youtube: false, tubeflow: true },
+  { feature: 'Distraction-Free Interface', desc: 'No ads, no recommendations, just learning', youtube: false, tubeflow: true },
+  { feature: 'Learning-Focused Playlists', desc: 'Organize videos by topic or course', youtube: 'Basic', tubeflow: true },
+  { feature: 'Export Notes', desc: 'Export to Markdown, PDF, or plain text', youtube: false, tubeflow: true },
+  { feature: 'AI-Powered Summaries', desc: 'Get automatic summaries of video content', youtube: false, tubeflow: 'Pro' },
+  { feature: 'Cross-Device Sync', desc: 'Access your notes on any device', youtube: false, tubeflow: true },
+  { feature: 'Video Recommendations', desc: 'Algorithm-driven content suggestions', youtube: true, tubeflow: false },
+  { feature: 'Comments & Social', desc: 'Community interaction features', youtube: true, tubeflow: false },
+  { feature: 'Live Streaming', desc: 'Watch and broadcast live content', youtube: true, tubeflow: false },
+  { feature: 'Content Creation Tools', desc: 'Upload and edit your own videos', youtube: true, tubeflow: false },
+]
+
+const useCases = [
+  { title: 'Online Course Student', youtube: 'Watch lectures, try to remember timestamps, lose track of key concepts across multiple videos.', tubeflow: 'Take notes at exact moments, search all course notes instantly, never lose an insight again.', winner: 'tubeflow' },
+  { title: 'Professional Development', youtube: 'Get distracted by recommendations, spend hours in rabbit holes, forget what you learned.', tubeflow: 'Focused learning sessions, organized by topic, build a searchable knowledge base over time.', winner: 'tubeflow' },
+  { title: 'Research & Analysis', youtube: "Manually track timestamps in a separate doc, lose context, struggle to find specific moments.", tubeflow: 'Integrated notes with timestamps, click to seek, export research to your preferred format.', winner: 'tubeflow' },
+  { title: 'Casual Entertainment', youtube: 'Endless content discovery, personalized recommendations, social features, live streams.', tubeflow: "Not designed for entertainment—focused purely on intentional learning.", winner: 'youtube' },
+  { title: 'Content Creator', youtube: 'Full suite of creation tools, audience building, monetization, analytics, live streaming.', tubeflow: "Not a content platform—designed for consuming and learning from video.", winner: 'youtube' },
+]
+
+const benefits = [
+  { title: 'Retain More Information', desc: 'Active note-taking increases retention by up to 34% compared to passive watching. TubeFlow makes it effortless.' },
+  { title: 'Save Time Reviewing', desc: 'Click any note to jump to that exact moment. No more scrubbing through hours of video to find what you need.' },
+  { title: 'Build a Second Brain', desc: 'Every video you watch becomes part of your searchable knowledge base. Your insights compound over time.' },
+  { title: 'Stay Focused', desc: 'No algorithmic rabbit holes, no ads, no distractions. Just you, the video, and your learning goals.' },
+]
+
+const jsonLd = [{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://tubeflow.app/" },
+    { "@type": "ListItem", position: 2, name: "YouTube vs TubeFlow", item: "https://tubeflow.app/compare" },
+  ],
+}]
+---
+
+<Layout
+  title="YouTube vs TubeFlow: Which is Better for Learning?"
+  description="Compare YouTube and TubeFlow side-by-side. See why serious learners choose TubeFlow for video-based learning."
+  path="/compare"
+  jsonLd={jsonLd}
+>
+  <main class="min-h-screen bg-background text-foreground">
+    <Navbar />
+
+    <!-- Hero -->
+    <section class="max-w-5xl mx-auto px-4 pt-32 pb-16 text-center">
+      <span class="inline-block rounded-full bg-foreground/10 px-4 py-2 text-sm font-medium text-foreground mb-6">Comparison</span>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground" style="font-family: var(--font-cal-sans);">
+        YouTube vs TubeFlow
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+        YouTube is great for entertainment. TubeFlow is built for <span class="font-semibold text-foreground">learning</span>. See how they compare for serious video-based learning.
+      </p>
+      <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a href="#" class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">Try TubeFlow Free</a>
+        <a href="#features" class="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground transition-colors">See Full Comparison</a>
+      </div>
+    </section>
+
+    <!-- Quick Summary Cards -->
+    <section class="max-w-5xl mx-auto px-4 py-16">
+      <div class="grid gap-8 md:grid-cols-2">
+        <!-- YouTube -->
+        <div class="rounded-2xl border border-border bg-card p-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-500/10">
+              <svg class="h-6 w-6 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-foreground">YouTube</h2>
+          </div>
+          <p class="text-muted-foreground mb-6">The world's largest video platform. Perfect for entertainment, discovery, and content creation.</p>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Billions of videos</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Powerful recommendations</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Social features & community</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Designed to maximize watch time</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> No note-taking features</div>
+          </div>
+          <p class="mt-6 text-sm font-medium text-muted-foreground">Best for: Entertainment, discovery, content creation</p>
+        </div>
+
+        <!-- TubeFlow -->
+        <div class="rounded-2xl border-2 border-foreground/30 bg-card p-8 shadow-lg">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-foreground/10">
+              <svg class="h-6 w-6 text-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-foreground">TubeFlow</h2>
+            <span class="rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background">For Learners</span>
+          </div>
+          <p class="text-muted-foreground mb-6">A learning-focused video platform. Built for retention, organization, and active note-taking.</p>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Timestamped notes</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Distraction-free interface</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Searchable knowledge base</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Works with any video URL</div>
+            <div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Export your notes anywhere</div>
+          </div>
+          <p class="mt-6 text-sm font-medium text-foreground">Best for: Online courses, professional development, research</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Comparison Table -->
+    <section id="features" class="max-w-5xl mx-auto px-4 py-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">Feature-by-Feature Comparison</h2>
+        <p class="mt-4 text-muted-foreground">See exactly what each platform offers</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="py-4 pr-4 text-left font-semibold text-foreground">Feature</th>
+              <th class="w-32 py-4 text-center font-semibold text-foreground">YouTube</th>
+              <th class="w-32 py-4 text-center font-semibold text-foreground">TubeFlow</th>
+            </tr>
+          </thead>
+          <tbody>
+            {features.map((item) => (
+              <tr class="border-b border-border">
+                <td class="py-4 pr-4">
+                  <div class="font-medium text-foreground">{item.feature}</div>
+                  <div class="text-sm text-muted-foreground">{item.desc}</div>
+                </td>
+                <td class="py-4 text-center">
+                  {item.youtube === true ? (
+                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                  ) : item.youtube === false ? (
+                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  ) : (
+                    <span class="text-sm text-muted-foreground">{item.youtube}</span>
+                  )}
+                </td>
+                <td class="py-4 text-center">
+                  {item.tubeflow === true ? (
+                    <svg class="mx-auto w-5 h-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                  ) : item.tubeflow === false ? (
+                    <svg class="mx-auto w-5 h-5 text-muted-foreground/50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  ) : (
+                    <span class="text-sm text-muted-foreground">{item.tubeflow}</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="max-w-5xl mx-auto px-4 py-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">Which is Right for You?</h2>
+        <p class="mt-4 text-muted-foreground">The best choice depends on your goals</p>
+      </div>
+      <div class="space-y-6">
+        {useCases.map((uc) => (
+          <div class="rounded-xl border border-border bg-card p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <h3 class="font-semibold text-foreground">{uc.title}</h3>
+              <span class={`text-xs font-medium ${uc.winner === 'tubeflow' ? 'text-foreground' : 'text-red-400'}`}>
+                Better with {uc.winner === 'tubeflow' ? 'TubeFlow' : 'YouTube'}
+              </span>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class={`rounded-lg p-4 ${uc.winner === 'youtube' ? 'bg-emerald-500/5 ring-1 ring-emerald-500/20' : 'bg-muted/50'}`}>
+                <span class="text-xs font-medium text-muted-foreground">YouTube</span>
+                <p class="mt-1 text-sm text-foreground">{uc.youtube}</p>
+              </div>
+              <div class={`rounded-lg p-4 ${uc.winner === 'tubeflow' ? 'bg-foreground/5 ring-1 ring-foreground/20' : 'bg-muted/50'}`}>
+                <span class="text-xs font-medium text-foreground">TubeFlow</span>
+                <p class="mt-1 text-sm text-foreground">{uc.tubeflow}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="max-w-5xl mx-auto px-4 py-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">Why Learners Choose TubeFlow</h2>
+      </div>
+      <div class="grid gap-8 md:grid-cols-2">
+        {benefits.map((b) => (
+          <div class="rounded-xl border border-border bg-card p-6">
+            <h3 class="text-lg font-semibold text-foreground mb-2">{b.title}</h3>
+            <p class="text-muted-foreground">{b.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Verdict -->
+    <section class="max-w-3xl mx-auto px-4 py-16 text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold text-foreground mb-8" style="font-family: var(--font-instrument-sans);">The Verdict</h2>
+      <div class="rounded-xl border border-border bg-card p-8 text-left">
+        <p class="text-lg text-muted-foreground">
+          <span class="font-semibold text-foreground">YouTube</span> is the world's best platform for video entertainment, discovery, and content creation. It's perfect for casual viewing.
+        </p>
+        <div class="my-6 border-t border-border"></div>
+        <p class="text-lg text-muted-foreground">
+          <span class="font-semibold text-foreground">TubeFlow</span> is built specifically for <span class="font-semibold text-foreground">learning</span>. If you watch videos to gain knowledge&mdash;online courses, tutorials, lectures, conference talks&mdash;TubeFlow helps you retain more and waste less time.
+        </p>
+        <div class="my-6 border-t border-border"></div>
+        <p class="text-lg font-medium text-foreground text-center">
+          They're not competitors. They're complementary tools for different purposes.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="max-w-3xl mx-auto px-4 py-16 text-center">
+      <h2 class="text-3xl font-bold text-foreground mb-4">Ready to learn smarter?</h2>
+      <p class="text-lg text-muted-foreground mb-8">TubeFlow works with YouTube videos&mdash;and any other video URL. Start taking timestamped notes today.</p>
+      <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <a href="#" class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">Start Free Today</a>
+        <a href="/pricing" class="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground transition-colors">View Pricing</a>
+      </div>
+    </section>
+
+    <Footer />
+  </main>
+</Layout>

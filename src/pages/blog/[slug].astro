@@ -1,0 +1,98 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Navbar from '../../components/Navbar.astro'
+import Footer from '../../components/Footer.astro'
+import { getCollection, render } from 'astro:content'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog')
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }))
+}
+
+const { post } = Astro.props
+const { Content } = await render(post)
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.data.title,
+    description: post.data.description,
+    url: `https://tubeflow.app/blog/${post.id}`,
+    datePublished: post.data.date,
+    dateModified: post.data.date,
+    author: { "@type": "Organization", name: post.data.author || "TubeFlow" },
+    publisher: {
+      "@type": "Organization",
+      name: "TubeFlow",
+      logo: { "@type": "ImageObject", url: "https://tubeflow.app/icon-512.png" },
+    },
+    image: "https://tubeflow.app/og-image.png",
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://tubeflow.app/blog/${post.id}` },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://tubeflow.app/" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://tubeflow.app/blog" },
+      { "@type": "ListItem", position: 3, name: post.data.title, item: `https://tubeflow.app/blog/${post.id}` },
+    ],
+  },
+]
+---
+
+<Layout
+  title={`${post.data.title} - TubeFlow`}
+  description={post.data.description}
+  path={`/blog/${post.id}`}
+  jsonLd={jsonLd}
+>
+  <main class="min-h-screen bg-background text-foreground">
+    <Navbar />
+
+    <article class="max-w-3xl mx-auto px-4 pt-32 pb-16">
+      <header class="mb-10">
+        <a href="/blog" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          Back to Blog
+        </a>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4" style="font-family: var(--font-cal-sans);">
+          {post.data.title}
+        </h1>
+        <div class="flex items-center gap-4 text-sm text-muted-foreground">
+          <time datetime={post.data.date}>
+            {new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+          {post.data.author && <span>by {post.data.author}</span>}
+        </div>
+        {post.data.tags && post.data.tags.length > 0 && (
+          <div class="flex gap-2 mt-4">
+            {post.data.tags.map((tag) => (
+              <span class="px-3 py-1 rounded-full bg-card border border-border text-xs text-muted-foreground">{tag}</span>
+            ))}
+          </div>
+        )}
+      </header>
+
+      <div class="blog-content">
+        <Content />
+      </div>
+
+      <!-- CTA -->
+      <div class="mt-16 p-8 rounded-2xl bg-card border border-border text-center">
+        <h3 class="text-xl font-bold text-foreground mb-3">Ready to transform how you learn from video?</h3>
+        <p class="text-muted-foreground mb-6">Start taking smarter notes with TubeFlow — free forever.</p>
+        <a href="/" class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">
+          Get Started Free
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </article>
+
+    <Footer />
+  </main>
+</Layout>

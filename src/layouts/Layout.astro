@@ -4,9 +4,59 @@ import '../styles/global.css'
 interface Props {
   title?: string
   description?: string
+  path?: string
+  image?: string
+  noIndex?: boolean
+  jsonLd?: Record<string, unknown>[]
 }
 
-const { title = 'TubeFlow - Watch. Note. Remember.', description = 'Take timestamped notes while watching videos. One click to jump back to any moment. Never lose context again.' } = Astro.props
+const BASE_URL = 'https://tubeflow.app'
+
+const {
+  title = 'TubeFlow - The Smart Way to Learn from Online Videos',
+  description = 'Watch videos, take timestamped notes, and organize your learning with TubeFlow. Never lose an insight again.',
+  path = '',
+  image = '/og-image.png',
+  noIndex = false,
+  jsonLd = [],
+} = Astro.props
+
+const canonicalUrl = `${BASE_URL}${path}`
+const ogImageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`
+
+const defaultSchemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "TubeFlow",
+    url: BASE_URL,
+    description: "The smart way to learn from online videos",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TubeFlow",
+    url: BASE_URL,
+    logo: `${BASE_URL}/icon-512.png`,
+    sameAs: [],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "TubeFlow",
+    url: BASE_URL,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    description: "Watch videos, take timestamped notes, and organize your learning with TubeFlow.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  },
+]
+
+const allSchemas = [...defaultSchemas, ...jsonLd]
 ---
 
 <html lang="en">
@@ -17,9 +67,37 @@ const { title = 'TubeFlow - Watch. Note. Remember.', description = 'Take timesta
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="TubeFlow" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data -->
+    {allSchemas.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))}
+
     <title>{title}</title>
   </head>
   <body>

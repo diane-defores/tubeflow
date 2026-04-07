@@ -197,3 +197,46 @@
 [data-reveal].revealed {
   opacity: 1;
 }
+
+/* Blog prose */
+.blog-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+}
+.blog-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+.blog-content p {
+  color: var(--muted-foreground);
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+}
+.blog-content strong {
+  color: var(--foreground);
+}
+.blog-content a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.blog-content a:hover {
+  opacity: 0.8;
+}
+.blog-content ul, .blog-content ol {
+  color: var(--muted-foreground);
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.75;
+}
+.blog-content ul { list-style-type: disc; }
+.blog-content ol { list-style-type: decimal; }
+.blog-content li { margin-bottom: 0.5rem; }
+.blog-content li::marker { color: var(--muted-foreground); }

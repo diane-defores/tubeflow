@@ -1,139 +1,119 @@
-<section id="features" class="py-24 px-4 bg-background">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-16" data-reveal>
-      <h2 class="animate-fade-up text-3xl sm:text-4xl font-bold text-foreground mb-4" style="font-family: var(--font-instrument-sans);">
-        Everything you need to learn from video
+<section id="features" class="py-16 sm:py-24 bg-background">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12 sm:mb-16" data-reveal>
+      <p class="animate-fade-up text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Features</p>
+      <h2 class="animate-fade-up delay-100 text-3xl sm:text-4xl font-bold text-foreground mb-4" style="font-family: var(--font-instrument-sans);">
+        Everything You Need, Nothing You Don't
       </h2>
-      <p class="animate-fade-up delay-100 text-muted-foreground max-w-2xl mx-auto">
-        Stop rewatching. Start retaining. TubeFlow turns passive video consumption into active learning.
-      </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Timestamped Notes (large card) -->
-      <div class="md:col-span-2 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 overflow-hidden" data-reveal>
-        <div class="animate-fade-up flex items-start justify-between mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-reveal>
+      <!-- Smart Organization (large card) -->
+      <div class="md:col-span-2 animate-fade-up group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 overflow-hidden">
+        <div class="flex items-start justify-between">
           <div>
-            <div class="p-2 rounded-lg bg-muted w-fit mb-4">
-              <!-- Clock icon -->
-              <svg class="w-5 h-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Smart Organization</h3>
+            <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Organize videos by theme, topic, or mood. Build your own learning paths, entertainment queues, or inspiration libraries.
+            </p>
+          </div>
+          <!-- Playlist organizer animation -->
+          <div class="hidden sm:block w-[260px] shrink-0" id="playlist-organizer">
+            <div class="flex flex-col gap-1" id="playlist-unsorted">
+              <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500"></div>
+                <span class="text-[10px] text-muted-foreground truncate">React Hooks Deep Dive</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-purple-500"></div>
+                <span class="text-[10px] text-muted-foreground truncate">Lo-fi Study Beats</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500"></div>
+                <span class="text-[10px] text-muted-foreground truncate">Advanced TypeScript</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-purple-500"></div>
+                <span class="text-[10px] text-muted-foreground truncate">Jazz for Coding</span>
+              </div>
+              <div class="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                <div class="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500"></div>
+                <span class="text-[10px] text-muted-foreground truncate">CSS Grid Mastery</span>
+              </div>
             </div>
-            <h3 class="text-xl font-semibold text-foreground mb-2">Timestamped Notes</h3>
-            <p class="text-muted-foreground text-sm">Take notes while watching. Every note is linked to the exact moment in the video. One click to jump back.</p>
-          </div>
-          <div class="flex items-center gap-2" id="system-status">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="w-2 h-2 rounded-full bg-zinc-700"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           </div>
         </div>
-        <div class="grid grid-cols-4 gap-4">
-          <div class="text-center">
-            <div class="text-2xl font-bold text-foreground mb-1 font-mono">3:42</div>
-            <div class="text-xs text-muted-foreground">Timestamp</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-foreground mb-1">1-click</div>
-            <div class="text-xs text-muted-foreground">Jump back</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-foreground mb-1">Real-time</div>
-            <div class="text-xs text-muted-foreground">Sync</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-foreground mb-1">&infin;</div>
-            <div class="text-xs text-muted-foreground">Notes</div>
-          </div>
-        </div>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm mt-2">Find what you need in seconds</span>
       </div>
 
-      <!-- Keyboard Shortcuts -->
-      <div class="group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300" data-reveal>
-        <div class="animate-fade-up delay-100">
-          <div class="p-2 rounded-lg bg-muted w-fit mb-4">
-            <!-- Keyboard icon -->
-            <svg class="w-5 h-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold text-foreground mb-2">Keyboard-first</h3>
-          <p class="text-muted-foreground text-sm mb-6">Create a note at the current timestamp without leaving the keyboard. Stay in flow.</p>
-          <div class="flex items-center gap-1" id="kbd-container">
-            <kbd class="kbd-key px-2 py-1 text-xs bg-muted border border-border rounded text-foreground/80 font-mono transition-transform duration-100">⌘</kbd>
-            <kbd class="kbd-key px-2 py-1 text-xs bg-muted border border-border rounded text-foreground/80 font-mono transition-transform duration-100">N</kbd>
-          </div>
-        </div>
+      <!-- Subscription Dashboard -->
+      <div class="animate-fade-up delay-100 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+        <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Subscription Dashboard</h3>
+        <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+          A clean, organized view of all your subscriptions. Sort by upload frequency, last watched, or custom categories.
+        </p>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Stay connected to what matters</span>
       </div>
 
-      <!-- Smart Playlists -->
-      <div class="group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300" data-reveal>
-        <div class="animate-fade-up delay-200">
-          <div class="p-2 rounded-lg bg-muted w-fit mb-4">
-            <!-- Bookmark icon -->
-            <svg class="w-5 h-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold text-foreground mb-2">Smart Playlists</h3>
-          <p class="text-muted-foreground text-sm mb-4">Organize videos by topic, course, or project. Import directly from YouTube.</p>
-          <svg viewBox="0 0 100 70" class="w-full h-24">
-            <defs>
-              <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgb(255,255,255)" stop-opacity="0.2" />
-                <stop offset="100%" stop-color="rgb(255,255,255)" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path d="M 0 60 L 20 45 L 40 55 L 60 30 L 80 40 L 100 15 L 100 70 L 0 70 Z" fill="url(#chartGradient)" class="opacity-50" />
-            <path d="M 0 60 L 20 45 L 40 55 L 60 30 L 80 40 L 100 15" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" class="draw-line" />
-          </svg>
+      <!-- Intelligent Search -->
+      <div class="animate-fade-up delay-200 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+        <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Intelligent Search</h3>
+        <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Search across all your saved content, playlists, and subscriptions. Filter by duration, date, channel, or custom tags.
+        </p>
+        <div class="flex items-center gap-1 mb-4" id="kbd-container">
+          <kbd class="kbd-key px-2 py-1 text-xs bg-muted border border-border rounded text-foreground/80 font-mono transition-transform duration-100">⌘</kbd>
+          <kbd class="kbd-key px-2 py-1 text-xs bg-muted border border-border rounded text-foreground/80 font-mono transition-transform duration-100">K</kbd>
         </div>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Your content library, searchable</span>
       </div>
 
-      <!-- Instant Search -->
-      <div class="group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300" data-reveal>
-        <div class="animate-fade-up delay-300">
-          <div class="p-2 rounded-lg bg-muted w-fit mb-4">
-            <!-- Search icon -->
-            <svg class="w-5 h-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold text-foreground mb-2">Instant Search</h3>
-          <p class="text-muted-foreground text-sm mb-4">Find any note across all your videos in milliseconds. Search by keyword, topic, or timestamp.</p>
-          <div class="flex items-center gap-2 text-emerald-500 text-sm">
-            <span class="font-mono">&lt;50ms</span>
-            <span class="text-muted-foreground">search time</span>
-          </div>
-        </div>
+      <!-- Distraction-Free Viewing -->
+      <div class="animate-fade-up delay-300 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+        <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Distraction-Free Viewing</h3>
+        <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+          No suggested videos pulling you away. No autoplay to random content. Just your curated playlists and intentional viewing.
+        </p>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Reclaim your time and focus</span>
       </div>
 
-      <!-- Export Anywhere -->
-      <div class="group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300" data-reveal>
-        <div class="animate-fade-up delay-400">
-          <div class="p-2 rounded-lg bg-muted w-fit mb-4">
-            <!-- Download icon -->
-            <svg class="w-5 h-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold text-foreground mb-2">Export Anywhere</h3>
-          <p class="text-muted-foreground text-sm mb-4">Export notes as Markdown or PDF. Compatible with Obsidian, Notion, and any PKM tool.</p>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">Markdown</span>
-            <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">PDF</span>
-            <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">Obsidian</span>
-          </div>
+      <!-- Cross-Device Sync -->
+      <div class="animate-fade-up delay-400 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+        <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Cross-Device Sync</h3>
+        <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Your playlists, watch history, and preferences sync seamlessly across all your devices. Pick up exactly where you left off.
+        </p>
+        <svg viewBox="0 0 100 70" class="w-full h-24">
+          <defs>
+            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgb(255,255,255)" stop-opacity="0.2" />
+              <stop offset="100%" stop-color="rgb(255,255,255)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M 0 60 L 20 45 L 40 55 L 60 30 L 80 40 L 100 15 L 100 70 L 0 70 Z" fill="url(#chartGradient)" class="opacity-50" />
+          <path d="M 0 60 L 20 45 L 40 55 L 60 30 L 80 40 L 100 15" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" class="draw-line" />
+        </svg>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Watch anywhere, anytime</span>
+      </div>
+
+      <!-- Privacy-First -->
+      <div class="animate-fade-up delay-500 group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+        <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">Privacy-First</h3>
+        <p class="text-sm text-muted-foreground mb-4 leading-relaxed">
+          We don't track your viewing habits for advertising. No data selling. No creepy recommendations. Just a tool that works for you.
+        </p>
+        <div class="flex items-center gap-2 mb-4">
+          <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">SOC2</span>
+          <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">GDPR</span>
+          <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">E2E</span>
         </div>
+        <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Watch with peace of mind</span>
       </div>
     </div>
   </div>
 </section>
 
 <script>
-  // System status dots flickering
-  const statusDots = document.querySelectorAll('#system-status span')
-  setInterval(() => {
-    statusDots.forEach((dot) => {
-      const active = Math.random() > 0.2
-      dot.classList.toggle('bg-emerald-500', active)
-      dot.classList.toggle('bg-zinc-700', !active)
-    })
-  }, 2000)
-
   // Keyboard shortcut press animation
   const keys = document.querySelectorAll<HTMLElement>('.kbd-key')
   setInterval(() => {

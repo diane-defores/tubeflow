@@ -1,14 +1,15 @@
 ---
 const navItems = [
+  { label: 'Benefits', href: '#benefits' },
   { label: 'Features', href: '#features' },
   { label: 'Pricing', href: '#pricing' },
-  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Reviews', href: '#reviews' },
   { label: 'Blog', href: '#blog' },
 ]
 ---
 
 <header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl animate-slide-down">
-  <nav class="relative flex items-center justify-between px-4 py-3 rounded-full bg-background/80 backdrop-blur-md border border-border">
+  <nav class="relative flex items-center justify-between px-4 py-3 rounded-full bg-background/60 backdrop-blur-md border border-border">
     <!-- Logo -->
     <a href="#" class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
@@ -33,7 +34,7 @@ const navItems = [
     <!-- CTA Buttons -->
     <div class="hidden md:flex items-center gap-3">
       <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">
-        Sign In
+        Sign in
       </a>
       <a
         href="#"
@@ -66,7 +67,7 @@ const navItems = [
         </a>
       ))}
       <hr class="border-border my-2" />
-      <a href="#" class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</a>
+      <a href="#" class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</a>
       <a href="#" class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">Get Started</a>
     </div>
   </div>
@@ -79,7 +80,6 @@ const navItems = [
   const closeIcon = btn.querySelector('.close-icon')!
 
   btn.addEventListener('click', () => {
-    const isOpen = !menu.classList.contains('hidden')
     menu.classList.toggle('hidden')
     menuIcon.classList.toggle('hidden')
     closeIcon.classList.toggle('hidden')
