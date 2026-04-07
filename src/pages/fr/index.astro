@@ -1,0 +1,264 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { getTranslations } from '../../i18n'
+
+const t = getTranslations('fr')
+const appUrl = 'https://tubeflow.app/videos'
+---
+
+<Layout
+  title="TubeFlow - La manière intelligente d'apprendre par la vidéo"
+  description="Regarde des vidéos, prends des notes horodatées et organise ton apprentissage avec TubeFlow."
+  path="/fr"
+>
+  <main class="min-h-screen bg-background text-foreground">
+
+    <!-- Navbar -->
+    <header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl animate-slide-down">
+      <nav class="relative flex items-center justify-between px-4 py-3 rounded-full bg-background/60 backdrop-blur-md border border-border">
+        <a href="/fr" class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <svg viewBox="0 0 32 32" class="w-5 h-5" fill="none"><path d="M12 9.5v13l11-6.5L12 9.5Z" fill="#18181b"/><rect x="20" y="14" width="2.5" height="9" rx="1.25" fill="#18181b"/></svg>
+          </div>
+          <span class="font-semibold text-foreground hidden sm:block">TubeFlow</span>
+        </a>
+        <div class="hidden md:flex items-center gap-1">
+          <a href="#benefits" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">{t.nav.benefits}</a>
+          <a href="#features" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">{t.nav.features}</a>
+          <a href="#pricing" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">{t.nav.pricing}</a>
+          <a href="#reviews" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">{t.nav.reviews}</a>
+          <a href="/" class="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">EN</a>
+        </div>
+        <div class="hidden md:flex items-center gap-3">
+          <a href={appUrl} class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">{t.nav.signIn}</a>
+          <a href={appUrl} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">{t.nav.getStarted}</a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative flex flex-col items-center justify-center px-4 pt-32 pb-20 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-b from-background via-background to-card pointer-events-none"></div>
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-foreground/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 max-w-5xl mx-auto text-center">
+        <div class="animate-fade-up delay-200 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border mb-8">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+          <span class="text-sm text-muted-foreground">{t.hero.badge}</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6" style="font-family: var(--font-cal-sans);">
+          <span class="block overflow-hidden"><span class="block animate-text-reveal">{t.hero.title1}</span></span>
+          <span class="block overflow-hidden"><span class="block animate-text-reveal delay-100 text-muted-foreground">{t.hero.title2}</span></span>
+        </h1>
+        <p class="animate-fade-up delay-500 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">{t.hero.subtitle}</p>
+        <div class="animate-fade-up delay-600 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <a href={appUrl} class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-white/10 transition-colors">
+            {t.hero.cta}
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="#features" class="inline-flex items-center rounded-full px-8 h-12 text-base font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground transition-colors">{t.hero.secondaryCta}</a>
+        </div>
+        <div class="animate-fade-up delay-700 flex flex-col items-center gap-4">
+          <div class="flex items-center -space-x-3">
+            {[1,2,3,4,5].map(i => (
+              <div class="w-10 h-10 rounded-full border-2 border-background bg-gradient-to-br from-foreground/20 to-foreground/5 flex items-center justify-center text-xs font-medium text-foreground/60">{String.fromCharCode(64+i)}</div>
+            ))}
+          </div>
+          <p class="text-sm text-muted-foreground">{t.hero.socialProof.replace('{count}', '2,000')}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="py-16 sm:py-24 bg-card">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12 sm:mb-16"><h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">{t.problem.title}</h2></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {t.problem.items.map(p => (
+            <div class={`group relative p-6 rounded-2xl bg-background border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 ${p.wide ? 'md:col-span-2' : ''}`}>
+              <div class="flex items-center gap-3 mb-4"><span class="text-3xl sm:text-4xl">{p.icon}</span><h3 class="text-xl sm:text-2xl font-semibold text-foreground">{p.title}</h3></div>
+              <p class="text-base text-muted-foreground leading-relaxed">{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Solution -->
+    <section class="py-16 sm:py-24 bg-background">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12 sm:mb-16"><h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">{t.solution.title}</h2></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {t.solution.items.map(s => (
+            <div class="group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 text-center">
+              <span class="text-4xl sm:text-5xl block mb-4">{s.icon}</span>
+              <h3 class="text-xl sm:text-2xl font-semibold text-foreground mb-3">{s.title}</h3>
+              <p class="text-base text-muted-foreground leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section id="benefits" class="py-16 sm:py-24 bg-card">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12 sm:mb-16">
+          <p class="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t.benefits.label}</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">{t.benefits.title}</h2>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {t.benefits.items.map(b => (
+            <div class="group flex gap-4 sm:gap-6 items-center p-6 rounded-2xl bg-background border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300">
+              <div class="shrink-0 bg-muted rounded-lg p-3 text-3xl">{b.icon}</div>
+              <div><h3 class="text-xl sm:text-2xl font-semibold text-foreground mb-2">{b.title}</h3><p class="text-base text-muted-foreground leading-relaxed">{b.desc}</p></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-16 sm:py-24 bg-background">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12 sm:mb-16">
+          <p class="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t.features.label}</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">{t.features.title}</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {t.features.items.map(f => (
+            <div class={`group relative p-6 rounded-2xl bg-card border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 ${f.wide ? 'md:col-span-2' : ''}`}>
+              <h3 class="text-lg sm:text-xl font-semibold text-foreground mb-2">{f.title}</h3>
+              <p class="text-sm text-muted-foreground mb-4 leading-relaxed">{f.desc}</p>
+              {f.badges && <div class="flex items-center gap-2 mb-4">{f.badges.map(b => <span class="px-2 py-1 text-xs bg-muted rounded text-muted-foreground">{b}</span>)}</div>}
+              <span class="inline-block bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">{f.tag}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="reviews" class="py-16 sm:py-24 bg-card">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12 sm:mb-16">
+          <p class="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t.testimonials.label}</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-foreground" style="font-family: var(--font-instrument-sans);">{t.testimonials.title}</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {t.testimonials.items.map(item => (
+            <div class={`relative p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${item.featured ? 'bg-background border-border' : 'bg-background/50 border-border hover:border-foreground/25'}`}>
+              <div class="flex gap-1 mb-4">{[1,2,3,4,5].map(() => <svg class="w-4 h-4 fill-amber-400 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}</div>
+              <blockquote class="text-foreground mb-6 leading-relaxed">&laquo; {item.review} &raquo;</blockquote>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full border border-border bg-gradient-to-br from-foreground/20 to-foreground/5 flex items-center justify-center text-xs font-medium text-foreground/60">{item.name[0]}</div>
+                <div><p class="font-medium text-foreground text-sm">{item.name}</p><p class="text-xs text-muted-foreground">{item.designation}</p></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-16 sm:py-24 bg-background">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl sm:text-4xl font-bold text-foreground mb-4" style="font-family: var(--font-instrument-sans);">{t.pricing.title}</h2>
+          <p class="text-muted-foreground max-w-2xl mx-auto mb-8">{t.pricing.subtitle}</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {t.pricing.plans.map(plan => (
+            <div class={`relative p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${plan.highlighted ? 'bg-card border-foreground/30' : 'bg-card/70 border-border hover:border-foreground/25'}`}>
+              {plan.highlighted && <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-foreground text-background text-xs font-medium rounded-full">{t.pricing.mostPopular}</div>}
+              <div class="mb-6"><h3 class="text-xl font-semibold text-foreground mb-2">{plan.name}</h3><p class="text-muted-foreground text-sm">{plan.desc}</p></div>
+              <div class="mb-6"><div class="flex items-baseline gap-1"><span class="text-4xl font-bold text-foreground">${plan.monthly}</span>{plan.monthly > 0 && <span class="text-muted-foreground text-sm">{t.pricing.perMonth}</span>}</div></div>
+              <ul class="space-y-3 mb-8">
+                {plan.features.map(f => (
+                  <li class="flex items-center gap-3 text-sm text-foreground/85">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 6 9 17l-5-5"/></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a href={appUrl} class={`block w-full text-center rounded-full py-3 text-sm font-medium transition-colors ${plan.highlighted ? 'shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200' : 'bg-card text-foreground hover:bg-muted border border-border'}`}>{plan.cta}</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-16 sm:py-24 bg-background">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 tracking-tight" style="font-family: var(--font-cal-sans);">{t.finalCta.title}</h2>
+        <p class="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">{t.finalCta.subtitle}</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href={appUrl} class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-14 text-base font-medium shadow-lg shadow-white/20 transition-colors">
+            {t.finalCta.cta}
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="#features" class="inline-flex items-center rounded-full px-8 h-14 text-base font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground transition-colors">{t.finalCta.secondaryCta}</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="py-16 sm:py-24 bg-background">
+      <div class="max-w-2xl mx-auto px-4 text-center">
+        <h2 class="text-2xl sm:text-3xl font-bold text-foreground mb-4" style="font-family: var(--font-instrument-sans);">{t.newsletter.title}</h2>
+        <p class="text-muted-foreground mb-8">{t.newsletter.subtitle}</p>
+        <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input type="email" placeholder={t.newsletter.placeholder} required class="flex-1 px-4 py-3 rounded-full bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 text-sm" />
+          <button type="submit" class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">{t.newsletter.subscribe}</button>
+        </form>
+        <p class="mt-4 text-xs text-muted-foreground">{t.newsletter.noSpam}</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-border bg-background">
+      <div class="max-w-6xl mx-auto px-4 py-16">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+          <div class="col-span-2 md:col-span-1">
+            <a href="/fr" class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+                <svg viewBox="0 0 32 32" class="w-5 h-5" fill="none"><path d="M12 9.5v13l11-6.5L12 9.5Z" fill="#18181b"/><rect x="20" y="14" width="2.5" height="9" rx="1.25" fill="#18181b"/></svg>
+              </div>
+              <span class="font-semibold text-foreground">TubeFlow</span>
+            </a>
+            <p class="text-sm text-muted-foreground/70 mb-4">{t.footer.tagline}</p>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+              <span class="text-xs text-muted-foreground">{t.footer.status}</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-foreground mb-4">{t.footer.product}</h4>
+            <ul class="space-y-3">
+              <li><a href="/fr#features" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">{t.nav.features}</a></li>
+              <li><a href="/fr#pricing" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">{t.nav.pricing}</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-foreground mb-4">{t.footer.resources}</h4>
+            <ul class="space-y-3">
+              <li><a href="/blog" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">{t.nav.blog}</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-foreground mb-4">{t.footer.legal}</h4>
+            <ul class="space-y-3">
+              <li><a href="/privacy" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">Confidentialité</a></li>
+              <li><a href="/terms" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">Conditions</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p class="text-sm text-muted-foreground/70">{t.footer.copyright.replace('{year}', String(new Date().getFullYear()))}</p>
+          <a href="/" class="text-sm text-muted-foreground/70 hover:text-foreground transition-colors">English</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+</Layout>
