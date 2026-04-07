@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:tubeflow_app/convex/convex_provider.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 
 /// Form screen for creating a new playlist.
 ///
@@ -203,14 +203,11 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await ref.read(convexServiceProvider).mutate(
-        'playlists:createPlaylist',
-        {
-          'title': _nameController.text.trim(),
-          'description': _descriptionController.text.trim(),
-          'privacyStatus': _isPublic ? 'public' : 'private',
-          'color': '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}',
-        },
+      await createPlaylist(ref,
+        title: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        privacyStatus: _isPublic ? 'public' : 'private',
+        color: '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}',
       );
 
       if (mounted) {

@@ -19,10 +19,13 @@ const _clerkPublishableKey = String.fromEnvironment(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const convexUrl = String.fromEnvironment(
-    'CONVEX_URL',
-    defaultValue: 'https://your-deployment.convex.cloud',
-  );
+  const convexUrl = String.fromEnvironment('CONVEX_URL');
+  if (convexUrl.isEmpty) {
+    throw StateError(
+      'CONVEX_URL is not set. '
+      'Pass --dart-define=CONVEX_URL=https://your-deployment.convex.cloud',
+    );
+  }
   await ConvexService.initialize(convexUrl);
 
   runApp(
@@ -73,6 +76,12 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
       convex.setAuth(() => clerk.getConvexToken());
     } catch (e, st) {
       developer.log('Bootstrap failed', error: e, stackTrace: st);
+      // Surface bootstrap failures so they are visible during development.
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(content: Text('App bootstrap failed: $e')),
+        );
+      }
     }
 
     if (mounted) {

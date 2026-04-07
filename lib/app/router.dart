@@ -4,6 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/auth/auth_gate.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/screens/browse/browse_screen.dart';
+import 'package:tubeflow_app/screens/hidden/hidden_screen.dart';
+import 'package:tubeflow_app/screens/notes/notes_screen.dart';
+import 'package:tubeflow_app/screens/play/play_screen.dart';
+import 'package:tubeflow_app/screens/playlists/create_playlist_screen.dart';
+import 'package:tubeflow_app/screens/playlists/playlist_detail_screen.dart';
+import 'package:tubeflow_app/screens/playlists/playlists_screen.dart';
+import 'package:tubeflow_app/screens/preferences/preferences_screen.dart';
+import 'package:tubeflow_app/screens/stats/stats_screen.dart';
+import 'package:tubeflow_app/screens/videos/videos_screen.dart';
 import 'package:tubeflow_app/widgets/app_shell.dart';
 
 // ---------------------------------------------------------------------------
@@ -64,39 +74,41 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: Routes.videos,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const _Placeholder(title: 'Videos'),
+              child: const VideosScreen(),
             ),
           ),
           GoRoute(
             path: Routes.browse,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const _Placeholder(title: 'Browse'),
+              child: const BrowseScreen(),
             ),
           ),
           GoRoute(
             path: Routes.play,
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const _Placeholder(title: 'Play'),
-            ),
+            pageBuilder: (context, state) {
+              final videoId = state.uri.queryParameters['videoId'] ?? '';
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: PlayScreen(videoId: videoId),
+              );
+            },
           ),
           GoRoute(
             path: Routes.playlists,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const _Placeholder(title: 'Playlists'),
+              child: const PlaylistsScreen(),
             ),
             routes: [
               GoRoute(
                 path: 'create',
-                builder: (context, state) =>
-                    const _Placeholder(title: 'Create Playlist'),
+                builder: (context, state) => const CreatePlaylistScreen(),
               ),
               GoRoute(
                 path: ':id',
-                builder: (context, state) => _Placeholder(
-                  title: 'Playlist ${state.pathParameters['id']}',
+                builder: (context, state) => PlaylistDetailScreen(
+                  id: state.pathParameters['id']!,
                 ),
               ),
             ],
@@ -105,29 +117,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: Routes.notes,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const _Placeholder(title: 'Notes'),
+              child: const NotesScreen(),
             ),
             routes: [
               GoRoute(
                 path: ':slug',
-                builder: (context, state) => _Placeholder(
-                  title: 'Note: ${state.pathParameters['slug']}',
+                builder: (context, state) => NoteDetailScreen(
+                  slug: state.pathParameters['slug']!,
                 ),
               ),
             ],
           ),
           GoRoute(
             path: Routes.preferences,
-            builder: (context, state) =>
-                const _Placeholder(title: 'Preferences'),
+            builder: (context, state) => const PreferencesScreen(),
           ),
           GoRoute(
             path: Routes.hidden,
-            builder: (context, state) => const _Placeholder(title: 'Hidden'),
+            builder: (context, state) => const HiddenScreen(),
           ),
           GoRoute(
             path: Routes.stats,
-            builder: (context, state) => const _Placeholder(title: 'Stats'),
+            builder: (context, state) => const StatsScreen(),
           ),
         ],
       ),
@@ -135,24 +146,3 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-// ---------------------------------------------------------------------------
-// Placeholder screen (to be replaced with real screens)
-// ---------------------------------------------------------------------------
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
-    );
-  }
-}

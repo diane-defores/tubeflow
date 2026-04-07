@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
 
 /// Preferences screen with grouped settings sections.
 ///
@@ -24,10 +24,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   /// Persist a partial settings update to Convex.
   Future<void> _updateSettings(Map<String, dynamic> patch) async {
     try {
-      await ref.read(convexServiceProvider).mutate(
-        'settings:updateSettings',
-        patch,
-      );
+      await updateSettings(ref, patch);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

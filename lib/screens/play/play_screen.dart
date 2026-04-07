@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 
 /// Video player screen with notes, transcript, and comments tabs.
@@ -55,13 +55,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
   Future<void> _saveProgress() async {
     if (_currentTimestamp > 0) {
       try {
-        await ref.read(convexServiceProvider).mutate(
-          'progress:upsertProgress',
-          {
-            'videoId': widget.videoId,
-            'progressSeconds': _currentTimestamp,
-          },
-        );
+        await upsertProgress(ref, widget.videoId, _currentTimestamp);
       } catch (_) {
         // Best-effort save; don't crash on dispose.
       }
@@ -239,16 +233,13 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                   final content = _noteController.text.trim();
                   if (content.isEmpty) return;
                   try {
-                    await ref.read(convexServiceProvider).mutate(
-                      'notes:createNote',
-                      {
-                        'title': content.length > 50
-                            ? '${content.substring(0, 50)}...'
-                            : content,
-                        'content': content,
-                        'youtubeVideoId': widget.videoId,
-                        'timestamp': _currentTimestamp,
-                      },
+                    await createNote(ref,
+                      videoId: widget.videoId,
+                      content: content,
+                      timestamp: _currentTimestamp,
+                      title: content.length > 50
+                          ? '${content.substring(0, 50)}...'
+                          : content,
                     );
                     _noteController.clear();
                   } catch (e) {
@@ -309,10 +300,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                         icon: const Icon(Icons.delete_outline, size: 20),
                         onPressed: () async {
                           try {
-                            await ref.read(convexServiceProvider).mutate(
-                              'notes:deleteNote',
-                              {'noteId': note.id},
-                            );
+                            await deleteNote(ref, note.id);
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

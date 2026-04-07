@@ -4,8 +4,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
 
 /// Playlists overview screen showing all user playlists.
@@ -35,8 +35,7 @@ class PlaylistsScreen extends ConsumerWidget {
             icon: const Icon(Icons.sync),
             onPressed: () async {
               try {
-                await ref.read(convexServiceProvider).mutate(
-                    'youtube:syncAllPlaylists', {});
+                await syncAllPlaylists(ref);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Syncing playlists...')),
@@ -222,13 +221,7 @@ class PlaylistsScreen extends ConsumerWidget {
                 switch (value) {
                   case 'hide':
                     try {
-                      await ref.read(convexServiceProvider).mutate(
-                        'hidden:hideItem',
-                        {
-                          'itemType': 'playlist',
-                          'youtubeId': playlist.youtubePlaylistId,
-                        },
-                      );
+                      await hidePlaylist(ref, playlist.youtubePlaylistId);
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

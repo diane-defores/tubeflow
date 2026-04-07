@@ -19,4 +19,4 @@ Thumbs.db
 .env.local
 
 # Pub
-pubspec.lock
+# pubspec.lock should be committed for apps (reproducible builds)

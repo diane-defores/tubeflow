@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
 
 /// Hidden items screen with tabs for hidden videos and hidden playlists.
@@ -225,10 +225,7 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
 
   Future<void> _unhideItem(HiddenItem item) async {
     try {
-      await ref.read(convexServiceProvider).mutate(
-        'hidden:unhideItem',
-        {'hiddenItemId': item.id},
-      );
+      await unhideItem(ref, item.id);
       // Refresh the list after unhiding.
       ref.invalidate(hiddenItemsProvider);
     } catch (e) {

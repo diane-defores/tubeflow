@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
 
 /// Note detail screen showing the full content of a single note.
@@ -275,13 +275,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
 
   Future<void> _handleSave(Note note) async {
     try {
-      await ref.read(convexServiceProvider).mutate(
-        'notes:updateNote',
-        {
-          'noteId': note.id,
-          'content': _contentController.text,
-        },
-      );
+      await updateNote(ref, note.id, _contentController.text);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -325,10 +319,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
           TextButton(
             onPressed: () async {
               try {
-                await ref.read(convexServiceProvider).mutate(
-                  'notes:deleteNote',
-                  {'noteId': note.id},
-                );
+                await deleteNote(ref, note.id);
                 if (dialogContext.mounted) Navigator.of(dialogContext).pop();
                 if (mounted) Navigator.of(context).pop();
               } catch (e) {

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 
 /// Netflix-style browse screen with horizontal scroll rows per playlist.
@@ -163,7 +164,7 @@ class _BrowsePlaylistRow extends ConsumerWidget {
                         height: 12,
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
-                          color: _parseColor(playlist.color!),
+                          color: parseHexColor(playlist.color!),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -350,8 +351,4 @@ class _BrowsePlaylistRow extends ConsumerWidget {
     );
   }
 
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
-  }
 }

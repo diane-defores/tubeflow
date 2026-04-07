@@ -4,8 +4,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
+import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 
 /// Video feed screen with multiple view modes.
@@ -127,8 +128,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           try {
-            await ref.read(convexServiceProvider).mutate(
-                'youtube:syncAllPlaylists', {});
+            await syncAllPlaylists(ref);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Refreshing videos...')),
@@ -261,7 +261,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                                 height: 8,
                                 margin: const EdgeInsets.only(right: 4),
                                 decoration: BoxDecoration(
-                                  color: _parseColor(video.playlistColor!),
+                                  color: parseHexColor(video.playlistColor!),
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -390,8 +390,4 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     );
   }
 
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
-  }
 }

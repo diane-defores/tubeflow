@@ -55,6 +55,15 @@ Future<dynamic> createNote(
   });
 }
 
+/// Updates the content of an existing note.
+Future<dynamic> updateNote(Ref ref, String noteId, String content) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('notes:updateNote', {
+    'noteId': noteId,
+    'content': content,
+  });
+}
+
 /// Deletes a note by its Convex document ID.
 Future<dynamic> deleteNote(Ref ref, String noteId) async {
   final service = ref.read(convexServiceProvider);
@@ -76,12 +85,29 @@ Future<dynamic> hideVideo(Ref ref, String videoId) async {
   });
 }
 
+/// Hides a playlist from the user's feed.
+Future<dynamic> hidePlaylist(Ref ref, String playlistId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('hidden:hideItem', {
+    'youtubeId': playlistId,
+    'itemType': 'playlist',
+  });
+}
+
 /// Un-hides a previously hidden video, restoring it to the feed.
 Future<dynamic> unhideVideo(Ref ref, String videoId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('hidden:unhideItem', {
     'youtubeId': videoId,
     'itemType': 'video',
+  });
+}
+
+/// Un-hides a hidden item by its Convex document ID.
+Future<dynamic> unhideItem(Ref ref, String hiddenItemId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('hidden:unhideItem', {
+    'hiddenItemId': hiddenItemId,
   });
 }
 
@@ -127,24 +153,69 @@ Future<dynamic> saveProgress(
   });
 }
 
+/// Upserts the current playback position for a video (best-effort).
+///
+/// Unlike [saveProgress], this does not require a duration. Use for
+/// mid-session saves (pause, background, dispose).
+Future<dynamic> upsertProgress(
+  Ref ref,
+  String videoId,
+  double progressSeconds,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('progress:upsertProgress', {
+    'videoId': videoId,
+    'progressSeconds': progressSeconds,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Playlists
 // ---------------------------------------------------------------------------
+
+/// Triggers a YouTube sync for all playlists.
+Future<dynamic> syncAllPlaylists(Ref ref) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('youtube:syncAllPlaylists', {});
+}
+
+/// Triggers a YouTube sync for a single playlist.
+Future<dynamic> syncPlaylist(Ref ref, String playlistId) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('youtube:syncPlaylist', {
+    'playlistId': playlistId,
+  });
+}
+
+/// Removes a video from a playlist.
+Future<dynamic> removeVideoFromPlaylist(
+  Ref ref, {
+  required String playlistId,
+  required String videoId,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('playlists:removeVideoFromPlaylist', {
+    'playlistId': playlistId,
+    'videoId': videoId,
+  });
+}
 
 /// Creates a new playlist.
 ///
 /// Returns the Convex document ID of the created playlist.
 Future<dynamic> createPlaylist(
   Ref ref, {
-  required String name,
+  required String title,
   String? description,
-  bool isPublic = false,
+  String privacyStatus = 'private',
+  String? color,
 }) async {
   final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('youtube:createPlaylist', {
-    'name': name,
+  return service.mutate<dynamic>('playlists:createPlaylist', {
+    'title': title,
     if (description != null) 'description': description,
-    'isPublic': isPublic,
+    'privacyStatus': privacyStatus,
+    if (color != null) 'color': color,
   });
 }
 
@@ -191,33 +262,15 @@ Future<dynamic> createComment(
 // Settings
 // ---------------------------------------------------------------------------
 
-/// Updates user settings. Only the provided fields are patched; omitted fields
-/// remain unchanged on the server.
-///
-/// Accepts the same shape as [UserSettings.toJson] but every field is optional.
+/// Updates user settings with a raw patch map. Only the provided fields are
+/// patched; omitted fields remain unchanged on the server.
 ///
 /// Example:
 /// ```dart
-/// await updateSettings(ref, theme: 'dark', language: 'fr');
+/// await updateSettings(ref, {'theme': 'dark'});
+/// await updateSettings(ref, {'playback': {'speed': 1.5}});
 /// ```
-Future<dynamic> updateSettings(
-  Ref ref, {
-  String? theme,
-  String? language,
-  Map<String, dynamic>? notifications,
-  Map<String, dynamic>? playback,
-  Map<String, dynamic>? notes,
-  Map<String, dynamic>? channelSync,
-  Map<String, dynamic>? transcripts,
-}) async {
+Future<dynamic> updateSettings(Ref ref, Map<String, dynamic> patch) async {
   final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('settings:updateSettings', {
-    if (theme != null) 'theme': theme,
-    if (language != null) 'language': language,
-    if (notifications != null) 'notifications': notifications,
-    if (playback != null) 'playback': playback,
-    if (notes != null) 'notes': notes,
-    if (channelSync != null) 'channelSync': channelSync,
-    if (transcripts != null) 'transcripts': transcripts,
-  });
+  return service.mutate<dynamic>('settings:updateSettings', patch);
 }

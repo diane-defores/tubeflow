@@ -4,8 +4,9 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/convex/convex_provider.dart';
+import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 
 /// Playlist detail screen showing the playlist header and its video list.
@@ -48,7 +49,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
     });
 
     final playlistColor = playlist?.color != null
-        ? _parseColor(playlist!.color!)
+        ? parseHexColor(playlist!.color!)
         : Colors.purple;
     final playlistTitle = playlist?.title ?? 'Playlist';
 
@@ -146,10 +147,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             switch (value) {
               case 'refresh':
                 try {
-                  await ref.read(convexServiceProvider).mutate(
-                    'youtube:syncPlaylist',
-                    {'playlistId': widget.id},
-                  );
+                  await syncPlaylist(ref, widget.id);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Refreshing playlist...')),
@@ -324,13 +322,8 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 switch (value) {
                   case 'remove':
                     try {
-                      await ref.read(convexServiceProvider).mutate(
-                        'playlists:removeVideoFromPlaylist',
-                        {
-                          'playlistId': widget.id,
-                          'videoId': video.id,
-                        },
-                      );
+                      await removeVideoFromPlaylist(ref,
+                          playlistId: widget.id, videoId: video.id);
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -341,13 +334,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                     break;
                   case 'hide':
                     try {
-                      await ref.read(convexServiceProvider).mutate(
-                        'hidden:hideItem',
-                        {
-                          'itemType': 'video',
-                          'youtubeId': video.youtubeVideoId,
-                        },
-                      );
+                      await hideVideo(ref, video.youtubeVideoId);
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -400,8 +387,4 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
     );
   }
 
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
-  }
 }
