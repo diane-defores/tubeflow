@@ -1,0 +1,56 @@
+---
+const footerLinks: Record<string, string[]> = {
+  Product: ['Features', 'Pricing', 'Changelog', 'Roadmap', 'API'],
+  Resources: ['Documentation', 'Guides', 'Blog', 'Community', 'Templates'],
+  Company: ['About', 'Careers', 'Press', 'Partners', 'Contact'],
+  Legal: ['Privacy', 'Terms', 'Security', 'Cookies', 'Licenses'],
+}
+const currentYear = new Date().getFullYear()
+---
+
+<footer class="border-t border-border bg-background">
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-8" data-reveal>
+      <!-- Brand -->
+      <div class="col-span-2 md:col-span-1 animate-fade-up">
+        <a href="#" class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+            <span class="text-zinc-950 font-bold text-sm">T</span>
+          </div>
+          <span class="font-semibold text-foreground">TubeFlow</span>
+        </a>
+        <p class="text-sm text-muted-foreground mb-4">The modern platform for teams who ship fast.</p>
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+          <span class="text-xs text-muted-foreground">All Systems Operational</span>
+        </div>
+      </div>
+
+      <!-- Links -->
+      {Object.entries(footerLinks).map(([title, links]) => (
+        <div class="animate-fade-up">
+          <h4 class="text-sm font-semibold text-foreground mb-4">{title}</h4>
+          <ul class="space-y-3">
+            {links.map((link) => (
+              <li>
+                <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  {link}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <!-- Bottom -->
+    <div class="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm text-muted-foreground">&copy; {currentYear} TubeFlow, Inc. All rights reserved.</p>
+      <div class="flex items-center gap-6">
+        <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Twitter</a>
+        <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors">GitHub</a>
+        <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Discord</a>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,114 @@
+---
+const navItems = [
+  { label: 'Features', href: '#features' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Docs', href: '#docs' },
+  { label: 'Blog', href: '#blog' },
+]
+---
+
+<header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl animate-slide-down">
+  <nav class="relative flex items-center justify-between px-4 py-3 rounded-full bg-background/80 backdrop-blur-md border border-border">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+        <span class="text-zinc-950 font-bold text-sm">T</span>
+      </div>
+      <span class="font-semibold text-foreground hidden sm:block">TubeFlow</span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="hidden md:flex items-center gap-1 relative" id="desktop-nav">
+      <div id="nav-hover-pill" class="absolute bg-muted rounded-full transition-all duration-200 ease-out opacity-0 pointer-events-none" style="height: 36px;"></div>
+      {navItems.map((item) => (
+        <a
+          href={item.href}
+          class="nav-link relative z-10 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {item.label}
+        </a>
+      ))}
+    </div>
+
+    <!-- CTA Buttons -->
+    <div class="hidden md:flex items-center gap-3">
+      <a href="#" class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">
+        Sign In
+      </a>
+      <a
+        href="#"
+        class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+      >
+        Get Started
+      </a>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button
+      id="mobile-menu-btn"
+      class="md:hidden p-2 text-muted-foreground hover:text-foreground"
+      aria-label="Toggle menu"
+    >
+      <svg class="w-5 h-5 menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      <svg class="w-5 h-5 close-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl bg-background/95 backdrop-blur-md border border-border">
+    <div class="flex flex-col gap-2">
+      {navItems.map((item) => (
+        <a
+          href={item.href}
+          class="mobile-nav-link px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+        >
+          {item.label}
+        </a>
+      ))}
+      <hr class="border-border my-2" />
+      <a href="#" class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</a>
+      <a href="#" class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">Get Started</a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('mobile-menu-btn')!
+  const menu = document.getElementById('mobile-menu')!
+  const menuIcon = btn.querySelector('.menu-icon')!
+  const closeIcon = btn.querySelector('.close-icon')!
+
+  btn.addEventListener('click', () => {
+    const isOpen = !menu.classList.contains('hidden')
+    menu.classList.toggle('hidden')
+    menuIcon.classList.toggle('hidden')
+    closeIcon.classList.toggle('hidden')
+  })
+
+  menu.querySelectorAll('.mobile-nav-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      menu.classList.add('hidden')
+      menuIcon.classList.remove('hidden')
+      closeIcon.classList.add('hidden')
+    })
+  })
+
+  // Navbar hover pill
+  const desktopNav = document.getElementById('desktop-nav')!
+  const pill = document.getElementById('nav-hover-pill')!
+  const navLinks = desktopNav.querySelectorAll('.nav-link')
+
+  navLinks.forEach((link) => {
+    link.addEventListener('mouseenter', () => {
+      const el = link as HTMLElement
+      pill.style.width = `${el.offsetWidth}px`
+      pill.style.left = `${el.offsetLeft}px`
+      pill.style.top = `${el.offsetTop}px`
+      pill.style.opacity = '1'
+    })
+  })
+
+  desktopNav.addEventListener('mouseleave', () => {
+    pill.style.opacity = '0'
+  })
+</script>

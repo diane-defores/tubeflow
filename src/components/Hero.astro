@@ -1,0 +1,70 @@
+---
+const avatars = [1, 2, 3, 4, 5]
+---
+
+<section class="relative min-h-screen flex flex-col items-center justify-center px-4 pt-24 pb-16 overflow-hidden bg-background">
+  <!-- Background gradient -->
+  <div class="absolute inset-0 bg-gradient-to-b from-background via-background to-card pointer-events-none"></div>
+
+  <!-- Subtle radial glow -->
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-foreground/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto text-center">
+    <!-- Badge -->
+    <div class="animate-fade-up delay-200 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border mb-8">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+      <span class="text-sm text-muted-foreground">Now in Public Beta</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6" style="font-family: var(--font-cal-sans);">
+      <span class="block overflow-hidden">
+        <span class="block animate-text-reveal">Ship faster.</span>
+      </span>
+      <span class="block overflow-hidden">
+        <span class="block animate-text-reveal delay-100 text-muted-foreground">Scale smarter.</span>
+      </span>
+    </h1>
+
+    <!-- Subheadline -->
+    <p class="animate-fade-up delay-500 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+      The modern platform for teams who ship fast. Built for scale, designed for speed. Everything you need to build, deploy, and grow.
+    </p>
+
+    <!-- CTAs -->
+    <div class="animate-fade-up delay-600 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+      <a
+        href="#"
+        class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-white/10 transition-colors"
+      >
+        Start Building
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a
+        href="#"
+        class="inline-flex items-center rounded-full px-8 h-12 text-base font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground bg-transparent transition-colors"
+      >
+        View Demo
+      </a>
+    </div>
+
+    <!-- Social Proof -->
+    <div class="animate-fade-up delay-700 flex flex-col items-center gap-4">
+      <div class="flex items-center -space-x-3">
+        {avatars.map((i) => (
+          <div class={`animate-scale-in delay-${700 + i * 100}`}>
+            <img
+              src={`/professional-headshot-${i}.png`}
+              alt=""
+              class="w-10 h-10 rounded-full border-2 border-background object-cover"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+      <p class="text-sm text-muted-foreground">
+        Trusted by <span class="text-foreground font-medium">2,000+</span> teams worldwide
+      </p>
+    </div>
+  </div>
+</section>
