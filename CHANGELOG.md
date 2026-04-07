@@ -16,3 +16,11 @@ All notable changes to this project will be documented in this file.
 - Micro-animations: system status dots flickering, keyboard shortcut press effect
 - All CSS effects ported: shimmer buttons, pulse glow, marquee, chart draw-line, border beam
 - Social proof headshot images
+
+### Changed
+- All placeholder "Apex" copy replaced with real TubeFlow product content
+- Hero: "Ship faster. Scale smarter." → "Watch. Note. Remember."
+- Features: generic SaaS features → Timestamped Notes, Keyboard-first, Smart Playlists, Instant Search, Export Anywhere
+- Pricing: Starter/Pro/Enterprise → Free/Premium/Team with real TubeFlow feature sets
+- LogoMarquee: tech company logos → video/learning platforms (YouTube, Coursera, Obsidian, etc.)
+- FinalCTA, Footer, meta tags updated with TubeFlow messaging
