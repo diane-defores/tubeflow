@@ -8,10 +8,13 @@
     </p>
 
     <form class="animate-fade-up delay-200 flex flex-col sm:flex-row gap-3 max-w-md mx-auto" id="newsletter-form">
+      <label for="newsletter-email" class="sr-only">Email address</label>
       <input
+        id="newsletter-email"
         type="email"
         placeholder="Enter your email"
         required
+        autocomplete="email"
         class="flex-1 px-4 py-3 rounded-full bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 text-sm"
       />
       <button

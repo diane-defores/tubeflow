@@ -8,6 +8,7 @@ interface Props {
   image?: string
   noIndex?: boolean
   jsonLd?: Record<string, unknown>[]
+  lang?: string
 }
 
 const BASE_URL = 'https://tubeflow.app'
@@ -19,6 +20,7 @@ const {
   image = '/og-image.png',
   noIndex = false,
   jsonLd = [],
+  lang = 'en',
 } = Astro.props
 
 const canonicalUrl = `${BASE_URL}${path}`
@@ -59,7 +61,7 @@ const defaultSchemas = [
 const allSchemas = [...defaultSchemas, ...jsonLd]
 ---
 
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -70,9 +72,15 @@ const allSchemas = [...defaultSchemas, ...jsonLd]
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="alternate" hreflang="en" href={`${BASE_URL}${path}`} />
-    <link rel="alternate" hreflang="fr" href={`${BASE_URL}/fr${path === '/' ? '' : path}`} />
-    <link rel="alternate" hreflang="x-default" href={`${BASE_URL}${path}`} />
+    {(() => {
+      const enPath = path.startsWith('/fr') ? path.replace(/^\/fr/, '') || '/' : path || '/'
+      const frPath = path.startsWith('/fr') ? path : `/fr${path || ''}`
+      return <>
+        <link rel="alternate" hreflang="en" href={`${BASE_URL}${enPath}`} />
+        <link rel="alternate" hreflang="fr" href={`${BASE_URL}${frPath}`} />
+        <link rel="alternate" hreflang="x-default" href={`${BASE_URL}${enPath}`} />
+      </>
+    })()}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -106,35 +114,48 @@ const allSchemas = [...defaultSchemas, ...jsonLd]
     <title>{title}</title>
   </head>
   <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:bg-foreground focus:text-background focus:rounded-lg focus:text-sm focus:font-medium">
+      Skip to content
+    </a>
     <div class="noise-overlay" aria-hidden="true"></div>
     <slot />
     <script>
-      // Lenis smooth scroll
-      import Lenis from 'lenis'
-      const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-      })
-      function raf(time: number) {
-        lenis.raf(time)
-        requestAnimationFrame(raf)
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      // Lenis smooth scroll (skip if reduced motion)
+      if (!prefersReducedMotion) {
+        import('lenis').then(({ default: Lenis }) => {
+          const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smoothWheel: true,
+          })
+          function raf(time: number) {
+            lenis.raf(time)
+            requestAnimationFrame(raf)
+          }
+          requestAnimationFrame(raf)
+        })
       }
-      requestAnimationFrame(raf)
 
       // IntersectionObserver for scroll-triggered animations
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('revealed')
-              observer.unobserve(entry.target)
-            }
-          })
-        },
-        { threshold: 0.1, rootMargin: '-50px' }
-      )
-      document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el))
+      // If reduced motion, reveal everything immediately
+      if (prefersReducedMotion) {
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('revealed'))
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('revealed')
+                observer.unobserve(entry.target)
+              }
+            })
+          },
+          { threshold: 0.1, rootMargin: '-50px' }
+        )
+        document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el))
+      }
     </script>
   </body>
 </html>

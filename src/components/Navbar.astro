@@ -1,10 +1,10 @@
 ---
 const navItems = [
-  { label: 'Benefits', href: '#benefits' },
-  { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Reviews', href: '#reviews' },
-  { label: 'Blog', href: '#blog' },
+  { label: 'Benefits', href: '/#benefits' },
+  { label: 'Features', href: '/#features' },
+  { label: 'Pricing', href: '/#pricing' },
+  { label: 'Reviews', href: '/#reviews' },
+  { label: 'Blog', href: '/blog' },
 ]
 ---
 
@@ -13,7 +13,7 @@ const navItems = [
     <!-- Logo -->
     <a href="/" class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-        <svg viewBox="0 0 32 32" class="w-5 h-5" fill="none"><path d="M12 9.5v13l11-6.5L12 9.5Z" fill="#18181b"/><rect x="20" y="14" width="2.5" height="9" rx="1.25" fill="#18181b"/></svg>
+        <svg viewBox="0 0 32 32" class="w-5 h-5" fill="none" aria-hidden="true"><path d="M12 9.5v13l11-6.5L12 9.5Z" fill="#18181b"/><rect x="20" y="14" width="2.5" height="9" rx="1.25" fill="#18181b"/></svg>
       </div>
       <span class="font-semibold text-foreground hidden sm:block">TubeFlow</span>
     </a>
@@ -50,6 +50,8 @@ const navItems = [
       id="mobile-menu-btn"
       class="md:hidden p-2 text-muted-foreground hover:text-foreground"
       aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
     >
       <svg class="w-5 h-5 menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
       <svg class="w-5 h-5 close-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -81,9 +83,11 @@ const navItems = [
   const closeIcon = btn.querySelector('.close-icon')!
 
   btn.addEventListener('click', () => {
+    const isOpen = !menu.classList.contains('hidden')
     menu.classList.toggle('hidden')
     menuIcon.classList.toggle('hidden')
     closeIcon.classList.toggle('hidden')
+    btn.setAttribute('aria-expanded', String(!isOpen))
   })
 
   menu.querySelectorAll('.mobile-nav-link').forEach((link) => {

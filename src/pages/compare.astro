@@ -49,7 +49,7 @@ const jsonLd = [{
   path="/compare"
   jsonLd={jsonLd}
 >
-  <main class="min-h-screen bg-background text-foreground">
+  <main id="main-content" class="min-h-screen bg-background text-foreground">
     <Navbar />
 
     <!-- Hero -->
@@ -121,9 +121,9 @@ const jsonLd = [{
         <table class="w-full border-collapse">
           <thead>
             <tr class="border-b border-border">
-              <th class="py-4 pr-4 text-left font-semibold text-foreground">Feature</th>
-              <th class="w-32 py-4 text-center font-semibold text-foreground">YouTube</th>
-              <th class="w-32 py-4 text-center font-semibold text-foreground">TubeFlow</th>
+              <th scope="col" class="py-4 pr-4 text-left font-semibold text-foreground">Feature</th>
+              <th scope="col" class="w-32 py-4 text-center font-semibold text-foreground">YouTube</th>
+              <th scope="col" class="w-32 py-4 text-center font-semibold text-foreground">TubeFlow</th>
             </tr>
           </thead>
           <tbody>
