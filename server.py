@@ -49,6 +49,8 @@ DOWNLOAD_TIMEOUT_SECONDS = int(os.getenv("TRANSCRIPT_DOWNLOAD_TIMEOUT_SECONDS", 
 NORMALIZE_TIMEOUT_SECONDS = int(os.getenv("TRANSCRIPT_NORMALIZE_TIMEOUT_SECONDS", "600"))
 MAX_CONCURRENT_JOBS = max(1, int(os.getenv("TRANSCRIPT_MAX_CONCURRENT_JOBS", "1")))
 JOB_QUEUE_TIMEOUT_SECONDS = max(0, int(os.getenv("TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS", "30")))
+YTDLP_COOKIES_FILE = os.getenv("YTDLP_COOKIES_FILE", "")
+YTDLP_COOKIES_MAX_AGE_DAYS = int(os.getenv("YTDLP_COOKIES_MAX_AGE_DAYS", "30"))
 
 JOB_SEMAPHORE = threading.BoundedSemaphore(value=MAX_CONCURRENT_JOBS)
 ACTIVE_JOBS_LOCK = threading.Lock()
@@ -137,11 +139,43 @@ def threshold_enabled(value: int) -> bool:
     return value > 0
 
 
-def fetch_video_metadata(youtube_video_id: str) -> dict[str, Any]:
-    yt_dlp = ensure_binary(YTDLP_BIN)
-    command = [
-        yt_dlp,
+class YtDlpBotGatedError(RuntimeError):
+    """Raised when yt-dlp reports a bot-gate / sign-in wall."""
+
+
+def _ytdlp_base_args() -> list[str]:
+    args = [
+        ensure_binary(YTDLP_BIN),
         "--no-playlist",
+        "--js-runtimes",
+        "node",
+        "--remote-components",
+        "ejs:github",
+    ]
+    if YTDLP_COOKIES_FILE and Path(YTDLP_COOKIES_FILE).is_file():
+        args.extend(["--cookies", YTDLP_COOKIES_FILE])
+    return args
+
+
+def _classify_ytdlp_error(stderr: str, fallback_message: str) -> RuntimeError:
+    lower = stderr.lower()
+    if "sign in to confirm" in lower or "confirm you're not a bot" in lower:
+        return YtDlpBotGatedError(
+            "YouTube requires sign-in for this video (anti-bot gate). "
+            "Configure YTDLP_COOKIES_FILE with a valid cookies.txt to access bot-gated videos."
+        )
+    if "video unavailable" in lower or "private video" in lower:
+        return RuntimeError("Video is unavailable or private.")
+    if "age-restricted" in lower and "cookies" in lower:
+        return YtDlpBotGatedError(
+            "Video is age-restricted and requires authentication. "
+            "Configure YTDLP_COOKIES_FILE with a valid cookies.txt."
+        )
+    return RuntimeError(stderr.strip() or fallback_message)
+
+
+def fetch_video_metadata(youtube_video_id: str) -> dict[str, Any]:
+    command = _ytdlp_base_args() + [
         "--dump-single-json",
         "--no-download",
         "--format",
@@ -150,7 +184,7 @@ def fetch_video_metadata(youtube_video_id: str) -> dict[str, Any]:
     ]
     result = run_command(command, timeout_seconds=METADATA_TIMEOUT_SECONDS)
     if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or "yt-dlp failed to fetch video metadata.")
+        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to fetch video metadata.")
 
     try:
         payload = json.loads(result.stdout)
@@ -295,13 +329,8 @@ def download_audio(youtube_video_id: str, working_dir: Path) -> tuple[Path, list
     metadata = fetch_video_metadata(youtube_video_id)
     warnings = evaluate_media_limits(metadata)
 
-    yt_dlp = ensure_binary(YTDLP_BIN)
     output_template = working_dir / "source.%(ext)s"
-    command = [
-        yt_dlp,
-        "--no-playlist",
-        "--js-runtimes",
-        "node",
+    command = _ytdlp_base_args() + [
         "--format",
         "bestaudio/best",
         "--output",
@@ -310,7 +339,7 @@ def download_audio(youtube_video_id: str, working_dir: Path) -> tuple[Path, list
     ]
     result = run_command(command, timeout_seconds=DOWNLOAD_TIMEOUT_SECONDS)
     if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or "yt-dlp failed to download audio.")
+        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to download audio.")
 
     matches = sorted(working_dir.glob("source.*"))
     if not matches:
@@ -616,6 +645,17 @@ def transcribe_with_provider(provider: str, audio_path: Path, language: str, api
     raise RuntimeError(f"Unsupported worker provider '{provider}'.")
 
 
+def _cookies_health_info() -> dict[str, Any]:
+    if not YTDLP_COOKIES_FILE or not Path(YTDLP_COOKIES_FILE).is_file():
+        return {"configured": False}
+    age_days = (time.time() - Path(YTDLP_COOKIES_FILE).stat().st_mtime) / 86400
+    return {
+        "configured": True,
+        "ageDays": round(age_days, 1),
+        "stale": YTDLP_COOKIES_MAX_AGE_DAYS > 0 and age_days > YTDLP_COOKIES_MAX_AGE_DAYS,
+    }
+
+
 app = FastAPI(title=APP_NAME)
 
 
@@ -630,6 +670,7 @@ def health() -> dict[str, Any]:
           "ffmpeg": shutil.which(FFMPEG_BIN) is not None,
           "ffprobe": shutil.which(FFPROBE_BIN) is not None,
         },
+        "ytdlpCookies": _cookies_health_info(),
         "limits": {
             "warnVideoDurationSeconds": WARN_VIDEO_DURATION_SECONDS,
             "warnAudioDownloadBytes": WARN_AUDIO_DOWNLOAD_BYTES,
@@ -685,6 +726,8 @@ def transcribe(
                 }
     except HTTPException:
         raise
+    except YtDlpBotGatedError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(status_code=500, detail=str(error)) from error
 
