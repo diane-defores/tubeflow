@@ -74,9 +74,9 @@ export default {
     perMonth: '/month',
     mostPopular: 'Most Popular',
     plans: [
-      { name: 'Free', desc: 'Perfect for getting started', monthly: 0, yearly: 0, features: ['5 playlists', '50 videos', 'Basic notes', 'Community support', '1 device'], cta: 'Get Started' },
-      { name: 'Pro', desc: 'For power users who want more', monthly: 9, yearly: 7, features: ['Unlimited playlists', 'Unlimited videos', 'AI-powered summaries', 'Priority support', 'Cross-device sync', 'Advanced search', 'Export notes'], cta: 'Start Free Trial', highlighted: true },
-      { name: 'Team', desc: 'For teams and organizations', monthly: 29, yearly: 23, features: ['Everything in Pro', 'Team workspaces', 'Shared playlists', 'Admin dashboard', 'SSO & SAML', 'Dedicated support', 'Custom integrations'], cta: 'Contact Us' },
+      { name: 'Free', desc: 'Perfect for getting started', monthly: 0, yearly: 0, features: ['3 playlists', '50 saved videos', 'Native YouTube captions', 'Basic notes', 'Community support', '1 device'], cta: 'Get Started' },
+      { name: 'Pro', desc: 'For serious learners', monthly: 7, yearly: 56, features: ['AI transcription (50 videos/mo)', 'Unlimited playlists & videos', 'AI-powered summaries', 'Export to Obsidian & Notion', 'Cross-device sync', 'Advanced search', 'Priority support'], cta: 'Start Free Trial', highlighted: true },
+      { name: 'Power', desc: 'For heavy users', monthly: 15, yearly: 120, features: ['AI transcription (200 videos/mo)', 'Everything in Pro', 'Early access to new features', 'Priority support'], cta: 'Get Power' },
     ],
   },
   finalCta: {

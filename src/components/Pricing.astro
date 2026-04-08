@@ -5,26 +5,26 @@ const plans = [
     description: 'Perfect for getting started',
     monthly: 0,
     yearly: 0,
-    features: ['5 playlists', '50 videos', 'Basic notes', 'Community support', '1 device'],
+    features: ['3 playlists', '50 saved videos', 'Native YouTube captions', 'Basic notes', 'Community support', '1 device'],
     cta: 'Get Started',
     highlighted: false,
   },
   {
     name: 'Pro',
-    description: 'For power users who want more',
-    monthly: 9,
-    yearly: 7,
-    features: ['Unlimited playlists', 'Unlimited videos', 'AI-powered summaries', 'Priority support', 'Cross-device sync', 'Advanced search', 'Export notes'],
+    description: 'For serious learners',
+    monthly: 7,
+    yearly: 56,
+    features: ['AI transcription (50 videos/mo)', 'Unlimited playlists & videos', 'AI-powered summaries', 'Export to Obsidian & Notion', 'Cross-device sync', 'Advanced search', 'Priority support'],
     cta: 'Start Free Trial',
     highlighted: true,
   },
   {
-    name: 'Team',
-    description: 'For teams and organizations',
-    monthly: 29,
-    yearly: 23,
-    features: ['Everything in Pro', 'Team workspaces', 'Shared playlists', 'Admin dashboard', 'SSO & SAML', 'Dedicated support', 'Custom integrations'],
-    cta: 'Contact Us',
+    name: 'Power',
+    description: 'For heavy users',
+    monthly: 15,
+    yearly: 120,
+    features: ['AI transcription (200 videos/mo)', 'Everything in Pro', 'Early access to new features', 'Priority support'],
+    cta: 'Get Power',
     highlighted: false,
   },
 ]
@@ -96,7 +96,7 @@ const plans = [
             </div>
             {plan.yearly > 0 && (
               <p class="text-xs text-muted-foreground mt-1 yearly-note hidden">
-                Billed annually (${plan.yearly * 12}/year)
+                Billed annually (${plan.yearly}/year)
               </p>
             )}
           </div>
@@ -122,6 +122,9 @@ const plans = [
           </a>
         </div>
       ))}
+    </div>
+    <div class="mt-10 max-w-2xl mx-auto px-4 py-4 rounded-xl bg-card/50 border border-border text-sm text-muted-foreground" data-reveal>
+      <p><span class="font-medium text-foreground">Why no lifetime deal?</span> TubeFlow uses AI transcription services that run on real servers — every video transcribed has a small cost. A one-time payment can't cover ongoing AI costs as you keep using the product. We chose subscription pricing to stay sustainable and keep improving TubeFlow for the long term.</p>
     </div>
   </div>
 </section>

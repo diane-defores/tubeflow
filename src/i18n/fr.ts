@@ -74,9 +74,9 @@ export default {
     perMonth: '/mois',
     mostPopular: 'Le plus populaire',
     plans: [
-      { name: 'Gratuit', desc: 'Parfait pour débuter', monthly: 0, yearly: 0, features: ['5 playlists', '50 vidéos', 'Notes basiques', 'Support communautaire', '1 appareil'], cta: 'Commencer' },
-      { name: 'Pro', desc: 'Pour les utilisateurs avancés', monthly: 9, yearly: 7, features: ['Playlists illimitées', 'Vidéos illimitées', 'Résumés par IA', 'Support prioritaire', 'Sync multi-appareils', 'Recherche avancée', 'Export des notes'], cta: 'Essai gratuit', highlighted: true },
-      { name: 'Équipe', desc: 'Pour les équipes et organisations', monthly: 29, yearly: 23, features: ['Tout dans Pro', "Espaces d'équipe", 'Playlists partagées', 'Tableau de bord admin', 'SSO & SAML', 'Support dédié', 'Intégrations personnalisées'], cta: 'Nous contacter' },
+      { name: 'Gratuit', desc: 'Parfait pour débuter', monthly: 0, yearly: 0, features: ['3 playlists', '50 vidéos sauvegardées', 'Sous-titres YouTube natifs', 'Notes basiques', 'Support communautaire', '1 appareil'], cta: 'Commencer' },
+      { name: 'Pro', desc: 'Pour les apprenants sérieux', monthly: 7, yearly: 56, features: ['Transcription IA (50 vidéos/mois)', 'Playlists & vidéos illimitées', 'Résumés par IA', 'Export vers Obsidian & Notion', 'Sync multi-appareils', 'Recherche avancée', 'Support prioritaire'], cta: 'Essai gratuit', highlighted: true },
+      { name: 'Power', desc: 'Pour les gros utilisateurs', monthly: 15, yearly: 120, features: ['Transcription IA (200 vidéos/mois)', 'Tout ce qui est inclus dans Pro', 'Accès anticipé aux nouveautés', 'Support prioritaire'], cta: 'Obtenir Power' },
     ],
   },
   finalCta: {
