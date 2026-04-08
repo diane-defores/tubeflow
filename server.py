@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import contextlib
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
+import threading
+import time
 import wave
 from functools import lru_cache
 from pathlib import Path
@@ -18,7 +22,11 @@ from pydantic import BaseModel
 APP_NAME = "TubeFlow Transcript Worker"
 
 WORKER_SECRET = os.getenv("TRANSCRIPT_WORKER_SECRET")
-YTDLP_BIN = os.getenv("YTDLP_BIN", "yt-dlp")
+DEFAULT_YTDLP_BIN = str(Path(sys.executable).with_name("yt-dlp"))
+YTDLP_BIN = os.getenv(
+    "YTDLP_BIN",
+    DEFAULT_YTDLP_BIN if Path(DEFAULT_YTDLP_BIN).exists() else "yt-dlp",
+)
 FFMPEG_BIN = os.getenv("FFMPEG_BIN", "ffmpeg")
 FFPROBE_BIN = os.getenv("FFPROBE_BIN", "ffprobe")
 
@@ -32,6 +40,19 @@ SENSEVOICE_DEVICE = os.getenv("TRANSCRIPT_SENSEVOICE_DEVICE", "cpu")
 OPENAI_MINI_RATE_PER_MIN = float(os.getenv("TRANSCRIPT_OPENAI_MINI_RATE_PER_MIN", "0.003"))
 OPENAI_RATE_PER_MIN = float(os.getenv("TRANSCRIPT_OPENAI_RATE_PER_MIN", "0.006"))
 DEEPGRAM_RATE_PER_MIN = float(os.getenv("TRANSCRIPT_DEEPGRAM_RATE_PER_MIN", "0.0077"))
+WARN_VIDEO_DURATION_SECONDS = int(os.getenv("TRANSCRIPT_WARN_VIDEO_DURATION_SECONDS", "3600"))
+WARN_AUDIO_DOWNLOAD_BYTES = int(os.getenv("TRANSCRIPT_WARN_AUDIO_DOWNLOAD_BYTES", "157286400"))
+HARD_MAX_VIDEO_DURATION_SECONDS = int(os.getenv("TRANSCRIPT_HARD_MAX_VIDEO_DURATION_SECONDS", "0"))
+HARD_MAX_AUDIO_DOWNLOAD_BYTES = int(os.getenv("TRANSCRIPT_HARD_MAX_AUDIO_DOWNLOAD_BYTES", "0"))
+METADATA_TIMEOUT_SECONDS = int(os.getenv("TRANSCRIPT_METADATA_TIMEOUT_SECONDS", "45"))
+DOWNLOAD_TIMEOUT_SECONDS = int(os.getenv("TRANSCRIPT_DOWNLOAD_TIMEOUT_SECONDS", "600"))
+NORMALIZE_TIMEOUT_SECONDS = int(os.getenv("TRANSCRIPT_NORMALIZE_TIMEOUT_SECONDS", "600"))
+MAX_CONCURRENT_JOBS = max(1, int(os.getenv("TRANSCRIPT_MAX_CONCURRENT_JOBS", "1")))
+JOB_QUEUE_TIMEOUT_SECONDS = max(0, int(os.getenv("TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS", "30")))
+
+JOB_SEMAPHORE = threading.BoundedSemaphore(value=MAX_CONCURRENT_JOBS)
+ACTIVE_JOBS_LOCK = threading.Lock()
+ACTIVE_JOBS = 0
 
 
 class TranscribeRequest(BaseModel):
@@ -68,36 +89,237 @@ def youtube_watch_url(video_id: str) -> str:
     return f"https://www.youtube.com/watch?v={video_id}"
 
 
-def run_command(command: list[str], cwd: str | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        cwd=cwd,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+def run_command(
+    command: list[str],
+    cwd: str | None = None,
+    timeout_seconds: int | None = None,
+) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            command,
+            cwd=cwd,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as error:
+        command_name = Path(command[0]).name
+        raise RuntimeError(
+            f"{command_name} timed out after {timeout_seconds} seconds."
+        ) from error
 
 
-def download_audio(youtube_video_id: str, working_dir: Path) -> Path:
+def parse_positive_number(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        with contextlib.suppress(ValueError):
+            parsed = float(value)
+            if parsed > 0:
+                return parsed
+    return None
+
+
+def format_bytes(byte_count: int) -> str:
+    units = ["B", "KiB", "MiB", "GiB", "TiB"]
+    size = float(byte_count)
+    for unit in units:
+        if size < 1024.0 or unit == units[-1]:
+            return f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{byte_count} B"
+
+
+def threshold_enabled(value: int) -> bool:
+    return value > 0
+
+
+def fetch_video_metadata(youtube_video_id: str) -> dict[str, Any]:
+    yt_dlp = ensure_binary(YTDLP_BIN)
+    command = [
+        yt_dlp,
+        "--no-playlist",
+        "--dump-single-json",
+        "--no-download",
+        "--format",
+        "bestaudio/best",
+        youtube_watch_url(youtube_video_id),
+    ]
+    result = run_command(command, timeout_seconds=METADATA_TIMEOUT_SECONDS)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "yt-dlp failed to fetch video metadata.")
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("yt-dlp returned invalid metadata JSON.") from error
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("yt-dlp metadata payload was not an object.")
+    return payload
+
+
+def estimated_audio_size_bytes(metadata: dict[str, Any]) -> int | None:
+    candidates: list[float | None] = [
+        parse_positive_number(metadata.get("filesize")),
+        parse_positive_number(metadata.get("filesize_approx")),
+    ]
+
+    for key in ("requested_downloads", "requested_formats"):
+        for entry in metadata.get(key) or []:
+            if isinstance(entry, dict):
+                candidates.append(parse_positive_number(entry.get("filesize")))
+                candidates.append(parse_positive_number(entry.get("filesize_approx")))
+
+    format_id = metadata.get("format_id")
+    if format_id and isinstance(metadata.get("formats"), list):
+        for entry in metadata["formats"]:
+            if not isinstance(entry, dict) or entry.get("format_id") != format_id:
+                continue
+            candidates.append(parse_positive_number(entry.get("filesize")))
+            candidates.append(parse_positive_number(entry.get("filesize_approx")))
+            break
+
+    for candidate in candidates:
+        if candidate and candidate > 0:
+            return int(candidate)
+    return None
+
+
+def evaluate_media_limits(metadata: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    duration_seconds = parse_positive_number(metadata.get("duration"))
+    if (
+        duration_seconds
+        and threshold_enabled(HARD_MAX_VIDEO_DURATION_SECONDS)
+        and duration_seconds > HARD_MAX_VIDEO_DURATION_SECONDS
+    ):
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                "Video duration exceeds worker limit "
+                f"({int(duration_seconds)}s > {HARD_MAX_VIDEO_DURATION_SECONDS}s)."
+            ),
+        )
+    if (
+        duration_seconds
+        and threshold_enabled(WARN_VIDEO_DURATION_SECONDS)
+        and duration_seconds > WARN_VIDEO_DURATION_SECONDS
+    ):
+        warnings.append(
+            "Video duration exceeds the recommended threshold "
+            f"({int(duration_seconds)}s > {WARN_VIDEO_DURATION_SECONDS}s)."
+        )
+
+    estimated_size = estimated_audio_size_bytes(metadata)
+    if (
+        estimated_size
+        and threshold_enabled(HARD_MAX_AUDIO_DOWNLOAD_BYTES)
+        and estimated_size > HARD_MAX_AUDIO_DOWNLOAD_BYTES
+    ):
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                "Estimated audio download exceeds worker limit "
+                f"({format_bytes(estimated_size)} > {format_bytes(HARD_MAX_AUDIO_DOWNLOAD_BYTES)})."
+            ),
+        )
+    if (
+        estimated_size
+        and threshold_enabled(WARN_AUDIO_DOWNLOAD_BYTES)
+        and estimated_size > WARN_AUDIO_DOWNLOAD_BYTES
+    ):
+        warnings.append(
+            "Estimated audio download exceeds the recommended threshold "
+            f"({format_bytes(estimated_size)} > {format_bytes(WARN_AUDIO_DOWNLOAD_BYTES)})."
+        )
+    return warnings
+
+
+def evaluate_downloaded_audio_size(downloaded_size: int) -> list[str]:
+    warnings: list[str] = []
+    if (
+        threshold_enabled(HARD_MAX_AUDIO_DOWNLOAD_BYTES)
+        and downloaded_size > HARD_MAX_AUDIO_DOWNLOAD_BYTES
+    ):
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                "Downloaded audio exceeds worker limit "
+                f"({format_bytes(downloaded_size)} > {format_bytes(HARD_MAX_AUDIO_DOWNLOAD_BYTES)})."
+            ),
+        )
+    if (
+        threshold_enabled(WARN_AUDIO_DOWNLOAD_BYTES)
+        and downloaded_size > WARN_AUDIO_DOWNLOAD_BYTES
+    ):
+        warnings.append(
+            "Downloaded audio exceeds the recommended threshold "
+            f"({format_bytes(downloaded_size)} > {format_bytes(WARN_AUDIO_DOWNLOAD_BYTES)})."
+        )
+    return warnings
+
+
+@contextlib.contextmanager
+def reserve_job_slot():
+    global ACTIVE_JOBS
+
+    wait_started_at = time.monotonic()
+    acquired = JOB_SEMAPHORE.acquire(timeout=JOB_QUEUE_TIMEOUT_SECONDS)
+    if not acquired:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Worker is busy. "
+                f"Max concurrent jobs: {MAX_CONCURRENT_JOBS}. "
+                f"Queue wait timeout: {JOB_QUEUE_TIMEOUT_SECONDS}s."
+            ),
+        )
+
+    with ACTIVE_JOBS_LOCK:
+        ACTIVE_JOBS += 1
+
+    try:
+        wait_time_seconds = max(0.0, time.monotonic() - wait_started_at)
+        yield wait_time_seconds
+    finally:
+        with ACTIVE_JOBS_LOCK:
+            ACTIVE_JOBS -= 1
+        JOB_SEMAPHORE.release()
+
+
+def download_audio(youtube_video_id: str, working_dir: Path) -> tuple[Path, list[str]]:
+    metadata = fetch_video_metadata(youtube_video_id)
+    warnings = evaluate_media_limits(metadata)
+
     yt_dlp = ensure_binary(YTDLP_BIN)
     output_template = working_dir / "source.%(ext)s"
     command = [
         yt_dlp,
         "--no-playlist",
+        "--js-runtimes",
+        "node",
         "--format",
         "bestaudio/best",
         "--output",
         str(output_template),
         youtube_watch_url(youtube_video_id),
     ]
-    result = run_command(command)
+    result = run_command(command, timeout_seconds=DOWNLOAD_TIMEOUT_SECONDS)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or "yt-dlp failed to download audio.")
 
     matches = sorted(working_dir.glob("source.*"))
     if not matches:
         raise RuntimeError("yt-dlp completed without producing an audio file.")
-    return matches[0]
+
+    output_path = matches[0]
+    downloaded_size = output_path.stat().st_size
+    warnings.extend(evaluate_downloaded_audio_size(downloaded_size))
+    return output_path, warnings
 
 
 def normalize_audio(source_path: Path, working_dir: Path) -> Path:
@@ -114,7 +336,7 @@ def normalize_audio(source_path: Path, working_dir: Path) -> Path:
         "16000",
         str(target),
     ]
-    result = run_command(command)
+    result = run_command(command, timeout_seconds=NORMALIZE_TIMEOUT_SECONDS)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or "ffmpeg failed to normalize audio.")
     return target
@@ -408,6 +630,15 @@ def health() -> dict[str, Any]:
           "ffmpeg": shutil.which(FFMPEG_BIN) is not None,
           "ffprobe": shutil.which(FFPROBE_BIN) is not None,
         },
+        "limits": {
+            "warnVideoDurationSeconds": WARN_VIDEO_DURATION_SECONDS,
+            "warnAudioDownloadBytes": WARN_AUDIO_DOWNLOAD_BYTES,
+            "hardMaxVideoDurationSeconds": HARD_MAX_VIDEO_DURATION_SECONDS,
+            "hardMaxAudioDownloadBytes": HARD_MAX_AUDIO_DOWNLOAD_BYTES,
+            "maxConcurrentJobs": MAX_CONCURRENT_JOBS,
+            "jobQueueTimeoutSeconds": JOB_QUEUE_TIMEOUT_SECONDS,
+        },
+        "activeJobs": ACTIVE_JOBS,
         "pythonPackages": available_local_engines(),
     }
 
@@ -426,22 +657,32 @@ def transcribe(
         )
 
     try:
-        with tempfile.TemporaryDirectory(prefix="tubeflow-transcript-") as temp_dir:
-            working_dir = Path(temp_dir)
-            source_audio = download_audio(payload.youtubeVideoId, working_dir)
-            normalized_audio = normalize_audio(source_audio, working_dir)
-            result = transcribe_with_provider(
-                payload.provider,
-                normalized_audio,
-                payload.language,
-                payload.apiKey,
-            )
-            return {
-                "entries": result["entries"],
-                "fullText": result["fullText"],
-                "estimatedCostUsd": result.get("estimatedCostUsd"),
-                "warnings": result.get("warnings", []),
-            }
+        with reserve_job_slot() as queue_wait_seconds:
+            with tempfile.TemporaryDirectory(prefix="tubeflow-transcript-") as temp_dir:
+                working_dir = Path(temp_dir)
+                source_audio, preflight_warnings = download_audio(
+                    payload.youtubeVideoId,
+                    working_dir,
+                )
+                normalized_audio = normalize_audio(source_audio, working_dir)
+                result = transcribe_with_provider(
+                    payload.provider,
+                    normalized_audio,
+                    payload.language,
+                    payload.apiKey,
+                )
+                warnings = list(preflight_warnings)
+                warnings.extend(result.get("warnings", []))
+                if queue_wait_seconds > 0.5:
+                    warnings.append(
+                        f"Job waited {queue_wait_seconds:.1f}s for worker capacity before starting."
+                    )
+                return {
+                    "entries": result["entries"],
+                    "fullText": result["fullText"],
+                    "estimatedCostUsd": result.get("estimatedCostUsd"),
+                    "warnings": warnings,
+                }
     except HTTPException:
         raise
     except Exception as error:

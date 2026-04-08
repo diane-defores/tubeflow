@@ -1,7 +1,7 @@
 fastapi==0.116.1
 uvicorn[standard]==0.35.0
 requests==2.32.5
-yt-dlp==2025.9.26
+yt-dlp==2026.3.17
 faster-whisper==1.2.0
 openai==1.107.2
 funasr==1.2.7

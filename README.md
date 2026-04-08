@@ -17,6 +17,10 @@ When TubeFlow asks for a transcript from a provider that needs audio processing,
    - `deepgram`
 5. returns normalized transcript segments back to Convex
 
+Before the download starts, the worker now runs a metadata preflight with
+`yt-dlp --dump-single-json`, adds warnings for oversized jobs, and only rejects
+them when an optional hard limit is configured.
+
 Convex then stores the version, marks the job as completed, and the app UI updates in realtime.
 
 ## Why a worker exists
@@ -53,6 +57,7 @@ This means the worker is the "transcription engine", and Convex is the "traffic 
 ### `GET /health`
 
 Returns whether the worker is up and whether the required binaries/packages are available.
+It also exposes the active warning thresholds, hard limits, and concurrency settings.
 
 ### `POST /transcribe`
 
@@ -77,17 +82,18 @@ Authorization: Bearer <secret>
 
 Requirements:
 
-- Python 3.11+
-- `ffmpeg`
-- `yt-dlp`
+- Flox
+- Node.js available on the host for `yt-dlp --js-runtimes node`
 
-Install dependencies:
+Install dependencies with Flox:
 
 ```bash
 cd /home/claude/tubeflow_lab
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+flox activate -- bash -lc '
+  python -m venv .venv
+  ./.venv/bin/python -m pip install -U pip
+  ./.venv/bin/python -m pip install -r requirements.txt
+'
 ```
 
 Run:
@@ -98,7 +104,7 @@ cp .env.example .env
 set -a
 source .env
 set +a
-python3 server.py
+flox activate -- ./.venv/bin/python server.py
 ```
 
 The worker listens on `http://localhost:8090` by default.
@@ -108,7 +114,7 @@ environment variable and can be started with:
 
 ```bash
 cd /home/claude/tubeflow_lab
-./.venv/bin/python main.py
+flox activate -- ./.venv/bin/python main.py
 ```
 
 Quick verification:
@@ -123,6 +129,45 @@ You should see:
 - `binaries.yt_dlp: true`
 - `binaries.ffmpeg: true`
 - `binaries.ffprobe: true`
+- `limits.warnVideoDurationSeconds`
+- `limits.warnAudioDownloadBytes`
+- `limits.maxConcurrentJobs`
+
+## Runtime policy
+
+The worker is designed to stay configurable rather than blindly reject every
+large video. The default setup warns on big jobs, limits how many jobs run at
+the same time, and only hard-rejects media when you explicitly set a hard cap.
+
+Default thresholds:
+
+- `TRANSCRIPT_WARN_VIDEO_DURATION_SECONDS=3600`
+- `TRANSCRIPT_WARN_AUDIO_DOWNLOAD_BYTES=157286400` (`150 MiB`)
+- `TRANSCRIPT_HARD_MAX_VIDEO_DURATION_SECONDS=0` (`0` disables the hard cap)
+- `TRANSCRIPT_HARD_MAX_AUDIO_DOWNLOAD_BYTES=0` (`0` disables the hard cap)
+- `TRANSCRIPT_METADATA_TIMEOUT_SECONDS=45`
+- `TRANSCRIPT_DOWNLOAD_TIMEOUT_SECONDS=600`
+- `TRANSCRIPT_NORMALIZE_TIMEOUT_SECONDS=600`
+- `TRANSCRIPT_MAX_CONCURRENT_JOBS=1`
+- `TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS=30`
+
+Behavior:
+
+- metadata is fetched first so the worker can warn early on long or large jobs
+- if you set a hard duration or size cap, the worker returns `413` only when
+  that hard cap is exceeded
+- after download, the worker checks the actual file size again and can add a
+  warning or reject if a hard cap is configured
+- only `TRANSCRIPT_MAX_CONCURRENT_JOBS` jobs run at once
+- additional jobs wait up to `TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS` and then
+  receive `429` if the worker is still saturated
+
+Recommended tuning:
+
+- if you want to allow 10h videos, keep the hard caps at `0`, increase the
+  warning thresholds, and keep concurrency low
+- if the server is small, keep `TRANSCRIPT_MAX_CONCURRENT_JOBS=1`
+- if the server has headroom, raise concurrency carefully and watch memory and CPU
 
 ## Docker
 
@@ -159,24 +204,28 @@ Recommended architecture on the current server:
 
 ### Server prerequisites
 
-Install `ffmpeg` on the server once if it is not already present:
+The supported server setup is Flox-managed:
 
-```bash
-sudo apt-get update
-sudo apt-get install -y ffmpeg
-```
+- `python312Full`
+- `ffmpeg_8`
+- `zlib`
+- `gcc`
+- `pkg-config`
 
-`yt-dlp` is installed from `requirements.txt`.
+`yt-dlp` is installed from `requirements.txt`, and the worker enables
+`--js-runtimes node` for YouTube extraction.
 
 ### Start the worker with PM2
 
-Create the virtualenv once:
+Create the virtualenv once from the Flox Python runtime:
 
 ```bash
 cd /home/claude/tubeflow_lab
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+flox activate -- bash -lc '
+  python -m venv .venv
+  ./.venv/bin/python -m pip install -U pip
+  ./.venv/bin/python -m pip install -r requirements.txt
+'
 ```
 
 Then start it with the provided PM2 config:
@@ -188,6 +237,8 @@ pm2 save
 ```
 
 Because PM2 exports `PORT`, the worker will bind to the configured port automatically.
+The checked-in PM2 config also points `FFMPEG_BIN` and `FFPROBE_BIN` at the
+Flox-provided binaries.
 
 ### Environment variables for the worker process
 
@@ -196,10 +247,19 @@ At minimum, set:
 - `TRANSCRIPT_WORKER_SECRET`
 - optionally `TRANSCRIPT_FASTER_WHISPER_MODEL=small`
 - optionally `TRANSCRIPT_WORKER_HOST=0.0.0.0`
+- optionally:
+  - `TRANSCRIPT_WARN_VIDEO_DURATION_SECONDS`
+  - `TRANSCRIPT_WARN_AUDIO_DOWNLOAD_BYTES`
+  - `TRANSCRIPT_HARD_MAX_VIDEO_DURATION_SECONDS`
+  - `TRANSCRIPT_HARD_MAX_AUDIO_DOWNLOAD_BYTES`
+  - `TRANSCRIPT_METADATA_TIMEOUT_SECONDS`
+  - `TRANSCRIPT_DOWNLOAD_TIMEOUT_SECONDS`
+  - `TRANSCRIPT_NORMALIZE_TIMEOUT_SECONDS`
+  - `TRANSCRIPT_MAX_CONCURRENT_JOBS`
+  - `TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS`
 
-The provided PM2 config expects Doppler. If you do not use Doppler for this
-service, edit `ecosystem.config.cjs` and replace the command with a plain
-`./.venv/bin/python main.py` launch plus exported env vars.
+The provided PM2 config no longer requires Doppler. It loads `.env` directly if
+present and otherwise starts with defaults.
 
 ### Publish through the existing Caddy / ShipFlow setup
 
@@ -251,6 +311,19 @@ Recommended value rules:
   Must exactly match the worker's bearer token
 - `TRANSCRIPT_SECRET_ENCRYPTION_KEY`
   Use a long random secret and keep it stable across deployments, or saved user provider keys will become undecryptable
+
+## Troubleshooting
+
+If the worker returns `413`, the job exceeded a configured hard duration or
+hard audio-size cap.
+
+If the worker returns `429`, all worker slots are busy and the request waited
+longer than `TRANSCRIPT_JOB_QUEUE_TIMEOUT_SECONDS`.
+
+If `yt-dlp` starts failing with messages such as `Sign in to confirm you're not a bot`,
+the worker runtime is healthy but the target video is blocked by YouTube's
+extraction checks. In that case you need a separate mitigation strategy such as
+cookies, a different extraction path, or a fallback provider.
 
 ## End-to-end setup flow
 
@@ -340,6 +413,9 @@ From the app:
   Convex cannot encrypt or decrypt saved provider API keys.
 - `Required binary 'ffmpeg' is not installed on the worker.`
   The worker image/runtime is missing required system dependencies.
+- `ERROR: [youtube] ... Sign in to confirm you’re not a bot.`
+  This is a YouTube/`yt-dlp` extraction block, not a worker bootstrap issue.
+  Retry with another video or provide cookies if you need bot-gated videos.
 - `Missing openai API key for transcript provider openai.` or similar
   The user has not saved the provider key in TubeFlow yet.
 
@@ -367,3 +443,14 @@ That way:
 - the app "just works"
 
 Running the worker on a user's own machine is possible, but that is better treated as an advanced/self-hosted mode.
+
+## Current runtime note
+
+As of 2026-04-06, the validated server setup is:
+
+- Flox environment with Python 3.12 and FFmpeg 8
+- local `.venv` built from the Flox interpreter
+- PM2 launching `main.py` through that `.venv`
+
+The worker healthcheck is green in this configuration. End-to-end transcript
+success still depends on whether `yt-dlp` can fetch the target YouTube video.
