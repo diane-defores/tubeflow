@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2026-04-09]
+
+### Added
+- Structured JSON logging across the full job lifecycle: `worker_start`, `job_start`, `job_end`, `job_rejected`, `download_ok`, `bot_gated`, `transcribe_ok`, `transcribe_error`.
+- Each log line includes contextual data (`videoId`, `provider`, `activeJobs`, `fileSizeBytes`) for PM2 log analysis.
+
 ## [2026-04-08]
 
 ### Changed

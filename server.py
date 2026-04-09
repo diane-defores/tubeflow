@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -18,6 +19,32 @@ from typing import Any, Literal
 import requests
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger("tubeflow")
+
+
+class _JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        entry: dict[str, Any] = {
+            "ts": self.formatTime(record),
+            "level": record.levelname,
+            "msg": record.getMessage(),
+        }
+        if hasattr(record, "data"):
+            entry.update(record.data)
+        return json.dumps(entry)
+
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(_JsonFormatter())
+logger.addHandler(_handler)
+logger.setLevel(logging.INFO)
+
+
+def _log(level: int, msg: str, **data: Any) -> None:
+    record = logger.makeRecord(logger.name, level, "", 0, msg, (), None)
+    record.data = data  # type: ignore[attr-defined]
+    logger.handle(record)
 
 APP_NAME = "TubeFlow Transcript Worker"
 
@@ -157,9 +184,10 @@ def _ytdlp_base_args() -> list[str]:
     return args
 
 
-def _classify_ytdlp_error(stderr: str, fallback_message: str) -> RuntimeError:
+def _classify_ytdlp_error(stderr: str, fallback_message: str, video_id: str = "") -> RuntimeError:
     lower = stderr.lower()
     if "sign in to confirm" in lower or "confirm you're not a bot" in lower:
+        _log(logging.WARNING, "bot-gated video", event="bot_gated", videoId=video_id)
         return YtDlpBotGatedError(
             "YouTube requires sign-in for this video (anti-bot gate). "
             "Configure YTDLP_COOKIES_FILE with a valid cookies.txt to access bot-gated videos."
@@ -184,7 +212,7 @@ def fetch_video_metadata(youtube_video_id: str) -> dict[str, Any]:
     ]
     result = run_command(command, timeout_seconds=METADATA_TIMEOUT_SECONDS)
     if result.returncode != 0:
-        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to fetch video metadata.")
+        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to fetch video metadata.", youtube_video_id)
 
     try:
         payload = json.loads(result.stdout)
@@ -304,6 +332,11 @@ def reserve_job_slot():
     wait_started_at = time.monotonic()
     acquired = JOB_SEMAPHORE.acquire(timeout=JOB_QUEUE_TIMEOUT_SECONDS)
     if not acquired:
+        _log(
+            logging.WARNING, "job rejected — worker busy",
+            event="job_rejected", activeJobs=ACTIVE_JOBS,
+            maxConcurrentJobs=MAX_CONCURRENT_JOBS,
+        )
         raise HTTPException(
             status_code=429,
             detail=(
@@ -318,10 +351,19 @@ def reserve_job_slot():
 
     try:
         wait_time_seconds = max(0.0, time.monotonic() - wait_started_at)
+        _log(
+            logging.INFO, "job slot acquired",
+            event="job_start", activeJobs=ACTIVE_JOBS,
+            queueWaitSeconds=round(wait_time_seconds, 2),
+        )
         yield wait_time_seconds
     finally:
         with ACTIVE_JOBS_LOCK:
             ACTIVE_JOBS -= 1
+        _log(
+            logging.INFO, "job slot released",
+            event="job_end", activeJobs=ACTIVE_JOBS,
+        )
         JOB_SEMAPHORE.release()
 
 
@@ -339,7 +381,7 @@ def download_audio(youtube_video_id: str, working_dir: Path) -> tuple[Path, list
     ]
     result = run_command(command, timeout_seconds=DOWNLOAD_TIMEOUT_SECONDS)
     if result.returncode != 0:
-        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to download audio.")
+        raise _classify_ytdlp_error(result.stderr, "yt-dlp failed to download audio.", youtube_video_id)
 
     matches = sorted(working_dir.glob("source.*"))
     if not matches:
@@ -347,6 +389,11 @@ def download_audio(youtube_video_id: str, working_dir: Path) -> tuple[Path, list
 
     output_path = matches[0]
     downloaded_size = output_path.stat().st_size
+    _log(
+        logging.INFO, "audio downloaded",
+        event="download_ok", videoId=youtube_video_id,
+        fileSizeBytes=downloaded_size,
+    )
     warnings.extend(evaluate_downloaded_audio_size(downloaded_size))
     return output_path, warnings
 
@@ -718,6 +765,11 @@ def transcribe(
                     warnings.append(
                         f"Job waited {queue_wait_seconds:.1f}s for worker capacity before starting."
                     )
+                _log(
+                    logging.INFO, "transcription complete",
+                    event="transcribe_ok", videoId=payload.youtubeVideoId,
+                    provider=payload.provider, entryCount=len(result["entries"]),
+                )
                 return {
                     "entries": result["entries"],
                     "fullText": result["fullText"],
@@ -727,17 +779,34 @@ def transcribe(
     except HTTPException:
         raise
     except YtDlpBotGatedError as error:
+        _log(
+            logging.ERROR, "transcription failed (bot-gated)",
+            event="transcribe_error", videoId=payload.youtubeVideoId,
+            provider=payload.provider, error=str(error),
+        )
         raise HTTPException(status_code=403, detail=str(error)) from error
     except Exception as error:
+        _log(
+            logging.ERROR, "transcription failed",
+            event="transcribe_error", videoId=payload.youtubeVideoId,
+            provider=payload.provider, error=str(error),
+        )
         raise HTTPException(status_code=500, detail=str(error)) from error
 
 
 if __name__ == "__main__":
     import uvicorn
 
+    host = os.getenv("TRANSCRIPT_WORKER_HOST", "0.0.0.0")
+    port = int(os.getenv("TRANSCRIPT_WORKER_PORT") or os.getenv("PORT", "8090"))
+    _log(
+        logging.INFO, "worker starting",
+        event="worker_start", host=host, port=port,
+        maxConcurrentJobs=MAX_CONCURRENT_JOBS,
+    )
     uvicorn.run(
         app,
-        host=os.getenv("TRANSCRIPT_WORKER_HOST", "0.0.0.0"),
-        port=int(os.getenv("TRANSCRIPT_WORKER_PORT") or os.getenv("PORT", "8090")),
+        host=host,
+        port=port,
         reload=os.getenv("TRANSCRIPT_WORKER_RELOAD", "false").lower() == "true",
     )
