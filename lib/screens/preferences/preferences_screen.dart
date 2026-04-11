@@ -224,13 +224,60 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         SwitchListTile(
           secondary: const Icon(Icons.notifications),
           title: const Text('Enable Notifications'),
-          subtitle: const Text('New videos, playlist updates'),
+          subtitle: const Text('Master notification toggle'),
           value: notificationsEnabled,
           onChanged: (value) {
             _updateSettings({
               'notifications': {'push': value},
             });
           },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.fiber_new),
+          title: const Text('New Video Alerts'),
+          subtitle: const Text('Notify when subscribed channels upload'),
+          value: settings?.notifications.newVideos ?? true,
+          onChanged: notificationsEnabled
+              ? (value) {
+                  _updateSettings({
+                    'notifications': {'newVideos': value},
+                  });
+                }
+              : null,
+        ),
+        ListTile(
+          leading: const Icon(Icons.schedule),
+          title: const Text('Check Interval'),
+          subtitle: Text(_intervalLabel(
+              settings?.notifications.feedRefreshIntervalMinutes ?? 60)),
+          enabled: notificationsEnabled &&
+              (settings?.notifications.newVideos ?? true),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: (notificationsEnabled &&
+                  (settings?.notifications.newVideos ?? true))
+              ? () => _showChoiceDialog(
+                    title: 'Check Interval',
+                    options: [
+                      'Off',
+                      'Every 30 minutes',
+                      'Every hour',
+                      'Every 2 hours',
+                      'Every 6 hours',
+                      'Daily',
+                    ],
+                    currentValue: _intervalLabel(
+                        settings?.notifications.feedRefreshIntervalMinutes ??
+                            60),
+                    onSelected: (value) {
+                      _updateSettings({
+                        'notifications': {
+                          'feedRefreshIntervalMinutes':
+                              _intervalFromLabel(value),
+                        },
+                      });
+                    },
+                  )
+              : null,
         ),
         const Divider(),
 
@@ -282,6 +329,44 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             ),
       ),
     );
+  }
+
+  String _intervalLabel(int minutes) {
+    switch (minutes) {
+      case 0:
+        return 'Off';
+      case 30:
+        return 'Every 30 minutes';
+      case 60:
+        return 'Every hour';
+      case 120:
+        return 'Every 2 hours';
+      case 360:
+        return 'Every 6 hours';
+      case 1440:
+        return 'Daily';
+      default:
+        return 'Every $minutes min';
+    }
+  }
+
+  int _intervalFromLabel(String label) {
+    switch (label) {
+      case 'Off':
+        return 0;
+      case 'Every 30 minutes':
+        return 30;
+      case 'Every hour':
+        return 60;
+      case 'Every 2 hours':
+        return 120;
+      case 'Every 6 hours':
+        return 360;
+      case 'Daily':
+        return 1440;
+      default:
+        return 60;
+    }
   }
 
   void _showChoiceDialog({

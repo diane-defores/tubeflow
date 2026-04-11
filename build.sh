@@ -7,6 +7,6 @@ flutter/bin/flutter build web \
   2>&1 \
 || {
   echo '=== DART ERRORS ==='
-  flutter/bin/flutter analyze --no-pub 2>&1 | tail -50
+  flutter/bin/flutter analyze --no-pub lib web 2>&1 | tail -50
   exit 1
 }

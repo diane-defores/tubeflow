@@ -6,7 +6,9 @@ import 'package:tubeflow_app/auth/auth_gate.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/screens/browse/browse_screen.dart';
 import 'package:tubeflow_app/screens/hidden/hidden_screen.dart';
+import 'package:tubeflow_app/screens/notes/note_detail_screen.dart';
 import 'package:tubeflow_app/screens/notes/notes_screen.dart';
+import 'package:tubeflow_app/screens/notifications/notifications_screen.dart';
 import 'package:tubeflow_app/screens/play/play_screen.dart';
 import 'package:tubeflow_app/screens/playlists/create_playlist_screen.dart';
 import 'package:tubeflow_app/screens/playlists/playlist_detail_screen.dart';
@@ -30,6 +32,7 @@ abstract final class Routes {
   static String playlistDetail(String id) => '/playlists/$id';
   static const notes = '/notes';
   static String noteDetail(String slug) => '/notes/$slug';
+  static const notifications = '/notifications';
   static const preferences = '/preferences';
   static const hidden = '/hidden';
   static const stats = '/stats';
@@ -129,6 +132,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
+            path: Routes.notifications,
+            builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
             path: Routes.preferences,
             builder: (context, state) => const PreferencesScreen(),
           ),
@@ -145,4 +152,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-

@@ -153,12 +153,19 @@ class NotificationSettings {
   final bool push;
   final bool newComments;
   final bool newLikes;
+  final bool newVideos;
+
+  /// Feed refresh interval in minutes. 0 means disabled.
+  /// Typical values: 0, 30, 60, 120, 360, 1440.
+  final int feedRefreshIntervalMinutes;
 
   const NotificationSettings({
     this.email = true,
     this.push = true,
     this.newComments = true,
     this.newLikes = true,
+    this.newVideos = true,
+    this.feedRefreshIntervalMinutes = 60,
   });
 
   factory NotificationSettings.fromJson(Map<String, dynamic>? json) {
@@ -168,6 +175,9 @@ class NotificationSettings {
       push: json['push'] as bool? ?? true,
       newComments: json['newComments'] as bool? ?? true,
       newLikes: json['newLikes'] as bool? ?? true,
+      newVideos: json['newVideos'] as bool? ?? true,
+      feedRefreshIntervalMinutes:
+          json['feedRefreshIntervalMinutes'] as int? ?? 60,
     );
   }
 
@@ -177,6 +187,8 @@ class NotificationSettings {
       'push': push,
       'newComments': newComments,
       'newLikes': newLikes,
+      'newVideos': newVideos,
+      'feedRefreshIntervalMinutes': feedRefreshIntervalMinutes,
     };
   }
 
@@ -185,12 +197,17 @@ class NotificationSettings {
     bool? push,
     bool? newComments,
     bool? newLikes,
+    bool? newVideos,
+    int? feedRefreshIntervalMinutes,
   }) {
     return NotificationSettings(
       email: email ?? this.email,
       push: push ?? this.push,
       newComments: newComments ?? this.newComments,
       newLikes: newLikes ?? this.newLikes,
+      newVideos: newVideos ?? this.newVideos,
+      feedRefreshIntervalMinutes:
+          feedRefreshIntervalMinutes ?? this.feedRefreshIntervalMinutes,
     );
   }
 }

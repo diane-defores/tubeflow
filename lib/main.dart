@@ -20,13 +20,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   const convexUrl = String.fromEnvironment('CONVEX_URL');
-  if (convexUrl.isEmpty) {
-    throw StateError(
-      'CONVEX_URL is not set. '
-      'Pass --dart-define=CONVEX_URL=https://your-deployment.convex.cloud',
-    );
+  if (convexUrl.isNotEmpty) {
+    await ConvexService.initialize(convexUrl);
   }
-  await ConvexService.initialize(convexUrl);
 
   runApp(
     const ProviderScope(
@@ -55,6 +51,14 @@ class _AppBootstrap extends ConsumerStatefulWidget {
 
 class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   bool _initialised = false;
+  String? _bootstrapError;
+
+  bool get _hasConvexConfig =>
+      const String.fromEnvironment('CONVEX_URL').isNotEmpty;
+
+  bool get _hasClerkConfig => _clerkPublishableKey.isNotEmpty;
+
+  bool get _hasRequiredConfig => _hasConvexConfig && _hasClerkConfig;
 
   @override
   void initState() {
@@ -66,6 +70,13 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   }
 
   void _bootstrap() {
+    if (!_hasRequiredConfig) {
+      if (mounted) {
+        setState(() => _initialised = true);
+      }
+      return;
+    }
+
     try {
       // 1. Eagerly read the ClerkService so it initialises and starts
       //    listening for session changes.
@@ -76,12 +87,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
       convex.setAuth(() => clerk.getConvexToken());
     } catch (e, st) {
       developer.log('Bootstrap failed', error: e, stackTrace: st);
-      // Surface bootstrap failures so they are visible during development.
-      if (mounted) {
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-          SnackBar(content: Text('App bootstrap failed: $e')),
-        );
-      }
+      _bootstrapError = '$e';
     }
 
     if (mounted) {
@@ -103,10 +109,106 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
       );
     }
 
+    if (!_hasRequiredConfig || _bootstrapError != null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
+        home: _ConfigFallbackScreen(
+          hasConvexConfig: _hasConvexConfig,
+          hasClerkConfig: _hasClerkConfig,
+          bootstrapError: _bootstrapError,
+        ),
+      );
+    }
+
     return ClerkAuth(
       config: ClerkAuthConfig(publishableKey: _clerkPublishableKey),
       child: const ClerkErrorListener(
         child: TubeFlowApp(),
+      ),
+    );
+  }
+}
+
+class _ConfigFallbackScreen extends StatelessWidget {
+  const _ConfigFallbackScreen({
+    required this.hasConvexConfig,
+    required this.hasClerkConfig,
+    this.bootstrapError,
+  });
+
+  final bool hasConvexConfig;
+  final bool hasClerkConfig;
+  final String? bootstrapError;
+
+  @override
+  Widget build(BuildContext context) {
+    final missing = <String>[
+      if (!hasConvexConfig) 'CONVEX_URL',
+      if (!hasClerkConfig) 'CLERK_PUBLISHABLE_KEY',
+    ];
+
+    return Scaffold(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.settings_rounded, size: 28),
+                        SizedBox(width: 12),
+                        Text(
+                          'TubeFlow configuration required',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      missing.isEmpty
+                          ? 'The app started, but bootstrap failed.'
+                          : 'This build succeeded, but the app is running in '
+                              'fallback mode because required environment '
+                              'variables are missing.',
+                    ),
+                    if (missing.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Missing variables: ${missing.join(', ')}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    const SelectableText(
+                      'Set these at build time with --dart-define or in Vercel '
+                      'project environment variables.',
+                    ),
+                    if (bootstrapError != null) ...[
+                      const SizedBox(height: 16),
+                      SelectableText(
+                        'Bootstrap error: $bootstrapError',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

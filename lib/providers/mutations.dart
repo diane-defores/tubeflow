@@ -40,7 +40,7 @@ import 'package:tubeflow_app/convex/convex_provider.dart';
 ///
 /// Returns the Convex document ID of the created note.
 Future<dynamic> createNote(
-  Ref ref, {
+  WidgetRef ref, {
   required String videoId,
   required String content,
   double? timestamp,
@@ -56,7 +56,7 @@ Future<dynamic> createNote(
 }
 
 /// Updates the content of an existing note.
-Future<dynamic> updateNote(Ref ref, String noteId, String content) async {
+Future<dynamic> updateNote(WidgetRef ref, String noteId, String content) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('notes:updateNote', {
     'noteId': noteId,
@@ -65,7 +65,7 @@ Future<dynamic> updateNote(Ref ref, String noteId, String content) async {
 }
 
 /// Deletes a note by its Convex document ID.
-Future<dynamic> deleteNote(Ref ref, String noteId) async {
+Future<dynamic> deleteNote(WidgetRef ref, String noteId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('notes:deleteNote', {
     'noteId': noteId,
@@ -77,7 +77,7 @@ Future<dynamic> deleteNote(Ref ref, String noteId) async {
 // ---------------------------------------------------------------------------
 
 /// Hides a video from the user's feed.
-Future<dynamic> hideVideo(Ref ref, String videoId) async {
+Future<dynamic> hideVideo(WidgetRef ref, String videoId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('hidden:hideItem', {
     'youtubeId': videoId,
@@ -86,7 +86,7 @@ Future<dynamic> hideVideo(Ref ref, String videoId) async {
 }
 
 /// Hides a playlist from the user's feed.
-Future<dynamic> hidePlaylist(Ref ref, String playlistId) async {
+Future<dynamic> hidePlaylist(WidgetRef ref, String playlistId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('hidden:hideItem', {
     'youtubeId': playlistId,
@@ -95,7 +95,7 @@ Future<dynamic> hidePlaylist(Ref ref, String playlistId) async {
 }
 
 /// Un-hides a previously hidden video, restoring it to the feed.
-Future<dynamic> unhideVideo(Ref ref, String videoId) async {
+Future<dynamic> unhideVideo(WidgetRef ref, String videoId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('hidden:unhideItem', {
     'youtubeId': videoId,
@@ -104,7 +104,7 @@ Future<dynamic> unhideVideo(Ref ref, String videoId) async {
 }
 
 /// Un-hides a hidden item by its Convex document ID.
-Future<dynamic> unhideItem(Ref ref, String hiddenItemId) async {
+Future<dynamic> unhideItem(WidgetRef ref, String hiddenItemId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('hidden:unhideItem', {
     'hiddenItemId': hiddenItemId,
@@ -116,7 +116,7 @@ Future<dynamic> unhideItem(Ref ref, String hiddenItemId) async {
 // ---------------------------------------------------------------------------
 
 /// Marks a video as watched.
-Future<dynamic> markWatched(Ref ref, String videoId) async {
+Future<dynamic> markWatched(WidgetRef ref, String videoId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('watched:markWatched', {
     'youtubeVideoId': videoId,
@@ -124,7 +124,7 @@ Future<dynamic> markWatched(Ref ref, String videoId) async {
 }
 
 /// Removes the watched mark from a video.
-Future<dynamic> unmarkWatched(Ref ref, String videoId) async {
+Future<dynamic> unmarkWatched(WidgetRef ref, String videoId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('watched:unmarkWatched', {
     'youtubeVideoId': videoId,
@@ -140,7 +140,7 @@ Future<dynamic> unmarkWatched(Ref ref, String videoId) async {
 /// [seconds] is the current playback position. [duration] is the total video
 /// length in seconds. Both values use fractional seconds.
 Future<dynamic> saveProgress(
-  Ref ref,
+  WidgetRef ref,
   String videoId,
   double seconds,
   double duration,
@@ -158,7 +158,7 @@ Future<dynamic> saveProgress(
 /// Unlike [saveProgress], this does not require a duration. Use for
 /// mid-session saves (pause, background, dispose).
 Future<dynamic> upsertProgress(
-  Ref ref,
+  WidgetRef ref,
   String videoId,
   double progressSeconds,
 ) async {
@@ -174,13 +174,13 @@ Future<dynamic> upsertProgress(
 // ---------------------------------------------------------------------------
 
 /// Triggers a YouTube sync for all playlists.
-Future<dynamic> syncAllPlaylists(Ref ref) async {
+Future<dynamic> syncAllPlaylists(WidgetRef ref) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('youtube:syncAllPlaylists', {});
 }
 
 /// Triggers a YouTube sync for a single playlist.
-Future<dynamic> syncPlaylist(Ref ref, String playlistId) async {
+Future<dynamic> syncPlaylist(WidgetRef ref, String playlistId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('youtube:syncPlaylist', {
     'playlistId': playlistId,
@@ -189,7 +189,7 @@ Future<dynamic> syncPlaylist(Ref ref, String playlistId) async {
 
 /// Removes a video from a playlist.
 Future<dynamic> removeVideoFromPlaylist(
-  Ref ref, {
+  WidgetRef ref, {
   required String playlistId,
   required String videoId,
 }) async {
@@ -204,7 +204,7 @@ Future<dynamic> removeVideoFromPlaylist(
 ///
 /// Returns the Convex document ID of the created playlist.
 Future<dynamic> createPlaylist(
-  Ref ref, {
+  WidgetRef ref, {
   required String title,
   String? description,
   String privacyStatus = 'private',
@@ -228,7 +228,7 @@ Future<dynamic> createPlaylist(
 /// [type] should be `'like'` or `'dislike'`. Toggling the same type twice
 /// removes the interaction.
 Future<dynamic> toggleLike(
-  Ref ref,
+  WidgetRef ref,
   String videoId,
   String type,
 ) async {
@@ -247,7 +247,7 @@ Future<dynamic> toggleLike(
 ///
 /// Returns the Convex document ID of the created comment.
 Future<dynamic> createComment(
-  Ref ref,
+  WidgetRef ref,
   String videoId,
   String content,
 ) async {
@@ -256,6 +256,27 @@ Future<dynamic> createComment(
     'youtubeVideoId': videoId,
     'content': content,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+/// Marks a single notification as read.
+Future<dynamic> markNotificationRead(
+  WidgetRef ref,
+  String notificationId,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('notifications:markAsRead', {
+    'notificationId': notificationId,
+  });
+}
+
+/// Marks all unread notifications as read.
+Future<dynamic> markAllNotificationsRead(WidgetRef ref) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('notifications:markAllAsRead', {});
 }
 
 // ---------------------------------------------------------------------------
@@ -270,7 +291,10 @@ Future<dynamic> createComment(
 /// await updateSettings(ref, {'theme': 'dark'});
 /// await updateSettings(ref, {'playback': {'speed': 1.5}});
 /// ```
-Future<dynamic> updateSettings(Ref ref, Map<String, dynamic> patch) async {
+Future<dynamic> updateSettings(
+  WidgetRef ref,
+  Map<String, dynamic> patch,
+) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('settings:updateSettings', patch);
 }

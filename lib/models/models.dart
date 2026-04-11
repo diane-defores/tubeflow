@@ -8,6 +8,7 @@ library;
 
 export 'api_metric.dart';
 export 'comment.dart';
+export 'notification.dart';
 export 'hidden_item.dart';
 export 'like_status.dart';
 export 'note.dart';

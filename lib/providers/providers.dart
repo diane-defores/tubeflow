@@ -264,7 +264,41 @@ final playlistVideosProvider =
 });
 
 // ---------------------------------------------------------------------------
-// 13. videoNotesProvider(videoId)
+// 13. notificationsProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notifications:getNotifications` — current user's notifications.
+final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
+  final service = ref.watch(convexServiceProvider);
+  return service
+      .subscribe<dynamic>('notifications:getNotifications', {})
+      .map((raw) => _decodeList(raw)
+          .map((json) => AppNotification.fromJson(json))
+          .toList(growable: false));
+});
+
+// ---------------------------------------------------------------------------
+// 14. unreadNotificationCountProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notifications:getUnreadCount` — unread notification count.
+final unreadNotificationCountProvider = StreamProvider<int>((ref) {
+  final service = ref.watch(convexServiceProvider);
+  return service
+      .subscribe<dynamic>('notifications:getUnreadCount', {})
+      .map((raw) {
+    if (raw is int) return raw;
+    if (raw is String) {
+      final parsed = int.tryParse(raw);
+      return parsed ?? 0;
+    }
+    if (raw is num) return raw.toInt();
+    return 0;
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 15. videoNotesProvider(videoId)
 // ---------------------------------------------------------------------------
 
 /// Subscribes to `notes:getNotesByYoutubeVideo` for a specific video.

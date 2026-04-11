@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
+import 'package:tubeflow_app/providers/providers.dart';
 
 /// Responsive app shell with bottom navigation (mobile) or side rail
 /// (tablet / web).
 ///
 /// Used as the builder for the [ShellRoute] in [router.dart]. The [child]
 /// parameter is the currently active route widget injected by GoRouter.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
 
   /// The routed page content.
@@ -77,23 +79,51 @@ class AppShell extends StatelessWidget {
   static const _railBreakpoint = 600.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.sizeOf(context).width;
     final selected = _selectedIndex(context);
 
     if (width >= _railBreakpoint) {
-      return _buildWithRail(context, selected);
+      return _buildWithRail(context, ref, selected);
     }
-    return _buildWithBottomNav(context, selected);
+    return _buildWithBottomNav(context, ref, selected);
+  }
+
+  /// Builds the notification bell icon with an unread badge.
+  Widget _buildNotificationBell(BuildContext context, WidgetRef ref) {
+    final unreadAsync = ref.watch(unreadNotificationCountProvider);
+    final unreadCount = unreadAsync.asData?.value ?? 0;
+
+    return IconButton(
+      icon: Badge(
+        isLabelVisible: unreadCount > 0,
+        label: Text(
+          unreadCount > 99 ? '99+' : '$unreadCount',
+          style: const TextStyle(fontSize: 10),
+        ),
+        child: const Icon(Icons.notifications_outlined),
+      ),
+      tooltip: 'Notifications',
+      onPressed: () => context.go(Routes.notifications),
+    );
   }
 
   // ---------------------------------------------------------------------------
   // Bottom navigation (mobile)
   // ---------------------------------------------------------------------------
 
-  Widget _buildWithBottomNav(BuildContext context, int selected) {
+  Widget _buildWithBottomNav(BuildContext context, WidgetRef ref, int selected) {
     return Scaffold(
-      body: child,
+      body: Stack(
+        children: [
+          child,
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 4,
+            right: 4,
+            child: _buildNotificationBell(context, ref),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected,
         onDestinationSelected: (i) => _onDestinationSelected(context, i),
@@ -113,7 +143,7 @@ class AppShell extends StatelessWidget {
   // Side rail (tablet / web)
   // ---------------------------------------------------------------------------
 
-  Widget _buildWithRail(BuildContext context, int selected) {
+  Widget _buildWithRail(BuildContext context, WidgetRef ref, int selected) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -123,13 +153,17 @@ class AppShell extends StatelessWidget {
             selectedIndex: selected,
             onDestinationSelected: (i) => _onDestinationSelected(context, i),
             labelType: NavigationRailLabelType.all,
-            leading: Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Icon(
-                Icons.play_circle_outline_rounded,
-                size: 32,
-                color: colorScheme.primary,
-              ),
+            leading: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.play_circle_outline_rounded,
+                  size: 32,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(height: 8),
+                _buildNotificationBell(context, ref),
+              ],
             ),
             destinations: [
               for (final dest in _destinations)
