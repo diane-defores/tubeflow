@@ -58,8 +58,6 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
   bool get _hasClerkConfig => _clerkPublishableKey.isNotEmpty;
 
-  bool get _hasRequiredConfig => _hasConvexConfig && _hasClerkConfig;
-
   @override
   void initState() {
     super.initState();
@@ -70,21 +68,12 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   }
 
   void _bootstrap() {
-    if (!_hasRequiredConfig) {
-      if (mounted) {
-        setState(() => _initialised = true);
-      }
-      return;
-    }
-
     try {
-      // 1. Eagerly read the ClerkService so it initialises and starts
-      //    listening for session changes.
-      final clerk = ref.read(clerkServiceProvider);
-
-      // 2. Wire the Convex client to use Clerk tokens for auth.
-      final convex = ref.read(convexServiceProvider);
-      convex.setAuth(() => clerk.getConvexToken());
+      if (_hasConvexConfig && _hasClerkConfig) {
+        final clerk = ref.read(clerkServiceProvider);
+        final convex = ref.read(convexServiceProvider);
+        convex.setAuth(() => clerk.getConvexToken());
+      }
     } catch (e, st) {
       developer.log('Bootstrap failed', error: e, stackTrace: st);
       _bootstrapError = '$e';
@@ -109,7 +98,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
       );
     }
 
-    if (!_hasRequiredConfig || _bootstrapError != null) {
+    if (_bootstrapError != null) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
@@ -123,12 +112,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
       );
     }
 
-    return ClerkAuth(
-      config: ClerkAuthConfig(publishableKey: _clerkPublishableKey),
-      child: const ClerkErrorListener(
-        child: TubeFlowApp(),
-      ),
-    );
+    return const TubeFlowApp();
   }
 }
 

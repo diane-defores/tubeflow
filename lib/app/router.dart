@@ -52,9 +52,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (BuildContext context, GoRouterState state) {
       final goingToSignIn = state.matchedLocation == Routes.signIn;
 
-      if (!isAuthenticated && !goingToSignIn) {
-        return Routes.signIn;
-      }
       if (isAuthenticated && goingToSignIn) {
         return Routes.videos;
       }
@@ -64,9 +61,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Sign-in (no shell)
       GoRoute(
         path: Routes.signIn,
-        builder: (context, state) => const AuthGate(
-          child: SizedBox.shrink(),
-        ),
+        builder: (context, state) => const ClerkSignInPage(),
       ),
 
       // Main app with shell navigation

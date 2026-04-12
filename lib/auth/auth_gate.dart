@@ -8,6 +8,62 @@ import 'package:go_router/go_router.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 
+const _clerkPublishableKey = String.fromEnvironment(
+  'CLERK_PUBLISHABLE_KEY',
+  defaultValue: '',
+);
+
+class ClerkSignInPage extends StatelessWidget {
+  const ClerkSignInPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (_clerkPublishableKey.isEmpty) {
+      return const Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Clerk is not configured for this build. '
+              'The app is accessible in guest mode.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ClerkAuth(
+      config: ClerkAuthConfig(
+        publishableKey: _clerkPublishableKey,
+        loading: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading sign-in...',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      child: const ClerkErrorListener(
+        child: AuthGate(
+          child: SizedBox.shrink(),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // AuthGate
 // ---------------------------------------------------------------------------
