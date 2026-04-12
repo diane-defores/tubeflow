@@ -3,7 +3,9 @@ import 'dart:developer' as developer;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 
 // ---------------------------------------------------------------------------
@@ -38,8 +40,13 @@ class AuthGate extends ConsumerWidget {
 
   void _syncSignedIn(WidgetRef ref, BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+
       final notifier = ref.read(authStateProvider.notifier);
-      if (notifier.isAuthenticated) return;
+      if (notifier.isAuthenticated) {
+        context.go(Routes.videos);
+        return;
+      }
 
       try {
         final clerk = ClerkAuth.of(context);
@@ -52,6 +59,9 @@ class AuthGate extends ConsumerWidget {
                 '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
             imageUrl: user.imageUrl,
           ));
+          if (context.mounted) {
+            context.go(Routes.videos);
+          }
           return;
         }
       } catch (e) {
@@ -61,6 +71,9 @@ class AuthGate extends ConsumerWidget {
       // Fallback: mark as authenticated even without user details so
       // the router can redirect away from the sign-in screen.
       notifier.setAuthenticated(const AuthUser(id: 'clerk-user', email: ''));
+      if (context.mounted) {
+        context.go(Routes.videos);
+      }
     });
   }
 }
