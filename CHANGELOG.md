@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-04-12]
+
+### Changed
+- `build.sh`: read env vars directly as `CONVEX_URL` / `CLERK_PUBLISHABLE_KEY` (removed `NEXT_PUBLIC_*` fallbacks) — matches cleaned-up Doppler/Vercel variable names post-Next/Expo migration
+
 ## [2026-04-07]
 
 ### Added
