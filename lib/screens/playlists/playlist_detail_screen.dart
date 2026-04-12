@@ -8,6 +8,7 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Playlist detail screen showing the playlist header and its video list.
 ///
@@ -80,24 +81,12 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             },
             loading: () => SliverToBoxAdapter(child: _buildShimmerList()),
             error: (error, stack) => SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.error_outline,
-                          size: 48, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text('Failed to load videos: $error',
-                          style: const TextStyle(color: Colors.red)),
-                      const SizedBox(height: 16),
-                      FilledButton.tonal(
-                        onPressed: () => ref.invalidate(
-                            playlistVideosProvider(widget.id)),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: ErrorStateView(
+                  error: error,
+                  prefix: 'Failed to load videos',
+                  onRetry: () => ref.invalidate(playlistVideosProvider(widget.id)),
                 ),
               ),
             ),
@@ -155,8 +144,10 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Refresh failed: $e')),
+                    showErrorSnackBar(
+                      context,
+                      error: e,
+                      prefix: 'Refresh failed',
                     );
                   }
                 }
@@ -326,9 +317,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                           playlistId: widget.id, videoId: video.id);
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
+                        showErrorSnackBar(context, error: e, prefix: 'Error');
                       }
                     }
                     break;
@@ -337,9 +326,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                       await hideVideo(ref, video.youtubeVideoId);
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
+                        showErrorSnackBar(context, error: e, prefix: 'Error');
                       }
                     }
                     break;

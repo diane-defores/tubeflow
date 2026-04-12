@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
@@ -14,44 +16,48 @@ const _publishableKey = String.fromEnvironment(
   defaultValue: '',
 );
 
+/// Name of the JWT template configured in the Clerk dashboard for Convex.
+///
+/// Must match `applicationID` in `packages/backend/convex/auth.config.ts`.
+const _convexJwtTemplate = 'convex';
+
 // ---------------------------------------------------------------------------
 // ClerkService
 // ---------------------------------------------------------------------------
 
-/// Provides Clerk authentication for TubeFlow.
+/// Owns a long-lived [ClerkAuthState] and exposes it to the rest of the app.
 ///
-/// This is a lightweight service that manages auth state through [AuthNotifier].
-/// The actual Clerk SDK integration happens via the `ClerkAuth` widget in the
-/// widget tree (see `clerk_flutter`). This service provides imperative methods
-/// for sign-in / sign-out that the UI can call.
-///
-/// Because `clerk_flutter 0.0.14-beta` exposes `ClerkAuth` as an
-/// InheritedWidget (not a directly instantiable service), this class does NOT
-/// hold a reference to `ClerkAuth`. Instead it acts as a stub that drives
-/// [AuthNotifier] state while the real Clerk widget-tree integration is wired
-/// up separately.
+/// The [ClerkAuthState] is created once during bootstrap and shared between
+/// the sign-in page (which mounts `ClerkAuth(authState: ...)`) and the
+/// Convex client (which calls [getConvexToken] on every authenticated
+/// request). Because the state lives in this service — not inside the
+/// sign-in widget — the Clerk session survives navigation out of `/sign-in`.
 class ClerkService {
   ClerkService({required this.authNotifier}) {
-    _init();
+    _readyFuture = _init();
   }
 
-  /// The notifier that reflects auth state across the app.
   final AuthNotifier authNotifier;
 
-  /// Whether the service considers itself ready.
-  bool _initialised = false;
+  ClerkAuthState? _authState;
+  late final Future<void> _readyFuture;
 
-  /// Whether the service initialised successfully.
-  bool get isInitialised => _initialised;
+  /// Completes once [authState] is available (or initialisation has failed).
+  Future<void> get ready => _readyFuture;
 
-  /// The Clerk publishable key used for this instance.
+  /// The live Clerk auth state. Null until [ready] completes, or if the
+  /// publishable key is missing.
+  ClerkAuthState? get authState => _authState;
+
   String get publishableKey => _publishableKey;
+
+  bool get isInitialised => _authState != null;
 
   // ---------------------------------------------------------------------------
   // Initialisation
   // ---------------------------------------------------------------------------
 
-  void _init() {
+  Future<void> _init() async {
     if (_publishableKey.isEmpty) {
       developer.log(
         'CLERK_PUBLISHABLE_KEY is empty — auth will not work. '
@@ -61,18 +67,32 @@ class ClerkService {
       return;
     }
 
-    _initialised = true;
+    try {
+      _authState = await ClerkAuthState.create(
+        config: ClerkAuthConfig(publishableKey: _publishableKey),
+      );
+    } catch (e, st) {
+      developer.log(
+        'Failed to initialise ClerkAuthState',
+        name: 'ClerkService',
+        error: e,
+        stackTrace: st,
+      );
+      rethrow;
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Sign-out
   // ---------------------------------------------------------------------------
 
-  /// Signs the current user out and clears the session.
-  ///
-  /// Note: Sign-in is handled by the [ClerkAuthentication] widget in the
-  /// widget tree. This method only handles sign-out via [AuthNotifier].
   Future<void> signOut() async {
+    try {
+      await _authState?.signOut();
+    } catch (e, st) {
+      developer.log('Clerk signOut failed',
+          name: 'ClerkService', error: e, stackTrace: st);
+    }
     authNotifier.setUnauthenticated();
   }
 
@@ -80,32 +100,51 @@ class ClerkService {
   // Convex token
   // ---------------------------------------------------------------------------
 
-  /// Returns a JWT suitable for authenticating with the Convex backend.
+  /// Returns a JWT suitable for authenticating with Convex, minted from the
+  /// `convex` JWT template configured in the Clerk dashboard.
   ///
-  /// TODO: Retrieve token from Clerk session via widget context using the
-  /// `'convex'` JWT template. Returns `null` until implemented.
+  /// Returns `null` when the user has no active Clerk session, or when
+  /// minting the token fails — in both cases Convex will fall back to
+  /// unauthenticated access rather than raising.
   Future<String?> getConvexToken() async {
-    // TODO: Implement once Clerk widget-tree auth is wired up.
-    return null;
+    final auth = _authState;
+    if (auth == null || !auth.isSignedIn) {
+      return null;
+    }
+
+    try {
+      final token = await auth.sessionToken(templateName: _convexJwtTemplate);
+      return token.jwt;
+    } catch (e, st) {
+      developer.log(
+        'Failed to mint Convex JWT from Clerk',
+        name: 'ClerkService',
+        error: e,
+        stackTrace: st,
+      );
+      return null;
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Convenience getters
   // ---------------------------------------------------------------------------
 
-  /// Whether the user currently has an active session.
   bool get isAuthenticated => authNotifier.isAuthenticated;
 
-  /// The current [AuthUser], or `null`.
   AuthUser? get currentUser => authNotifier.currentUser;
 
   // ---------------------------------------------------------------------------
   // Cleanup
   // ---------------------------------------------------------------------------
 
-  /// Cleans up resources. Safe to call multiple times.
   void dispose() {
-    _initialised = false;
+    try {
+      _authState?.terminate();
+    } catch (_) {
+      // ignore — already terminated
+    }
+    _authState = null;
   }
 }
 
@@ -114,9 +153,6 @@ class ClerkService {
 // ---------------------------------------------------------------------------
 
 /// Provides the singleton [ClerkService] wired to the global [AuthNotifier].
-///
-/// The service is created once and disposed when the provider scope is
-/// destroyed (i.e. when the app shuts down).
 final clerkServiceProvider = Provider<ClerkService>((ref) {
   final authNotifier = ref.watch(authStateProvider.notifier);
   final service = ClerkService(authNotifier: authNotifier);

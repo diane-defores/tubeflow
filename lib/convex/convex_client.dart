@@ -118,6 +118,7 @@ class ConvexService {
   /// `query<Map<String, dynamic>>(...)`.
   Future<T> query<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    await _waitForConnection();
     final result = await ConvexClient.instance.query(path, args);
     return _decode<T>(result);
   }
@@ -129,6 +130,7 @@ class ConvexService {
   /// Executes a Convex mutation and returns the decoded result.
   Future<T> mutate<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    await _waitForConnection();
     final result = await ConvexClient.instance.mutation(
       name: path,
       args: args,
@@ -143,6 +145,7 @@ class ConvexService {
   /// Executes a Convex action and returns the decoded result.
   Future<T> action<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    await _waitForConnection();
     final result = await ConvexClient.instance.action(
       name: path,
       args: args,
@@ -173,6 +176,7 @@ class ConvexService {
       subscribed = true;
 
       try {
+        await _waitForConnection();
         handle = await ConvexClient.instance.subscribe(
           name: path,
           args: args,
@@ -236,6 +240,19 @@ class ConvexService {
     if (_disposed) {
       throw StateError('ConvexService has already been disposed.');
     }
+  }
+
+  Future<void> _waitForConnection() async {
+    if (ConvexClient.instance.isConnected) return;
+
+    await ConvexClient.instance.connectionState
+        .firstWhere((state) => state == WebSocketConnectionState.connected)
+        .timeout(
+          const Duration(seconds: 30),
+          onTimeout: () => throw TimeoutException(
+            'Timed out while waiting for the Convex WebSocket connection.',
+          ),
+        );
   }
 
   // ---------------------------------------------------------------------------

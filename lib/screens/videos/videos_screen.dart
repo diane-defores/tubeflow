@@ -8,6 +8,7 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Video feed screen with multiple view modes.
 ///
@@ -107,22 +108,10 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           );
         },
         loading: () => _buildShimmerLoading(),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load videos: $error',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(videosProvider(const VideosArgs())),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load videos',
+          onRetry: () => ref.invalidate(videosProvider(const VideosArgs())),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -136,8 +125,10 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
             }
           } catch (e) {
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Refresh failed: $e')),
+              showErrorSnackBar(
+                context,
+                error: e,
+                prefix: 'Refresh failed',
               );
             }
           }

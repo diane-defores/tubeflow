@@ -7,6 +7,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - `build.sh`: read env vars directly as `CONVEX_URL` / `CLERK_PUBLISHABLE_KEY` (removed `NEXT_PUBLIC_*` fallbacks) — matches cleaned-up Doppler/Vercel variable names post-Next/Expo migration
+- Clerk auth bootstrap now owns a shared `ClerkAuthState`, waits for service readiness before wiring Convex auth, and keeps the session available outside the sign-in route
+- Screen-level error handling is consolidated through `widgets/error_feedback.dart` with copyable error messages and consistent retry actions across the app
+
+### Fixed
+- `ClerkService.getConvexToken()` now mints the Clerk `convex` JWT template instead of returning `null`, so authenticated Convex calls no longer run as guests
+- Convex queries, mutations, actions, and subscriptions now wait for the WebSocket connection before sending requests, avoiding startup failures such as `bad state: web socket not connected` on the videos screen
 
 ## [2026-04-07]
 

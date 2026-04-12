@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// API quota and usage statistics screen.
 ///
@@ -48,21 +49,10 @@ class StatsScreen extends ConsumerWidget {
           );
         },
         loading: () => _buildShimmerLoading(),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load stats: $error',
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(quotaUsageProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load stats',
+          onRetry: () => ref.invalidate(quotaUsageProvider),
         ),
       ),
     );

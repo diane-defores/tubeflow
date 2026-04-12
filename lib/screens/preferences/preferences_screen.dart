@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Preferences screen with grouped settings sections.
 ///
@@ -27,9 +28,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
       await updateSettings(ref, patch);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save setting: $e')),
-        );
+        showErrorSnackBar(context, error: e, prefix: 'Failed to save setting');
       }
     }
   }
@@ -52,21 +51,10 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           userAsync,
         ),
         loading: () => _buildShimmerLoading(),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load settings: $error',
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(settingsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load settings',
+          onRetry: () => ref.invalidate(settingsProvider),
         ),
       ),
     );

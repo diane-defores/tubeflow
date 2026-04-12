@@ -6,6 +6,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Note detail screen showing the full content of a single note.
 ///
@@ -95,9 +96,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Note')),
-        body: Center(
-          child: Text('Error: $error', style: const TextStyle(color: Colors.red)),
-        ),
+        body: ErrorStateView(error: error, prefix: 'Error'),
       ),
     );
   }
@@ -284,9 +283,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save note: $e')),
-        );
+        showErrorSnackBar(context, error: e, prefix: 'Failed to save note');
       }
     }
   }
@@ -325,8 +322,10 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
               } catch (e) {
                 if (dialogContext.mounted) Navigator.of(dialogContext).pop();
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to delete: $e')),
+                  showErrorSnackBar(
+                    context,
+                    error: e,
+                    prefix: 'Failed to delete',
                   );
                 }
               }

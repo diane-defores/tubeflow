@@ -6,6 +6,7 @@ import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Screen that displays the user's notifications.
 class NotificationsScreen extends ConsumerWidget {
@@ -25,8 +26,10 @@ class NotificationsScreen extends ConsumerWidget {
                 await markAllNotificationsRead(ref);
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to mark as read: $e')),
+                  showErrorSnackBar(
+                    context,
+                    error: e,
+                    prefix: 'Failed to mark as read',
                   );
                 }
               }
@@ -67,20 +70,10 @@ class NotificationsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load notifications: $error'),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(notificationsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, _) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load notifications',
+          onRetry: () => ref.invalidate(notificationsProvider),
         ),
       ),
     );

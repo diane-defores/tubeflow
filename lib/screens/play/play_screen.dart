@@ -6,6 +6,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Video player screen with notes, transcript, and comments tabs.
 ///
@@ -244,8 +245,10 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                     _noteController.clear();
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to save note: $e')),
+                      showErrorSnackBar(
+                        context,
+                        error: e,
+                        prefix: 'Failed to save note',
                       );
                     }
                   }
@@ -303,10 +306,10 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                             await deleteNote(ref, note.id);
                           } catch (e) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text('Failed to delete note: $e')),
+                              showErrorSnackBar(
+                                context,
+                                error: e,
+                                prefix: 'Failed to delete note',
                               );
                             }
                           }
@@ -329,10 +332,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                 ),
               ),
             ),
-            error: (error, stack) => Center(
-              child: Text('Failed to load notes: $error',
-                  style: const TextStyle(color: Colors.red)),
-            ),
+            error: (error, stack) =>
+                ErrorStateView(error: error, prefix: 'Failed to load notes'),
           ),
         ),
       ],

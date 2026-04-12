@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Notes overview screen with search and grouped display.
 ///
@@ -77,21 +78,10 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
             child: notesAsync.when(
               data: (notes) => _buildGroupedNotesList(context, notes),
               loading: () => _buildShimmerLoading(),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text('Failed to load notes: $error',
-                        style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 16),
-                    FilledButton.tonal(
-                      onPressed: () => ref.invalidate(notesProvider),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
+              error: (error, stack) => ErrorStateView(
+                error: error,
+                prefix: 'Failed to load notes',
+                onRetry: () => ref.invalidate(notesProvider),
               ),
             ),
           ),

@@ -7,18 +7,16 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/auth/clerk_service.dart';
 
-const _clerkPublishableKey = String.fromEnvironment(
-  'CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
-);
-
-class ClerkSignInPage extends StatelessWidget {
+class ClerkSignInPage extends ConsumerWidget {
   const ClerkSignInPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    if (_clerkPublishableKey.isEmpty) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(clerkServiceProvider).authState;
+
+    if (authState == null) {
       return const Scaffold(
         body: Center(
           child: Padding(
@@ -34,27 +32,7 @@ class ClerkSignInPage extends StatelessWidget {
     }
 
     return ClerkAuth(
-      config: ClerkAuthConfig(
-        publishableKey: _clerkPublishableKey,
-        loading: Scaffold(
-          body: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text(
-                    'Loading sign-in...',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      authState: authState,
       child: const ClerkErrorListener(
         child: AuthGate(
           child: SizedBox.shrink(),

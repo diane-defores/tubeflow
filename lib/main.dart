@@ -9,6 +9,7 @@ import 'package:tubeflow_app/app/theme.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Clerk publishable key injected at build time via `--dart-define`.
 const _clerkPublishableKey = String.fromEnvironment(
@@ -67,12 +68,13 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
     });
   }
 
-  void _bootstrap() {
+  Future<void> _bootstrap() async {
     try {
       if (_hasConvexConfig && _hasClerkConfig) {
         final clerk = ref.read(clerkServiceProvider);
+        await clerk.ready;
         final convex = ref.read(convexServiceProvider);
-        convex.setAuth(() => clerk.getConvexToken());
+        await convex.setAuth(() => clerk.getConvexToken());
       }
     } catch (e, st) {
       developer.log('Bootstrap failed', error: e, stackTrace: st);
@@ -185,6 +187,20 @@ class _ConfigFallbackScreen extends StatelessWidget {
                       SelectableText(
                         'Bootstrap error: $bootstrapError',
                         style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () => copyErrorToClipboard(
+                          context,
+                          bootstrapError!,
+                          prefix: 'Bootstrap error',
+                        ),
+                        icon: const Icon(Icons.copy, size: 16),
+                        label: Text(
+                          Localizations.localeOf(context).languageCode == 'fr'
+                              ? 'Copier'
+                              : 'Copy',
+                        ),
                       ),
                     ],
                   ],

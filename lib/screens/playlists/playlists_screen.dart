@@ -7,6 +7,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Playlists overview screen showing all user playlists.
 ///
@@ -43,8 +44,10 @@ class PlaylistsScreen extends ConsumerWidget {
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Sync failed: $e')),
+                  showErrorSnackBar(
+                    context,
+                    error: e,
+                    prefix: 'Sync failed',
                   );
                 }
               }
@@ -107,21 +110,10 @@ class PlaylistsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load playlists: $error',
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(playlistsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load playlists',
+          onRetry: () => ref.invalidate(playlistsProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -224,9 +216,7 @@ class PlaylistsScreen extends ConsumerWidget {
                       await hidePlaylist(ref, playlist.youtubePlaylistId);
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
+                        showErrorSnackBar(context, error: e, prefix: 'Error');
                       }
                     }
                     break;

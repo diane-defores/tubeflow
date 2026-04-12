@@ -7,6 +7,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Netflix-style browse screen with horizontal scroll rows per playlist.
 ///
@@ -65,21 +66,10 @@ class BrowseScreen extends ConsumerWidget {
           );
         },
         loading: () => _buildShimmerLoading(),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load: $error',
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(playlistsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load',
+          onRetry: () => ref.invalidate(playlistsProvider),
         ),
       ),
     );
@@ -236,9 +226,13 @@ class _BrowsePlaylistRow extends ConsumerWidget {
                 ),
               ),
             ),
-            error: (error, stack) => Center(
-              child: Text('Error: $error',
-                  style: const TextStyle(color: Colors.red, fontSize: 12)),
+            error: (error, stack) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ErrorStateView(
+                error: error,
+                prefix: 'Error',
+                centered: false,
+              ),
             ),
           ),
         ),

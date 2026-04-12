@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/providers/mutations.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Form screen for creating a new playlist.
 ///
@@ -218,8 +219,10 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating playlist: $e')),
+        showErrorSnackBar(
+          context,
+          error: e,
+          prefix: 'Error creating playlist',
         );
       }
     } finally {

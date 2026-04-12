@@ -6,6 +6,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Hidden items screen with tabs for hidden videos and hidden playlists.
 ///
@@ -72,21 +73,10 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
           );
         },
         loading: () => _buildShimmerLoading(),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Failed to load hidden items: $error',
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => ref.invalidate(hiddenItemsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to load hidden items',
+          onRetry: () => ref.invalidate(hiddenItemsProvider),
         ),
       ),
     );
@@ -230,9 +220,7 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
       ref.invalidate(hiddenItemsProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to unhide: $e')),
-        );
+        showErrorSnackBar(context, error: e, prefix: 'Failed to unhide');
       }
     }
   }
