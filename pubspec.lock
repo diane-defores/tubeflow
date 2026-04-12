@@ -146,7 +146,7 @@ packages:
     source: hosted
     version: "2.0.4"
   clerk_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: clerk_auth
       sha256: "9dba5fe674de759f46d5501230f954d4841f1a9497113fd62a61440ae4931c8d"

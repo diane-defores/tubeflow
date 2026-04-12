@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/auth/clerk_web_persistor.dart';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -67,9 +69,17 @@ class ClerkService {
       return;
     }
 
+    final config = kIsWeb
+        ? ClerkAuthConfig(
+            publishableKey: _publishableKey,
+            persistor: ClerkWebPersistor(),
+            fileCache: NoopClerkFileCache(),
+          )
+        : ClerkAuthConfig(publishableKey: _publishableKey);
+
     try {
       _authState = await ClerkAuthState.create(
-        config: ClerkAuthConfig(publishableKey: _publishableKey),
+        config: config,
       );
     } catch (e, st) {
       developer.log(

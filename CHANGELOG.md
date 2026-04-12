@@ -13,6 +13,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - `ClerkService.getConvexToken()` now mints the Clerk `convex` JWT template instead of returning `null`, so authenticated Convex calls no longer run as guests
 - Convex queries, mutations, actions, and subscriptions now wait for the WebSocket connection before sending requests, avoiding startup failures such as `bad state: web socket not connected` on the videos screen
+- Flutter web no longer crashes during Clerk bootstrap (`MissingPluginException(getApplicationDocumentsDirectory)`): Clerk now uses a SharedPreferences-backed persistor on web instead of `path_provider`
 
 ## [2026-04-07]
 
