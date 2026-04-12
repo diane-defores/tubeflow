@@ -4,7 +4,7 @@
 
 #### Critical
 - [x] Fail explicitly when CONVEX_URL is not set (was silently using placeholder URL)
-- [ ] Implement `ClerkService.getConvexToken()` — currently returns null, so all Convex calls run unauthenticated
+- [ ] 🔄 Implement `ClerkService.getConvexToken()` — currently returns null, so all Convex calls run unauthenticated
 
 #### High
 - [x] Wire router to actual screen widgets (was using _Placeholder for all routes)
