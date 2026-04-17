@@ -201,7 +201,7 @@ abstract final class AppTheme {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.lightCard,
       indicatorColor: AppColors.primary.withValues(alpha: 0.12),
-      labelTextStyle: WidgetStatePropertyAll(
+      labelTextStyle: const WidgetStatePropertyAll(
         TextStyle(
           fontFamily: _fontBody,
           fontSize: 12,
@@ -345,7 +345,7 @@ abstract final class AppTheme {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.darkCard,
       indicatorColor: AppColors.primary.withValues(alpha: 0.12),
-      labelTextStyle: WidgetStatePropertyAll(
+      labelTextStyle: const WidgetStatePropertyAll(
         TextStyle(
           fontFamily: _fontBody,
           fontSize: 12,

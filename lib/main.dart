@@ -1,5 +1,6 @@
-import 'dart:developer' as developer;
+import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import 'package:tubeflow_app/app/theme.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
+import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Clerk publishable key injected at build time via `--dart-define`.
@@ -19,9 +21,54 @@ const _clerkPublishableKey = String.fromEnvironment(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  FlutterError.onError = (FlutterErrorDetails details) {
+    AppLogger.instance.log(
+      details.summary.toString(),
+      source: 'FlutterError',
+      level: LogLevel.error,
+      error: details.exception,
+      stackTrace: details.stack,
+    );
+    FlutterError.presentError(details);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    AppLogger.instance.log(
+      'Uncaught platform error',
+      source: 'PlatformDispatcher',
+      level: LogLevel.error,
+      error: error,
+      stackTrace: stack,
+    );
+    return true;
+  };
+
+  AppLogger.instance.log(
+    'main() start — CONVEX_URL=${const bool.hasEnvironment('CONVEX_URL')} '
+    'CLERK_PUBLISHABLE_KEY=${_clerkPublishableKey.isNotEmpty}',
+    source: 'main',
+  );
+
   const convexUrl = String.fromEnvironment('CONVEX_URL');
   if (convexUrl.isNotEmpty) {
-    await ConvexService.initialize(convexUrl);
+    try {
+      await ConvexService.initialize(convexUrl);
+      AppLogger.instance.log('ConvexService initialised', source: 'main');
+    } catch (e, st) {
+      AppLogger.instance.log(
+        'ConvexService.initialize failed',
+        source: 'main',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
+    }
+  } else {
+    AppLogger.instance.log(
+      'CONVEX_URL empty — skipping Convex init',
+      source: 'main',
+      level: LogLevel.warning,
+    );
   }
 
   runApp(
@@ -68,15 +115,36 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   }
 
   Future<void> _bootstrap() async {
+    AppLogger.instance.log(
+      'bootstrap() start — hasConvex=$_hasConvexConfig hasClerk=$_hasClerkConfig',
+      source: 'bootstrap',
+    );
     try {
       if (_hasConvexConfig && _hasClerkConfig) {
         final clerk = ref.read(clerkServiceProvider);
         await clerk.ready;
+        AppLogger.instance.log(
+          'Clerk ready (isInitialised=${clerk.isInitialised})',
+          source: 'bootstrap',
+        );
         final convex = ref.read(convexServiceProvider);
         await convex.setAuth(() => clerk.getConvexToken());
+        AppLogger.instance.log('Convex auth wired', source: 'bootstrap');
+      } else {
+        AppLogger.instance.log(
+          'Skipping Clerk/Convex wiring — missing env vars',
+          source: 'bootstrap',
+          level: LogLevel.warning,
+        );
       }
     } catch (e, st) {
-      developer.log('Bootstrap failed', error: e, stackTrace: st);
+      AppLogger.instance.log(
+        'Bootstrap failed',
+        source: 'bootstrap',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
       _bootstrapError = '$e';
     }
 

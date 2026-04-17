@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_web_persistor.dart';
+import 'package:tubeflow_app/utils/app_logger.dart';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -61,10 +61,11 @@ class ClerkService {
 
   Future<void> _init() async {
     if (_publishableKey.isEmpty) {
-      developer.log(
+      AppLogger.instance.log(
         'CLERK_PUBLISHABLE_KEY is empty — auth will not work. '
         'Pass --dart-define=CLERK_PUBLISHABLE_KEY=pk_... at build time.',
-        name: 'ClerkService',
+        source: 'ClerkService',
+        level: LogLevel.warning,
       );
       return;
     }
@@ -81,10 +82,15 @@ class ClerkService {
       _authState = await ClerkAuthState.create(
         config: config,
       );
+      AppLogger.instance.log(
+        'ClerkAuthState.create succeeded (isSignedIn=${_authState?.isSignedIn})',
+        source: 'ClerkService',
+      );
     } catch (e, st) {
-      developer.log(
+      AppLogger.instance.log(
         'Failed to initialise ClerkAuthState',
-        name: 'ClerkService',
+        source: 'ClerkService',
+        level: LogLevel.error,
         error: e,
         stackTrace: st,
       );
@@ -100,8 +106,13 @@ class ClerkService {
     try {
       await _authState?.signOut();
     } catch (e, st) {
-      developer.log('Clerk signOut failed',
-          name: 'ClerkService', error: e, stackTrace: st);
+      AppLogger.instance.log(
+        'Clerk signOut failed',
+        source: 'ClerkService',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
     }
     authNotifier.setUnauthenticated();
   }
@@ -126,9 +137,10 @@ class ClerkService {
       final token = await auth.sessionToken(templateName: _convexJwtTemplate);
       return token.jwt;
     } catch (e, st) {
-      developer.log(
+      AppLogger.instance.log(
         'Failed to mint Convex JWT from Clerk',
-        name: 'ClerkService',
+        source: 'ClerkService',
+        level: LogLevel.error,
         error: e,
         stackTrace: st,
       );

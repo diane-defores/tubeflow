@@ -108,6 +108,14 @@ class AppShell extends ConsumerWidget {
     );
   }
 
+  Widget _buildSettingsButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.settings_outlined),
+      tooltip: 'Preferences',
+      onPressed: () => context.go(Routes.preferences),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Bottom navigation (mobile)
   // ---------------------------------------------------------------------------
@@ -120,7 +128,13 @@ class AppShell extends ConsumerWidget {
           Positioned(
             top: MediaQuery.paddingOf(context).top + 4,
             right: 4,
-            child: _buildNotificationBell(context, ref),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildNotificationBell(context, ref),
+                _buildSettingsButton(context),
+              ],
+            ),
           ),
         ],
       ),
@@ -163,6 +177,7 @@ class AppShell extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 _buildNotificationBell(context, ref),
+                _buildSettingsButton(context),
               ],
             ),
             destinations: [

@@ -56,9 +56,6 @@ class ConvexService {
     return _instance!;
   }
 
-  /// Auth token provider set via [setAuth].
-  Future<String?> Function()? _getToken;
-
   /// Handle returned by [setAuthWithRefresh], disposed on [clearAuth]/[dispose].
   dynamic _authHandle;
 
@@ -74,7 +71,6 @@ class ConvexService {
   ///
   /// Typically wired to `ClerkService.getConvexToken`.
   Future<void> setAuth(Future<String?> Function() getToken) async {
-    _getToken = getToken;
     _authHandle = await ConvexClient.instance.setAuthWithRefresh(
       fetchToken: () async {
         final token = await getToken();
@@ -93,7 +89,6 @@ class ConvexService {
 
   /// Clears the current auth state.
   void clearAuth() {
-    _getToken = null;
     if (_authHandle != null) {
       try {
         _authHandle.dispose();
