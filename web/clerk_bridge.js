@@ -134,6 +134,46 @@
     });
   }
 
+  function getActiveSession(clerk) {
+    if (clerk.session) {
+      return clerk.session;
+    }
+
+    const client = clerk.client;
+    if (!client) {
+      return null;
+    }
+
+    if (client.lastActiveSessionId && Array.isArray(client.sessions)) {
+      const active = client.sessions.find(
+        (session) => session.id === client.lastActiveSessionId,
+      );
+      if (active) {
+        return active;
+      }
+    }
+
+    if (Array.isArray(client.signedInSessions) && client.signedInSessions.length > 0) {
+      return client.signedInSessions[0];
+    }
+
+    if (Array.isArray(client.sessions) && client.sessions.length > 0) {
+      return client.sessions[0];
+    }
+
+    return null;
+  }
+
+  function isMissingSessionError(error) {
+    return (
+      error &&
+      (error.status === 404 ||
+        error.code === 'resource_not_found' ||
+        (Array.isArray(error.errors) &&
+          error.errors.some((entry) => entry && entry.code === 'resource_not_found')))
+    );
+  }
+
   window.tubeFlowClerkBridge = {
     async init(publishableKey) {
       await ensureLoaded(publishableKey);
@@ -152,15 +192,36 @@
 
     async getToken(publishableKey, template) {
       const clerk = await ensureLoaded(publishableKey);
-      if (!clerk.session) return '';
-
       const options = { skipCache: true };
       if (template) {
         options.template = template;
       }
 
-      const token = await clerk.session.getToken(options);
-      return token || '';
+      let session = getActiveSession(clerk);
+      if (!session) return '';
+
+      try {
+        const token = await session.getToken(options);
+        return token || '';
+      } catch (error) {
+        if (!isMissingSessionError(error)) {
+          throw error;
+        }
+
+        await clerk.load({
+          ui: window.__internal_ClerkUICtor
+            ? { ClerkUI: window.__internal_ClerkUICtor }
+            : undefined,
+        });
+
+        session = getActiveSession(clerk);
+        if (!session) {
+          return '';
+        }
+
+        const token = await session.getToken(options);
+        return token || '';
+      }
     },
 
     async buildSignInUrl(publishableKey, redirectUrl) {
