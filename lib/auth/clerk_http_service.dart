@@ -1,6 +1,7 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io' show HttpHeaders;
 
 import 'clerk_http_client_factory.dart'
     if (dart.library.js_interop) 'clerk_http_client_factory_web.dart';
@@ -11,6 +12,10 @@ class ClerkHttpService implements clerk.HttpService {
 
   late final http.Client _client = createClerkHttpClient();
   static const _nativeFlag = '_is_native';
+  static const _clerkApiVersionHeader = 'clerk-api-version';
+  static const _clerkClientIdHeader = 'x-clerk-client-id';
+  static const _flutterSdkHeader = 'x-flutter-sdk-version';
+  static const _mobileHeader = 'x-mobile';
 
   @override
   Future<void> initialize() async {}
@@ -40,9 +45,10 @@ class ClerkHttpService implements clerk.HttpService {
   }) async {
     final effectiveUri = _normalizeUri(uri);
     final request = http.Request(method.toString(), effectiveUri);
+    final effectiveHeaders = _normalizeHeaders(method, headers);
 
-    if (headers != null) {
-      request.headers.addAll(headers);
+    if (effectiveHeaders != null) {
+      request.headers.addAll(effectiveHeaders);
     }
 
     if (params != null) {
@@ -71,7 +77,7 @@ class ClerkHttpService implements clerk.HttpService {
   ) async {
     final effectiveUri = _normalizeUri(uri);
     final request = http.MultipartRequest(method.toString(), effectiveUri);
-    request.headers.addAll(headers);
+    request.headers.addAll(_normalizeHeaders(method, headers) ?? const {});
     request.files.add(
       http.MultipartFile(
         'file',
@@ -100,6 +106,44 @@ class ClerkHttpService implements clerk.HttpService {
       'Removed $_nativeFlag from Clerk web request: $uri -> $normalized',
       source: 'ClerkHttpService',
     );
+    return normalized;
+  }
+
+  Map<String, String>? _normalizeHeaders(
+    clerk.HttpMethod method,
+    Map<String, String>? headers,
+  ) {
+    if (!kIsWeb || headers == null) {
+      return headers;
+    }
+
+    final normalized = Map<String, String>.from(headers);
+    final removed = <String>[];
+
+    void removeHeader(String name) {
+      final removedValue = normalized.remove(name);
+      if (removedValue != null) {
+        removed.add(name);
+      }
+    }
+
+    removeHeader(HttpHeaders.authorizationHeader);
+    removeHeader(_clerkApiVersionHeader);
+    removeHeader(_clerkClientIdHeader);
+    removeHeader(_flutterSdkHeader);
+    removeHeader(_mobileHeader);
+
+    if (method.isGet) {
+      removeHeader(HttpHeaders.contentTypeHeader);
+    }
+
+    if (removed.isNotEmpty) {
+      AppLogger.instance.log(
+        'Removed Clerk web headers to avoid CORS preflight issues: ${removed.join(', ')}',
+        source: 'ClerkHttpService',
+      );
+    }
+
     return normalized;
   }
 
