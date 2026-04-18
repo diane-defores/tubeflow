@@ -1,5 +1,4 @@
-import 'dart:developer' as developer;
-
+import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/utils/app_logger.dart';
 
 class ClerkSignInPage extends ConsumerWidget {
   const ClerkSignInPage({super.key});
@@ -83,9 +83,13 @@ class AuthGate extends ConsumerWidget {
       }
 
       try {
-        final clerk = ClerkAuth.of(context);
-        final user = clerk.user;
+        final clerkAuth = ClerkAuth.of(context);
+        final user = clerkAuth.user;
         if (user != null) {
+          AppLogger.instance.log(
+            'Clerk user synced: ${user.id}',
+            source: 'AuthGate',
+          );
           notifier.setAuthenticated(AuthUser(
             id: user.id,
             email: user.emailAddresses?.firstOrNull?.identifier ?? '',
@@ -99,11 +103,14 @@ class AuthGate extends ConsumerWidget {
           return;
         }
       } catch (e) {
-        developer.log('Failed to read Clerk user', error: e);
+        AppLogger.instance.log(
+          'Failed to read Clerk user',
+          source: 'AuthGate',
+          level: LogLevel.error,
+          error: e,
+        );
       }
 
-      // Fallback: mark as authenticated even without user details so
-      // the router can redirect away from the sign-in screen.
       notifier.setAuthenticated(const AuthUser(id: 'clerk-user', email: ''));
       if (context.mounted) {
         context.go(Routes.videos);
@@ -113,13 +120,77 @@ class AuthGate extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Sign-in screen
+// Sign-in screen — custom UI replacing ClerkAuthentication widget
 // ---------------------------------------------------------------------------
 
-class _SignInScreen extends StatelessWidget {
+class _SignInScreen extends StatefulWidget {
   const _SignInScreen({required this.child});
 
   final Widget child;
+
+  @override
+  State<_SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<_SignInScreen> {
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _logEnvState();
+  }
+
+  void _logEnvState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final authState = ClerkAuth.of(context);
+        final envEmpty = authState.env.isEmpty;
+        final strategies = envEmpty ? <clerk.Strategy>[] : authState.env.strategies;
+        final social = envEmpty ? <clerk.SocialConnection>[] : authState.env.socialConnections;
+        AppLogger.instance.log(
+          'SignIn env: isEmpty=$envEmpty, '
+          'strategies=${strategies.map((s) => s.name).toList()}, '
+          'social=${social.map((s) => s.strategy.name).toList()}',
+          source: 'SignInScreen',
+        );
+      } catch (e) {
+        AppLogger.instance.log(
+          'Could not read Clerk env',
+          source: 'SignInScreen',
+          level: LogLevel.warning,
+          error: e,
+        );
+      }
+    });
+  }
+
+  Future<void> _signInWithStrategy(clerk.Strategy strategy) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final authState = ClerkAuth.of(context);
+      AppLogger.instance.log(
+        'Starting ssoSignIn with ${strategy.name}',
+        source: 'SignInScreen',
+      );
+      await authState.ssoSignIn(context, strategy);
+    } catch (e) {
+      AppLogger.instance.log(
+        'ssoSignIn failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +209,6 @@ class _SignInScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 48),
 
-                  // --- Logo / branding ---
                   Container(
                     width: 88,
                     height: 88,
@@ -154,7 +224,6 @@ class _SignInScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
 
-                  // --- Title ---
                   Text(
                     'TubeFlow',
                     style: theme.textTheme.displaySmall?.copyWith(
@@ -164,7 +233,6 @@ class _SignInScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // --- Subtitle ---
                   Text(
                     'Watch videos. Take notes.\nStay in the flow.',
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -175,13 +243,163 @@ class _SignInScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // --- Clerk sign-in (handles Google, Apple, etc.) ---
-                  const ClerkAuthentication(),
+                  // Sign-in buttons
+                  _SignInButtons(
+                    loading: _loading,
+                    onStrategy: _signInWithStrategy,
+                  ),
+
+                  if (_error != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText(
+                        _error!,
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 32),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-in buttons — adapts to available Clerk env
+// ---------------------------------------------------------------------------
+
+class _SignInButtons extends StatelessWidget {
+  const _SignInButtons({
+    required this.loading,
+    required this.onStrategy,
+  });
+
+  final bool loading;
+  final Future<void> Function(clerk.Strategy) onStrategy;
+
+  static const _socialIcons = <String, IconData>{
+    'google': Icons.g_mobiledata,
+    'apple': Icons.apple,
+    'github': Icons.code,
+    'microsoft': Icons.window,
+    'facebook': Icons.facebook,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return ClerkAuthBuilder(
+      builder: (context, authState) {
+        final envAvailable = authState.env.isNotEmpty;
+
+        if (envAvailable) {
+          final social = authState.env.socialConnections;
+          if (social.isNotEmpty) {
+            return Column(
+              children: [
+                for (final connection in social) ...[
+                  _SocialButton(
+                    label: connection.strategy.provider ?? connection.strategy.name,
+                    icon: _socialIcons[connection.strategy.provider] ?? Icons.login,
+                    onPressed: () => onStrategy(connection.strategy),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ],
+            );
+          }
+
+          final strategies = authState.env.strategies;
+          if (strategies.isNotEmpty) {
+            return Column(
+              children: [
+                for (final strategy in strategies) ...[
+                  OutlinedButton(
+                    onPressed: () => onStrategy(strategy),
+                    child: Text(strategy.provider ?? strategy.name),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            );
+          }
+        }
+
+        // Env not loaded — show fallback with Google (most common) + status
+        return Column(
+          children: [
+            Text(
+              envAvailable
+                  ? 'No sign-in methods configured in Clerk.'
+                  : 'Loading sign-in options…',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            _SocialButton(
+              label: 'Google',
+              icon: Icons.g_mobiledata,
+              onPressed: () => onStrategy(clerk.Strategy.oauthGoogle),
+            ),
+            const SizedBox(height: 12),
+            _SocialButton(
+              label: 'Apple',
+              icon: Icons.apple,
+              onPressed: () => onStrategy(clerk.Strategy.oauthApple),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton.icon(
+        icon: Icon(icon, size: 24),
+        label: Text('Continue with $label'),
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
       ),
