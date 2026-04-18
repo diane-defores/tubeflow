@@ -1013,110 +1013,378 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     final colorScheme = theme.colorScheme;
     final clerkService = ref.watch(clerkServiceProvider);
     final authState = ClerkAuth.of(context);
+    final errorCard = _error != null
+        ? InlineErrorCard(error: _error!, prefix: 'Sign-in error')
+        : null;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 48),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.surface,
+              colorScheme.surface,
+              colorScheme.primary.withValues(alpha: 0.06),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -120,
+              left: -80,
+              child: _AuthGlow(
+                size: 280,
+                color: colorScheme.primary.withValues(alpha: 0.10),
+              ),
+            ),
+            Positioned(
+              bottom: -140,
+              right: -110,
+              child: _AuthGlow(
+                size: 320,
+                color: colorScheme.secondary.withValues(alpha: 0.16),
+              ),
+            ),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 980;
 
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Icon(
-                      Icons.play_circle_filled_rounded,
-                      size: 48,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  Text(
-                    'TubeFlow',
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Watch videos. Take notes.\nStay in the flow.',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.textTheme.bodySmall?.color,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-
-                  // Sign-in buttons
-                  _buildSignInCard(theme, authState, loading: _loading),
-
-                  const SizedBox(height: 20),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.bug_report_outlined, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Diagnostics',
-                                style: theme.textTheme.titleSmall,
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isWide ? 40 : 20,
+                        vertical: isWide ? 32 : 20,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1180),
+                        child: isWide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 28),
+                                      child: _buildHeroPanel(theme),
+                                    ),
+                                  ),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 460,
+                                    ),
+                                    child: _buildAuthColumn(
+                                      theme,
+                                      authState,
+                                      clerkService,
+                                      errorCard,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildHeroPanel(theme, compact: true),
+                                  const SizedBox(height: 24),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 460,
+                                    ),
+                                    child: _buildAuthColumn(
+                                      theme,
+                                      authState,
+                                      clerkService,
+                                      errorCard,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: () => _copyDiagnostics(
-                                  authState: authState,
-                                  clerkService: clerkService,
-                                ),
-                                icon: const Icon(Icons.copy, size: 16),
-                                label: const Text('Copy'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SelectableText(
-                            _diagnosticLines(
-                              authState: authState,
-                              clerkService: clerkService,
-                            ).join('\n'),
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
-                    InlineErrorCard(error: _error!, prefix: 'Sign-in error'),
-                  ],
-
-                  const SizedBox(height: 32),
+  Widget _buildHeroPanel(ThemeData theme, {bool compact = false}) {
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: EdgeInsets.all(compact ? 24 : 36),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: compact ? 72 : 84,
+            height: compact ? 72 : 84,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.16),
+                  colorScheme.primary.withValues(alpha: 0.06),
                 ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Icon(
+              Icons.play_circle_filled_rounded,
+              size: compact ? 40 : 48,
+              color: colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: compact ? 20 : 28),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Built for focused video study',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
+          const SizedBox(height: 18),
+          Text(
+            'TubeFlow',
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 0.95,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Watch videos. Capture the important moments. Keep your notes attached to the exact second they matter.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              height: 1.55,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.86),
+            ),
+          ),
+          SizedBox(height: compact ? 20 : 28),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: const [
+              _AuthFeaturePill(
+                icon: Icons.schedule,
+                label: 'Timestamped notes',
+              ),
+              _AuthFeaturePill(
+                icon: Icons.subtitles_outlined,
+                label: 'Transcripts and playback',
+              ),
+              _AuthFeaturePill(
+                icon: Icons.playlist_play_rounded,
+                label: 'Playlists and study flow',
+              ),
+            ],
+          ),
+          SizedBox(height: compact ? 20 : 28),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.38),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'What changes once you sign in',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildHeroPoint(
+                  theme,
+                  'Resume your workspace across devices.',
+                ),
+                const SizedBox(height: 10),
+                _buildHeroPoint(
+                  theme,
+                  'Keep watch progress, notes, and preferences in sync.',
+                ),
+                const SizedBox(height: 10),
+                _buildHeroPoint(
+                  theme,
+                  'Unlock Google sign-in and the rest of the account portal safely.',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroPoint(ThemeData theme, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.check_circle,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
         ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuthColumn(
+    ThemeData theme,
+    ClerkAuthState authState,
+    ClerkService clerkService,
+    Widget? errorCard,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildSignInCard(theme, authState, loading: _loading),
+        if (errorCard != null) ...[
+          const SizedBox(height: 16),
+          errorCard,
+        ],
+        const SizedBox(height: 16),
+        _buildDiagnosticsCard(theme, authState, clerkService),
+      ],
+    );
+  }
+
+  Widget _buildDiagnosticsCard(
+    ThemeData theme,
+    ClerkAuthState authState,
+    ClerkService clerkService,
+  ) {
+    return Card(
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Technical diagnostics',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          subtitle: Text(
+            'Build, env vars, and recent auth logs',
+            style: theme.textTheme.bodySmall,
+          ),
+          trailing: TextButton.icon(
+            onPressed: () => _copyDiagnostics(
+              authState: authState,
+              clerkService: clerkService,
+            ),
+            icon: const Icon(Icons.copy, size: 16),
+            label: const Text('Copy'),
+          ),
+          children: [
+            SelectableText(
+              _diagnosticLines(
+                authState: authState,
+                clerkService: clerkService,
+              ).join('\n'),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthGlow extends StatelessWidget {
+  const _AuthGlow({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              color,
+              color.withValues(alpha: 0.0),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthFeaturePill extends StatelessWidget {
+  const _AuthFeaturePill({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
