@@ -88,8 +88,10 @@
         const frontendApi = deriveFrontendApi(publishableKey);
         const uiSrc = `https://${frontendApi}/npm/@clerk/ui@1/dist/ui.browser.js`;
         const clerkSrc = `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+        const satelliteDomain = window.location.host;
 
         window.__clerk_publishable_key = publishableKey;
+        window.__clerk_domain = satelliteDomain;
 
         if (!window.Clerk) {
           await loadScript(uiSrc, { id: CLERK_UI_SCRIPT_ID });
@@ -97,6 +99,7 @@
             id: CLERK_JS_SCRIPT_ID,
             attributes: {
               'data-clerk-publishable-key': publishableKey,
+              'data-clerk-domain': satelliteDomain,
             },
           });
         }
@@ -104,6 +107,9 @@
         const clerk = await waitForClerk(5000);
         if (!clerk.loaded) {
           await clerk.load({
+            domain: satelliteDomain,
+            isSatellite: true,
+            satelliteAutoSync: false,
             ui: window.__internal_ClerkUICtor
               ? { ClerkUI: window.__internal_ClerkUICtor }
               : undefined,
