@@ -88,8 +88,24 @@ class ClerkService {
 
     try {
       _authState = await ClerkAuthState.create(config: config);
+      if (_authState?.env.isEmpty == true) {
+        AppLogger.instance.log(
+          'Clerk env is empty after create(); forcing refreshEnvironment()',
+          source: 'ClerkService',
+          level: LogLevel.warning,
+        );
+        await _authState?.refreshEnvironment();
+      }
+      if (_authState?.client.isEmpty == true) {
+        AppLogger.instance.log(
+          'Clerk client is empty after create(); forcing refreshClient()',
+          source: 'ClerkService',
+          level: LogLevel.warning,
+        );
+        await _authState?.refreshClient();
+      }
       AppLogger.instance.log(
-        'ClerkAuthState.create succeeded (isSignedIn=${_authState?.isSignedIn})',
+        'ClerkAuthState.create succeeded (isSignedIn=${_authState?.isSignedIn}, envEmpty=${_authState?.env.isEmpty}, clientEmpty=${_authState?.client.isEmpty})',
         source: 'ClerkService',
       );
       _authState?.addListener(_syncAuthNotifier);
