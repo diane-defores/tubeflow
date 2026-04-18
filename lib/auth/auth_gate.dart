@@ -337,6 +337,15 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
   }
 
   Future<void> _continueWithGoogleFallback() async {
+    if (kIsWeb) {
+      AppLogger.instance.log(
+        'Google fallback on web is routed to hosted Clerk sign-in because clerk_flutter uses the native sign-in endpoint for OAuth.',
+        source: 'SignInScreen',
+      );
+      await _openHostedSignIn();
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -460,7 +469,11 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
               child: OutlinedButton.icon(
                 onPressed: _continueWithGoogleFallback,
                 icon: const Icon(Icons.login),
-                label: const Text('Continue with Google'),
+                label: Text(
+                  kIsWeb
+                      ? 'Continue with Google on secure sign-in'
+                      : 'Continue with Google',
+                ),
               ),
             ),
             const SizedBox(height: 12),
