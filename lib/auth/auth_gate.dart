@@ -162,6 +162,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   Timer? _hostedRefreshTimer;
+  bool _hostedResumeStarted = false;
 
   List<String> _diagnosticLines({
     ClerkAuthState? authState,
@@ -398,9 +399,13 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
   Future<void> _resumeHostedSignInIfNeeded() async {
     if (!kIsWeb) return;
+    if (_hostedResumeStarted) return;
 
     final pending = await _isPendingHostedSignIn();
     if (!pending || !mounted) return;
+
+    _hostedResumeStarted = true;
+    await _setPendingHostedSignIn(false);
 
     AppLogger.instance.log(
       'Detected pending hosted sign-in return; polling Clerk client state',
@@ -429,7 +434,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       if (attempts >= _hostedSignInPollAttempts) {
         timer.cancel();
         _hostedRefreshTimer = null;
-        await _setPendingHostedSignIn(false);
         if (mounted) {
           setState(() {
             _loading = false;
