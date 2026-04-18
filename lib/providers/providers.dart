@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/models/models.dart';
 
@@ -50,6 +51,82 @@ Map<String, dynamic>? _decodeMap(dynamic raw) {
     return null;
   }
   return null;
+}
+
+Map<String, dynamic> _normalizeSettingsMap(
+  Map<String, dynamic>? raw,
+  AuthUser user,
+) {
+  final json = <String, dynamic>{...?raw};
+  json['_id'] ??= 'settings:${user.id}';
+  json['userId'] ??= user.id;
+  json['theme'] ??= 'system';
+  json['language'] ??= 'en';
+  json['notifications'] ??= <String, dynamic>{
+    'email': true,
+    'push': true,
+    'newComments': true,
+    'newLikes': false,
+    'newVideos': true,
+    'feedRefreshIntervalMinutes': 60,
+  };
+  json['playback'] ??= <String, dynamic>{
+    'autoplay': true,
+    'defaultQuality': 'auto',
+    'defaultSpeed': 1,
+    'mobileControlsPosition': 'bottom',
+    'captionsEnabled': false,
+    'autoMarkWatchedThreshold': 0.9,
+  };
+  json['notes'] ??= <String, dynamic>{
+    'defaultTimestamped': true,
+    'sortOrder': 'asc',
+  };
+  json['channelSync'] ??= <String, dynamic>{
+    'autoSyncOnVisit': false,
+    'syncIntervalMinutes': 0,
+  };
+  json['transcripts'] ??= <String, dynamic>{
+    'defaultLanguage': 'en',
+    'autoAttemptYoutubeCaptions': true,
+    'autoAttemptLocalFallback': true,
+    'sortBy': 'recommended',
+  };
+  return json;
+}
+
+Map<String, dynamic> _normalizeSubscriptionMap(
+  Map<String, dynamic>? raw,
+  AuthUser user,
+) {
+  final json = <String, dynamic>{...?raw};
+  json['_id'] ??= 'subscription:${user.id}';
+  json['userId'] ??= user.id;
+  json['plan'] ??= 'free';
+  json['status'] ??= 'active';
+  json['features'] ??= <String, dynamic>{
+    'maxVideos': 10,
+    'maxNotesPerVideo': 50,
+    'maxPlaylists': 3,
+    'aiSummaries': false,
+    'exportNotes': false,
+  };
+  json['cancelAtPeriodEnd'] ??= false;
+  json['createdAt'] ??= 0;
+  json['updatedAt'] ??= 0;
+  return json;
+}
+
+class PreferencesData {
+  const PreferencesData({
+    required this.settings,
+    required this.subscription,
+    required this.user,
+  });
+
+  final UserSettings settings;
+  final UserSubscription subscription;
+  final TubeFlowUser? user;
 }
 
 // ---------------------------------------------------------------------------
@@ -185,6 +262,54 @@ final youtubeConnectionProvider =
   return service
       .subscribe<dynamic>('youtube:getYoutubeConnectionStatus', {})
       .map((raw) => _decodeMap(raw));
+});
+
+// ---------------------------------------------------------------------------
+// Preferences data provider
+// ---------------------------------------------------------------------------
+
+/// Loads the Preferences screen data in a robust, one-shot flow:
+/// 1. ensure the Convex user exists
+/// 2. fetch settings, subscription, and current user
+///
+/// This intentionally uses queries instead of subscriptions to avoid the
+/// "infinite shimmer" case when a real-time subscription is established before
+/// Convex auth is fully ready.
+final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return null;
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  final authUser = authState.user;
+
+  await service.mutate<dynamic>('users:ensureUser', {
+    'email': authUser.email,
+    if (authUser.displayName != null) 'name': authUser.displayName,
+    if (authUser.imageUrl != null) 'avatarUrl': authUser.imageUrl,
+  });
+
+  final results = await Future.wait<dynamic>([
+    service.query<dynamic>('settings:getSettings', {}),
+    service.query<dynamic>('subscriptions:getSubscription', {}),
+    service.query<dynamic>('users:getCurrentUser', {}),
+  ]);
+
+  final settings = UserSettings.fromJson(
+    _normalizeSettingsMap(_decodeMap(results[0]), authUser),
+  );
+  final subscription = UserSubscription.fromJson(
+    _normalizeSubscriptionMap(_decodeMap(results[1]), authUser),
+  );
+  final userJson = _decodeMap(results[2]);
+  final user = userJson != null ? TubeFlowUser.fromJson(userJson) : null;
+
+  return PreferencesData(
+    settings: settings,
+    subscription: subscription,
+    user: user,
+  );
 });
 
 // ---------------------------------------------------------------------------

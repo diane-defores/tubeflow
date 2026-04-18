@@ -296,5 +296,5 @@ Future<dynamic> updateSettings(
   Map<String, dynamic> patch,
 ) async {
   final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('settings:updateSettings', patch);
+  return service.mutate<dynamic>('settings:updateAllSettings', patch);
 }

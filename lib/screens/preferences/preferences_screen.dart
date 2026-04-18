@@ -18,10 +18,11 @@ import 'package:tubeflow_app/widgets/error_feedback.dart';
 /// Preferences screen with grouped settings sections.
 ///
 /// Convex queries/mutations used:
+/// - `users.ensureUser` — create the Convex user/settings/subscription if needed
 /// - `settings.getSettings` — load current user settings
-/// - `settings.updateSettings` — persist setting changes
 /// - `subscriptions.getSubscription` — check subscription tier / quota
-/// - `users.getUser` — fetch user profile info
+/// - `users.getCurrentUser` — fetch user profile info
+/// - `settings.updateAllSettings` — persist settings changes
 class PreferencesScreen extends ConsumerStatefulWidget {
   const PreferencesScreen({super.key});
 
@@ -30,10 +31,13 @@ class PreferencesScreen extends ConsumerStatefulWidget {
 }
 
 class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
-  /// Persist a partial settings update to Convex.
-  Future<void> _updateSettings(Map<String, dynamic> patch) async {
+  Future<void> _persistSettings(Map<String, dynamic> patch) async {
     try {
       await updateSettings(ref, patch);
+      ref.invalidate(preferencesDataProvider);
+      ref.invalidate(settingsProvider);
+      ref.invalidate(subscriptionProvider);
+      ref.invalidate(currentUserProvider);
     } catch (e) {
       if (mounted) {
         showErrorSnackBar(context, error: e, prefix: 'Failed to save setting');
@@ -44,9 +48,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final settingsAsync = ref.watch(settingsProvider);
-    final subscriptionAsync = ref.watch(subscriptionProvider);
-    final userAsync = ref.watch(currentUserProvider);
+    final preferencesAsync = ref.watch(preferencesDataProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Preferences')),
@@ -57,13 +59,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           const _DiagnosticsCard(),
           const _LogsCard(),
           const Divider(),
-          ..._buildConvexSections(
-            context,
-            authState,
-            settingsAsync,
-            subscriptionAsync,
-            userAsync,
-          ),
+          ..._buildConvexSections(context, authState, preferencesAsync),
         ],
       ),
     );
@@ -72,9 +68,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   List<Widget> _buildConvexSections(
     BuildContext context,
     AuthState authState,
-    AsyncValue<UserSettings?> settingsAsync,
-    AsyncValue<UserSubscription?> subscriptionAsync,
-    AsyncValue<TubeFlowUser?> userAsync,
+    AsyncValue<PreferencesData?> preferencesAsync,
   ) {
     if (authState is! AuthAuthenticated) {
       return [
@@ -90,14 +84,21 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     }
 
     return [
-      settingsAsync.when(
-        data: (settings) =>
-            _buildSettingsBody(context, settings, subscriptionAsync, userAsync),
+      preferencesAsync.when(
+        data: (data) => data == null
+            ? const Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No preferences available for this account yet.',
+                  textAlign: TextAlign.center,
+                ),
+              )
+            : _buildSettingsBody(context, data),
         loading: () => _buildShimmerLoading(),
         error: (error, stack) => ErrorStateView(
           error: error,
-          prefix: 'Failed to load settings',
-          onRetry: () => ref.invalidate(settingsProvider),
+          prefix: 'Failed to load preferences',
+          onRetry: () => ref.invalidate(preferencesDataProvider),
         ),
       ),
     ];
@@ -123,196 +124,286 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
 
   Widget _buildSettingsBody(
     BuildContext context,
-    UserSettings? settings,
-    AsyncValue<UserSubscription?> subscriptionAsync,
-    AsyncValue<TubeFlowUser?> userAsync,
+    PreferencesData data,
   ) {
-    // Use defaults when settings are null (new user).
-    final darkMode = settings?.theme == AppThemeMode.dark;
-    final autoPlay = settings?.playback.autoplay ?? true;
-    final playbackSpeed = settings?.playback.defaultSpeed ?? 1.0;
-    final timestampOnPause = settings?.notes.defaultTimestamped ?? false;
-    final notificationsEnabled = settings?.notifications.push ?? true;
+    final settings = data.settings;
+    final subscription = data.subscription;
+    final user = data.user;
+    final themeMode = settings.theme;
+    final notifications = settings.notifications;
+    final playback = settings.playback;
+    final notes = settings.notes;
+    final transcriptLanguage = settings.transcripts.defaultLanguage;
+    final youtubeConnected = user?.youtubeConnected == true;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        subscriptionAsync.when(
-          data: (subscription) => ListTile(
-            leading: const Icon(Icons.workspace_premium),
-            title: const Text('Subscription'),
-            subtitle: Text(
-              subscription != null
-                  ? '${subscription.plan.name.toUpperCase()} plan - ${subscription.status.name}'
-                  : 'Free tier',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: navigate to subscription management
+        ListTile(
+          leading: const Icon(Icons.workspace_premium),
+          title: const Text('Subscription'),
+          subtitle: Text(
+            '${subscription.plan.name.toUpperCase()} plan'
+            ' - ${subscription.status.name}',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {},
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Videos: ${SubscriptionFeatures.isUnlimited(subscription.features.maxVideos) ? 'Unlimited' : subscription.features.maxVideos}'
+                  '  |  Playlists: ${SubscriptionFeatures.isUnlimited(subscription.features.maxPlaylists) ? 'Unlimited' : subscription.features.maxPlaylists}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(),
+
+        _buildSectionHeader(context, 'Appearance'),
+        ListTile(
+          leading: const Icon(Icons.palette_outlined),
+          title: const Text('Theme'),
+          subtitle: Text(themeMode.name),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showChoiceDialog(
+            title: 'Theme',
+            options: const ['light', 'dark', 'system'],
+            currentValue: themeMode.name,
+            onSelected: (value) {
+              _persistSettings({'theme': value});
             },
           ),
-          loading: () => const ListTile(
-            leading: Icon(Icons.workspace_premium),
-            title: Text('Subscription'),
-            subtitle: Text('Loading...'),
-          ),
-          error: (_, __) => const ListTile(
-            leading: Icon(Icons.workspace_premium),
-            title: Text('Subscription'),
-            subtitle: Text('Could not load'),
-          ),
-        ),
-        const Divider(),
-
-        // Appearance section
-        _buildSectionHeader(context, 'Appearance'),
-        SwitchListTile(
-          secondary: const Icon(Icons.dark_mode),
-          title: const Text('Dark Mode'),
-          subtitle: const Text('Use dark theme'),
-          value: darkMode,
-          onChanged: (value) {
-            _updateSettings({'theme': value ? 'dark' : 'light'});
-          },
-        ),
-        const Divider(),
-
-        // Playback section
-        _buildSectionHeader(context, 'Playback'),
-        SwitchListTile(
-          secondary: const Icon(Icons.play_circle),
-          title: const Text('Auto-Play'),
-          subtitle: const Text('Play next video automatically'),
-          value: autoPlay,
-          onChanged: (value) {
-            _updateSettings({
-              'playback': {'autoplay': value},
-            });
-          },
         ),
         ListTile(
-          leading: const Icon(Icons.speed),
-          title: const Text('Playback Speed'),
-          subtitle: Text('${playbackSpeed}x'),
-          trailing: SizedBox(
-            width: 160,
-            child: Slider(
-              value: playbackSpeed,
-              min: 0.5,
-              max: 2.0,
-              divisions: 6,
-              label: '${playbackSpeed}x',
-              onChanged: (value) {
-                _updateSettings({
-                  'playback': {'defaultSpeed': value},
-                });
-              },
-            ),
+          leading: const Icon(Icons.language),
+          title: const Text('Language'),
+          subtitle: Text(settings.language ?? 'en'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showChoiceDialog(
+            title: 'Language',
+            options: const ['en', 'fr', 'es', 'de', 'pt'],
+            currentValue: settings.language ?? 'en',
+            onSelected: (value) {
+              _persistSettings({'language': value});
+            },
           ),
         ),
         const Divider(),
 
-        // Notes section
-        _buildSectionHeader(context, 'Notes'),
-        SwitchListTile(
-          secondary: const Icon(Icons.pause_circle),
-          title: const Text('Timestamp on Pause'),
-          subtitle: const Text('Create note prompt when pausing video'),
-          value: timestampOnPause,
-          onChanged: (value) {
-            _updateSettings({
-              'notes': {'defaultTimestamped': value},
-            });
-          },
+        _buildSectionHeader(context, 'Account'),
+        ListTile(
+          leading: const Icon(Icons.ondemand_video),
+          title: const Text('YouTube'),
+          subtitle: Text(
+            youtubeConnected
+                ? 'Connected'
+                : 'Not connected yet',
+          ),
+          trailing: const Icon(Icons.chevron_right),
         ),
         const Divider(),
 
-        // Notifications section
         _buildSectionHeader(context, 'Notifications'),
         SwitchListTile(
-          secondary: const Icon(Icons.notifications),
-          title: const Text('Enable Notifications'),
-          subtitle: const Text('Master notification toggle'),
-          value: notificationsEnabled,
+          secondary: const Icon(Icons.alternate_email),
+          title: const Text('Email notifications'),
+          subtitle: const Text('Receive updates by email'),
+          value: notifications.email,
           onChanged: (value) {
-            _updateSettings({
-              'notifications': {'push': value},
+            _persistSettings({
+              'notifications': notifications.copyWith(email: value).toJson(),
             });
           },
         ),
         SwitchListTile(
-          secondary: const Icon(Icons.fiber_new),
-          title: const Text('New Video Alerts'),
+          secondary: const Icon(Icons.notifications),
+          title: const Text('Push notifications'),
+          subtitle: const Text('Master notification toggle'),
+          value: notifications.push,
+          onChanged: (value) {
+            _persistSettings({
+              'notifications': notifications.copyWith(push: value).toJson(),
+            });
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.comment_outlined),
+          title: const Text('New comments'),
+          subtitle: const Text('Notify about comment activity'),
+          value: notifications.newComments,
+          onChanged: (value) {
+            _persistSettings({
+              'notifications': notifications
+                  .copyWith(newComments: value)
+                  .toJson(),
+            });
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.thumb_up_alt_outlined),
+          title: const Text('New likes'),
+          subtitle: const Text('Notify when notes get likes'),
+          value: notifications.newLikes,
+          onChanged: (value) {
+            _persistSettings({
+              'notifications': notifications.copyWith(newLikes: value).toJson(),
+            });
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.video_library_outlined),
+          title: const Text('New video alerts'),
           subtitle: const Text('Notify when subscribed channels upload'),
-          value: settings?.notifications.newVideos ?? true,
-          onChanged: notificationsEnabled
-              ? (value) {
-                  _updateSettings({
-                    'notifications': {'newVideos': value},
-                  });
-                }
-              : null,
+          value: notifications.newVideos,
+          onChanged: (value) {
+            _persistSettings({
+              'notifications': notifications.copyWith(newVideos: value).toJson(),
+            });
+          },
         ),
         ListTile(
           leading: const Icon(Icons.schedule),
-          title: const Text('Check Interval'),
-          subtitle: Text(
-            _intervalLabel(
-              settings?.notifications.feedRefreshIntervalMinutes ?? 60,
-            ),
-          ),
-          enabled:
-              notificationsEnabled &&
-              (settings?.notifications.newVideos ?? true),
+          title: const Text('Feed check interval'),
+          subtitle: Text(_intervalLabel(notifications.feedRefreshIntervalMinutes)),
           trailing: const Icon(Icons.chevron_right),
-          onTap:
-              (notificationsEnabled &&
-                  (settings?.notifications.newVideos ?? true))
-              ? () => _showChoiceDialog(
-                  title: 'Check Interval',
-                  options: [
-                    'Off',
-                    'Every 30 minutes',
-                    'Every hour',
-                    'Every 2 hours',
-                    'Every 6 hours',
-                    'Daily',
-                  ],
-                  currentValue: _intervalLabel(
-                    settings?.notifications.feedRefreshIntervalMinutes ?? 60,
-                  ),
-                  onSelected: (value) {
-                    _updateSettings({
-                      'notifications': {
-                        'feedRefreshIntervalMinutes': _intervalFromLabel(value),
-                      },
-                    });
-                  },
-                )
-              : null,
+          onTap: () => _showChoiceDialog(
+            title: 'Feed check interval',
+            options: const [
+              'Off',
+              'Every 30 minutes',
+              'Every hour',
+              'Every 2 hours',
+              'Every 6 hours',
+              'Daily',
+            ],
+            currentValue:
+                _intervalLabel(notifications.feedRefreshIntervalMinutes),
+            onSelected: (value) {
+              _persistSettings({
+                'notifications': notifications
+                    .copyWith(
+                      feedRefreshIntervalMinutes: _intervalFromLabel(value),
+                    )
+                    .toJson(),
+              });
+            },
+          ),
         ),
         const Divider(),
 
-        // Transcripts section
+        _buildSectionHeader(context, 'Playback'),
+        SwitchListTile(
+          secondary: const Icon(Icons.play_circle),
+          title: const Text('Autoplay'),
+          subtitle: const Text('Play next video automatically'),
+          value: playback.autoplay,
+          onChanged: (value) {
+            _persistSettings({
+              'playback': playback.copyWith(autoplay: value).toJson(),
+            });
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.hd_outlined),
+          title: const Text('Default quality'),
+          subtitle: Text(playback.defaultQuality ?? 'auto'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showChoiceDialog(
+            title: 'Default quality',
+            options: const ['auto', '1080p', '720p', '480p', '360p'],
+            currentValue: playback.defaultQuality ?? 'auto',
+            onSelected: (value) {
+              _persistSettings({
+                'playback': playback.copyWith(defaultQuality: value).toJson(),
+              });
+            },
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.speed),
+          title: const Text('Default speed'),
+          subtitle: Text('${playback.defaultSpeed ?? 1.0}x'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showChoiceDialog(
+            title: 'Default speed',
+            options: const ['0.5', '0.75', '1', '1.25', '1.5', '1.75', '2'],
+            currentValue: '${playback.defaultSpeed ?? 1.0}'.replaceAll('.0', ''),
+            onSelected: (value) {
+              _persistSettings({
+                'playback': playback
+                    .copyWith(defaultSpeed: double.tryParse(value) ?? 1.0)
+                    .toJson(),
+              });
+            },
+          ),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.closed_caption_disabled_outlined),
+          title: const Text('Captions enabled'),
+          subtitle: const Text('Show captions by default'),
+          value: playback.captionsEnabled ?? false,
+          onChanged: (value) {
+            _persistSettings({
+              'playback': playback.copyWith(captionsEnabled: value).toJson(),
+            });
+          },
+        ),
+        const Divider(),
+
+        _buildSectionHeader(context, 'Notes'),
+        SwitchListTile(
+          secondary: const Icon(Icons.pause_circle),
+          title: const Text('Auto timestamp'),
+          subtitle: const Text('Create note prompt when pausing video'),
+          value: notes.defaultTimestamped,
+          onChanged: (value) {
+            _persistSettings({
+              'notes': notes.copyWith(defaultTimestamped: value).toJson(),
+            });
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.sort),
+          title: const Text('Sort order'),
+          subtitle: Text((notes.sortOrder ?? NoteSortOrder.asc).name),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showChoiceDialog(
+            title: 'Sort order',
+            options: const ['asc', 'desc'],
+            currentValue: (notes.sortOrder ?? NoteSortOrder.asc).name,
+            onSelected: (value) {
+              _persistSettings({
+                'notes': notes
+                    .copyWith(sortOrder: NoteSortOrder.fromJson(value))
+                    .toJson(),
+              });
+            },
+          ),
+        ),
+        const Divider(),
+
         _buildSectionHeader(context, 'Transcripts'),
         ListTile(
           leading: const Icon(Icons.translate),
           title: const Text('Transcript Language'),
-          subtitle: Text(
-            settings?.transcripts.defaultLanguage ?? 'Auto-detect',
-          ),
+          subtitle: Text(transcriptLanguage ?? 'Auto-detect'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showChoiceDialog(
             title: 'Transcript Language',
             options: ['Auto-detect', 'English', 'French', 'Spanish', 'German'],
-            currentValue:
-                settings?.transcripts.defaultLanguage ?? 'Auto-detect',
+            currentValue: transcriptLanguage ?? 'Auto-detect',
             onSelected: (value) {
-              _updateSettings({
+              _persistSettings({
                 'transcripts': {
-                  'defaultLanguage': value == 'Auto-detect'
-                      ? null
-                      : value.toLowerCase(),
+                  ...settings.transcripts.toJson(),
+                  'defaultLanguage':
+                      value == 'Auto-detect' ? null : value.toLowerCase(),
                 },
               });
             },
