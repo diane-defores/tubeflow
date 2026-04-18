@@ -9,6 +9,12 @@ String _copyLabel(BuildContext context) => _isFrench(context) ? 'Copier' : 'Copy
 String _retryLabel(BuildContext context) =>
     _isFrench(context) ? 'Réessayer' : 'Retry';
 
+Color _snackBarForegroundColor(BuildContext context) {
+  final theme = Theme.of(context);
+  return theme.snackBarTheme.contentTextStyle?.color ??
+      theme.colorScheme.inverseOnSurface;
+}
+
 String formatErrorMessage(Object error, {String? prefix}) {
   final message = error.toString().trim();
   if (prefix == null || prefix.isEmpty) {
@@ -41,15 +47,44 @@ void showErrorSnackBar(
   String? prefix,
 }) {
   final message = formatErrorMessage(error, prefix: prefix);
+  final foregroundColor = _snackBarForegroundColor(context);
 
-  ScaffoldMessenger.of(context).showSnackBar(
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
     SnackBar(
-      content: Text(message),
-      action: SnackBarAction(
-        label: _copyLabel(context),
-        onPressed: () {
-          copyErrorToClipboard(context, error, prefix: prefix);
-        },
+      duration: const Duration(seconds: 8),
+      showCloseIcon: true,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            message,
+            maxLines: 6,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: foregroundColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: const Size(0, 36),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                copyErrorToClipboard(context, error, prefix: prefix);
+              },
+              icon: const Icon(Icons.copy, size: 16),
+              label: Text(_copyLabel(context)),
+            ),
+          ),
+        ],
       ),
     ),
   );
