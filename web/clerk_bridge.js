@@ -232,6 +232,28 @@
       });
     },
 
+    async prepareSessionCookie(publishableKey) {
+      const clerk = await ensureLoaded(publishableKey);
+      const session = getActiveSession(clerk);
+      if (!session || !session.id) {
+        return false;
+      }
+
+      const parts = [
+        `clerk_session_id=${encodeURIComponent(session.id)}`,
+        'Path=/',
+        'Max-Age=600',
+        'SameSite=Lax',
+      ];
+
+      if (window.location.protocol === 'https:') {
+        parts.push('Secure');
+      }
+
+      document.cookie = parts.join('; ');
+      return true;
+    },
+
     async signOut(publishableKey) {
       const clerk = await ensureLoaded(publishableKey);
       await clerk.signOut();

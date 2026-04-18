@@ -187,6 +187,12 @@ Future<dynamic> syncPlaylist(WidgetRef ref, String playlistId) async {
   });
 }
 
+/// Disconnects the current YouTube account and clears cached playlist data.
+Future<dynamic> disconnectYoutube(WidgetRef ref) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('youtube:disconnectYoutube', {});
+}
+
 /// Removes a video from a playlist.
 Future<dynamic> removeVideoFromPlaylist(
   WidgetRef ref, {

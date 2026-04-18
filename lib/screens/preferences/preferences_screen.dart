@@ -12,6 +12,7 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Preferences screen with grouped settings sections.
 ///
@@ -148,8 +149,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     final playback = settings.playback;
     final notes = settings.notes;
     final transcriptLanguage = settings.transcripts.defaultLanguage;
-    final youtubeConnected = user?.youtubeConnected == true;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -211,16 +210,18 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         const Divider(),
 
         _buildSectionHeader(context, 'Account'),
-        ListTile(
-          leading: const Icon(Icons.ondemand_video),
-          title: const Text('YouTube'),
-          subtitle: Text(
-            youtubeConnected
-                ? 'Connected'
-                : 'Not connected yet',
+        const YoutubeConnectionSettingsCard(),
+        if (user != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Connected as ${user.displayName}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           ),
-          trailing: const Icon(Icons.chevron_right),
-        ),
         const Divider(),
 
         _buildSectionHeader(context, 'Notifications'),

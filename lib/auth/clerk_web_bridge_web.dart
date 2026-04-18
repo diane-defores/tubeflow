@@ -16,6 +16,7 @@ extension type _TubeFlowClerkBridge(JSObject _) implements JSObject {
     JSString publishableKey,
     JSString redirectUrl,
   );
+  external JSPromise<JSBoolean> prepareSessionCookie(JSString publishableKey);
   external JSPromise<JSBoolean> signOut(JSString publishableKey);
 }
 
@@ -77,6 +78,12 @@ Future<String?> clerkWebBuildSignInUrl(String redirectUrl) async {
   final url =
       (await _bridge.buildSignInUrl(key.toJS, redirectUrl.toJS).toDart).toDart;
   return url.isEmpty ? null : url;
+}
+
+Future<bool> clerkWebPrepareSessionCookie() async {
+  final key = _publishableKey;
+  if (key == null || key.isEmpty) return false;
+  return (await _bridge.prepareSessionCookie(key.toJS).toDart).toDart;
 }
 
 Future<void> clerkWebSignOut() async {

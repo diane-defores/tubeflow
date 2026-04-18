@@ -92,6 +92,7 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           const YoutubeConnectBanner(),
+          const YoutubeOAuthFeedbackBanner(),
           Expanded(child: child),
         ],
       ),
@@ -149,6 +150,7 @@ class AppShell extends ConsumerWidget {
             child: Column(
               children: [
                 const YoutubeConnectBanner(),
+                const YoutubeOAuthFeedbackBanner(),
                 Expanded(child: child),
               ],
             ),

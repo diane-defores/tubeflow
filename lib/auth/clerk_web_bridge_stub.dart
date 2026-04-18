@@ -22,4 +22,6 @@ Future<String?> clerkWebGetToken({String? template}) async => null;
 
 Future<String?> clerkWebBuildSignInUrl(String redirectUrl) async => null;
 
+Future<bool> clerkWebPrepareSessionCookie() async => false;
+
 Future<void> clerkWebSignOut() async {}

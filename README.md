@@ -27,7 +27,10 @@ Both are required at **build time** (`--dart-define`), not runtime. Flutter web 
 |---|---|
 | `CONVEX_URL` | Convex deployment URL (e.g. `https://xxx.convex.cloud`). App fails explicitly when missing. |
 | `CLERK_PUBLISHABLE_KEY` | Clerk publishable key. When missing, app runs in guest mode without auth. |
-| `TUBEFLOW_APP_URL` | Web app origin used for the YouTube OAuth handoff banner (current deployment: `https://app.tubeflow.winflowz.com`). |
+| `TUBEFLOW_APP_URL` | Web app origin used for the YouTube OAuth callback URLs (current deployment: `https://app.tubeflow.winflowz.com`). |
+| `CLERK_SECRET_KEY` | Clerk backend secret used by the Vercel YouTube OAuth callback to mint the `convex` JWT from the current session. |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID used for the YouTube consent screen. |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret used to exchange the YouTube authorization code for tokens. |
 
 See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks.
 
@@ -90,7 +93,7 @@ No shared secret — verification is RS256 + JWKS.
 
 ## Deployment
 
-- **Platform**: Vercel (static build of `build/web/`)
+- **Platform**: Vercel (static build of `build/web/` + `/api/auth/youtube` functions for YouTube OAuth)
 - **Build command**: `bash build.sh` (see `vercel.json`)
 - **Install command**: clones Flutter stable from GitHub into `./flutter/`, runs `pub get`
 - **Security headers**: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`
