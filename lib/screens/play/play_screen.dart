@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Video player screen with notes, transcript, and comments tabs.
 ///
@@ -66,8 +68,16 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
 
   @override
   Widget build(BuildContext context) {
-    final notesAsync = ref.watch(videoNotesProvider(widget.videoId));
-    final progressAsync = ref.watch(videoProgressProvider(widget.videoId));
+    final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
+    final youtubeConnected =
+        youtubeConnectionAsync.asData?.value?['connected'] == true;
+    final hasVideoId = widget.videoId.isNotEmpty;
+    final notesAsync = youtubeConnected && hasVideoId
+        ? ref.watch(videoNotesProvider(widget.videoId))
+        : const AsyncValue<List<Note>>.data(<Note>[]);
+    final progressAsync = youtubeConnected && hasVideoId
+        ? ref.watch(videoProgressProvider(widget.videoId))
+        : const AsyncValue<VideoProgress?>.data(null);
 
     // Restore saved progress on first load.
     progressAsync.whenData((progress) {
@@ -87,6 +97,13 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           IconButton(
             icon: const Icon(Icons.playlist_play),
             onPressed: () {
+              if (!youtubeConnected) {
+                startYoutubeConnectFlow(
+                  context,
+                  returnTo: Routes.play,
+                );
+                return;
+              }
               // TODO: show playlist queue drawer
             },
           ),
@@ -99,7 +116,55 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           ...commonAppBarActions(context, ref),
         ],
       ),
-      body: Column(
+      body: youtubeConnectionAsync.when(
+        data: (status) {
+          if (status?['connected'] != true) {
+            return const YoutubeConnectRequiredState(
+              title: 'Connect YouTube to watch and take notes',
+              description:
+                  'Playback, transcript lookups, and timestamped notes all depend on your YouTube library being connected first.',
+              returnTo: Routes.play,
+            );
+          }
+
+          if (!hasVideoId) {
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.play_circle_outline_rounded,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Choose a video to start playback',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Open Videos or Playlists, then select a synced YouTube video to unlock playback, transcript, and notes.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Column(
         children: [
           // Video player area
           _buildPlayerArea(),
@@ -126,6 +191,18 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
             ),
           ),
         ],
+      );
+        },
+        loading: () => const YoutubeConnectionLoadingState(
+          title: 'Checking playback access',
+          description:
+              'TubeFlow is confirming your YouTube connection before opening the player.',
+        ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to check YouTube connection',
+          onRetry: () => ref.invalidate(youtubeConnectionProvider),
+        ),
       ),
     );
   }

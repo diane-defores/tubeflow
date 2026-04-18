@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -43,8 +44,14 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
 
   @override
   Widget build(BuildContext context) {
-    final videosAsync = ref.watch(videosProvider(const VideosArgs()));
-    final notesAsync = ref.watch(notesProvider);
+    final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
+    final youtubeConnected =
+        youtubeConnectionAsync.asData?.value?['connected'] == true;
+    final videosAsync = youtubeConnected
+        ? ref.watch(videosProvider(const VideosArgs()))
+        : null;
+    final notesAsync =
+        youtubeConnected ? ref.watch(notesProvider) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -70,13 +77,53 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
               // TODO: show filter bottom sheet (by playlist, date, etc.)
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.sync),
+            onPressed: () async {
+              if (!youtubeConnected) {
+                await startYoutubeConnectFlow(
+                  context,
+                  returnTo: Routes.videos,
+                );
+                return;
+              }
+
+              try {
+                await syncAllPlaylists(ref);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Refreshing videos...')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  showErrorSnackBar(
+                    context,
+                    error: e,
+                    prefix: 'Refresh failed',
+                  );
+                }
+              }
+            },
+          ),
           ...commonAppBarActions(context, ref),
         ],
       ),
-      body: videosAsync.when(
+      body: youtubeConnectionAsync.when(
+        data: (status) {
+          if (status?['connected'] != true) {
+            return const YoutubeConnectRequiredState(
+              title: 'Connect YouTube to browse videos',
+              description:
+                  'TubeFlow builds your video library from your synced YouTube playlists. Connect YouTube first, then your videos will appear here.',
+              returnTo: Routes.videos,
+            );
+          }
+
+          return videosAsync!.when(
         data: (videos) {
           final notesByVideo = <String, int>{};
-          notesAsync.whenData((notes) {
+          notesAsync?.whenData((notes) {
             for (final note in notes) {
               if (note.youtubeVideoId != null) {
                 notesByVideo[note.youtubeVideoId!] =
@@ -110,29 +157,42 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           prefix: 'Failed to load videos',
           onRetry: () => ref.invalidate(videosProvider(const VideosArgs())),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          try {
-            await syncAllPlaylists(ref);
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Refreshing videos...')),
-              );
-            }
-          } catch (e) {
-            if (context.mounted) {
-              showErrorSnackBar(
-                context,
-                error: e,
-                prefix: 'Refresh failed',
-              );
-            }
-          }
         },
-        tooltip: 'Refresh videos',
-        child: const Icon(Icons.refresh),
+        loading: () => const YoutubeConnectionLoadingState(
+          title: 'Checking your YouTube library',
+          description:
+              'TubeFlow is confirming whether your YouTube account is connected before loading your videos.',
+        ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to check YouTube connection',
+          onRetry: () => ref.invalidate(youtubeConnectionProvider),
+        ),
       ),
+      floatingActionButton: youtubeConnected
+          ? FloatingActionButton(
+              onPressed: () async {
+                try {
+                  await syncAllPlaylists(ref);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Refreshing videos...')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    showErrorSnackBar(
+                      context,
+                      error: e,
+                      prefix: 'Refresh failed',
+                    );
+                  }
+                }
+              },
+              tooltip: 'Refresh videos',
+              child: const Icon(Icons.refresh),
+            )
+          : null,
     );
   }
 

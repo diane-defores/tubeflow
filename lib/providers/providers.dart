@@ -287,16 +287,19 @@ final currentUserProvider = StreamProvider<TubeFlowUser?>((ref) {
 // 7. youtubeConnectionProvider
 // ---------------------------------------------------------------------------
 
-/// Subscribes to `youtube:getYoutubeConnectionStatus` — whether YouTube OAuth
-/// is connected.
+/// One-shot query for `youtube:getYoutubeConnectionStatus`.
 ///
-/// Emits a simple [Map] with at least a `connected` boolean field.
+/// This intentionally uses [ConvexService.query] instead of a websocket
+/// subscription because the web app already has a more reliable HTTP path for
+/// one-shot reads than for auth-sensitive realtime subscriptions.
 final youtubeConnectionProvider =
-    StreamProvider<Map<String, dynamic>?>((ref) {
+    FutureProvider<Map<String, dynamic>?>((ref) async {
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('youtube:getYoutubeConnectionStatus', {})
-      .map((raw) => _decodeMap(raw));
+  final raw = await service.query<dynamic>(
+    'youtube:getYoutubeConnectionStatus',
+    {},
+  );
+  return _decodeMap(raw);
 });
 
 // ---------------------------------------------------------------------------

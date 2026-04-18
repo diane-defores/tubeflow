@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Notes overview screen with search and grouped display.
 ///
@@ -31,6 +33,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
+    final youtubeConnected =
+        youtubeConnectionAsync.asData?.value?['connected'] == true;
     final notesAsync = ref.watch(notesProvider);
 
     return Scaffold(
@@ -78,8 +83,29 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
           // Notes list grouped by video
           Expanded(
             child: notesAsync.when(
-              data: (notes) => _buildGroupedNotesList(context, notes),
-              loading: () => _buildShimmerLoading(),
+              data: (notes) =>
+                  _buildGroupedNotesList(context, notes, youtubeConnected),
+              loading: () {
+                if (youtubeConnectionAsync.isLoading &&
+                    youtubeConnectionAsync.asData == null) {
+                  return const YoutubeConnectionLoadingState(
+                    title: 'Checking your YouTube notes',
+                    description:
+                        'TubeFlow is confirming your YouTube connection before loading notes.',
+                  );
+                }
+
+                if (!youtubeConnected) {
+                  return const YoutubeConnectRequiredState(
+                    title: 'Connect YouTube to start taking notes',
+                    description:
+                        'TubeFlow creates notes while you watch synced YouTube videos. Connect YouTube first, then your notes will appear here.',
+                    returnTo: Routes.notes,
+                  );
+                }
+
+                return _buildShimmerLoading();
+              },
               error: (error, stack) => ErrorStateView(
                 error: error,
                 prefix: 'Failed to load notes',
@@ -110,7 +136,11 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     );
   }
 
-  Widget _buildGroupedNotesList(BuildContext context, List<Note> allNotes) {
+  Widget _buildGroupedNotesList(
+    BuildContext context,
+    List<Note> allNotes,
+    bool youtubeConnected,
+  ) {
     // Filter notes by search query.
     final filtered = _searchQuery.isEmpty
         ? allNotes
@@ -121,6 +151,15 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
             .toList();
 
     if (filtered.isEmpty) {
+      if (!youtubeConnected) {
+        return const YoutubeConnectRequiredState(
+          title: 'Connect YouTube to start taking notes',
+          description:
+              'TubeFlow notes are attached to YouTube playback. Connect YouTube, open a video, and your notes will show up here.',
+          returnTo: Routes.notes,
+        );
+      }
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

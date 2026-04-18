@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -22,7 +23,11 @@ class PlaylistsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playlistsAsync = ref.watch(playlistsProvider);
+    final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
+    final youtubeConnected =
+        youtubeConnectionAsync.asData?.value?['connected'] == true;
+    final playlistsAsync =
+        youtubeConnected ? ref.watch(playlistsProvider) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -37,6 +42,14 @@ class PlaylistsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () async {
+              if (!youtubeConnected) {
+                await startYoutubeConnectFlow(
+                  context,
+                  returnTo: Routes.playlists,
+                );
+                return;
+              }
+
               try {
                 await syncAllPlaylists(ref);
                 if (context.mounted) {
@@ -58,7 +71,18 @@ class PlaylistsScreen extends ConsumerWidget {
           ...commonAppBarActions(context, ref),
         ],
       ),
-      body: playlistsAsync.when(
+      body: youtubeConnectionAsync.when(
+        data: (status) {
+          if (status?['connected'] != true) {
+            return const YoutubeConnectRequiredState(
+              title: 'Connect YouTube to import playlists',
+              description:
+                  'Playlists, channel imports, and automatic refresh all depend on your YouTube connection.',
+              returnTo: Routes.playlists,
+            );
+          }
+
+          return playlistsAsync!.when(
         data: (playlists) {
           if (playlists.isEmpty) {
             return YoutubeAwareEmptyState(
@@ -111,11 +135,25 @@ class PlaylistsScreen extends ConsumerWidget {
           prefix: 'Failed to load playlists',
           onRetry: () => ref.invalidate(playlistsProvider),
         ),
+        );
+        },
+        loading: () => const YoutubeConnectionLoadingState(
+          title: 'Checking your YouTube playlists',
+          description:
+              'TubeFlow is confirming your YouTube connection before loading playlist data.',
+        ),
+        error: (error, stack) => ErrorStateView(
+          error: error,
+          prefix: 'Failed to check YouTube connection',
+          onRetry: () => ref.invalidate(youtubeConnectionProvider),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: navigate to create playlist screen
-        },
+        onPressed: youtubeConnected
+            ? () {
+                // TODO: navigate to create playlist screen
+              }
+            : null,
         icon: const Icon(Icons.add),
         label: const Text('New Playlist'),
       ),
