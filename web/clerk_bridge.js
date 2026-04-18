@@ -134,34 +134,90 @@
     });
   }
 
-  function getActiveSession(clerk) {
-    if (clerk.session) {
-      return clerk.session;
+  function sessionTimestamp(session) {
+    const candidate =
+      session?.lastActiveAt ||
+      session?.updatedAt ||
+      session?.createdAt ||
+      null;
+
+    if (!candidate) return 0;
+
+    if (candidate instanceof Date) {
+      return candidate.getTime();
     }
 
+    const parsed = new Date(candidate).getTime();
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  function isUsableSession(session) {
+    if (!session || !session.id) {
+      return false;
+    }
+
+    return session.status === 'active' || session.status === 'pending';
+  }
+
+  function getActiveSession(clerk, options) {
+    const excludeIds = new Set(options?.excludeIds || []);
     const client = clerk.client;
-    if (!client) {
-      return null;
-    }
+    const candidates = new Map();
 
-    if (client.lastActiveSessionId && Array.isArray(client.sessions)) {
-      const active = client.sessions.find(
-        (session) => session.id === client.lastActiveSessionId,
-      );
-      if (active) {
-        return active;
+    function add(session, rank) {
+      if (!isUsableSession(session) || excludeIds.has(session.id)) {
+        return;
+      }
+
+      const existing = candidates.get(session.id);
+      const candidate = {
+        session,
+        rank,
+        timestamp: sessionTimestamp(session),
+      };
+
+      if (
+        !existing ||
+        candidate.rank < existing.rank ||
+        (candidate.rank === existing.rank &&
+          candidate.timestamp > existing.timestamp)
+      ) {
+        candidates.set(session.id, candidate);
       }
     }
 
-    if (Array.isArray(client.signedInSessions) && client.signedInSessions.length > 0) {
-      return client.signedInSessions[0];
+    if (Array.isArray(client?.activeSessions)) {
+      client.activeSessions.forEach((session) => add(session, 0));
     }
 
-    if (Array.isArray(client.sessions) && client.sessions.length > 0) {
-      return client.sessions[0];
+    if (Array.isArray(client?.signedInSessions)) {
+      client.signedInSessions.forEach((session) => add(session, 1));
     }
 
-    return null;
+    if (Array.isArray(client?.sessions)) {
+      client.sessions.forEach((session) => add(session, 2));
+    }
+
+    add(clerk.session, 3);
+
+    for (const preferredId of [client?.lastActiveSessionId, clerk.session?.id]) {
+      if (!preferredId) {
+        continue;
+      }
+      const preferred = candidates.get(preferredId);
+      if (preferred) {
+        return preferred.session;
+      }
+    }
+
+    return [...candidates.values()]
+      .sort((left, right) => {
+        if (left.rank !== right.rank) {
+          return left.rank - right.rank;
+        }
+        return right.timestamp - left.timestamp;
+      })
+      .map((entry) => entry.session)[0] || null;
   }
 
   function isMissingSessionError(error) {
@@ -182,12 +238,13 @@
 
     async isSignedIn(publishableKey) {
       const clerk = await ensureLoaded(publishableKey);
-      return !!clerk.isSignedIn;
+      return !!getActiveSession(clerk);
     },
 
     async getUserJson(publishableKey) {
       const clerk = await ensureLoaded(publishableKey);
-      return serializeUser(clerk.user);
+      const session = getActiveSession(clerk);
+      return serializeUser(session?.user || clerk.user);
     },
 
     async getToken(publishableKey, template) {
@@ -208,13 +265,18 @@
           throw error;
         }
 
+        session.clearCache?.();
+        clerk.client?.clearCache?.();
+
         await clerk.load({
           ui: window.__internal_ClerkUICtor
             ? { ClerkUI: window.__internal_ClerkUICtor }
             : undefined,
         });
 
-        session = getActiveSession(clerk);
+        session = getActiveSession(clerk, {
+          excludeIds: session?.id ? [session.id] : [],
+        });
         if (!session) {
           return '';
         }
