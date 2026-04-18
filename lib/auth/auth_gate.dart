@@ -718,7 +718,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         authState.env.socialConnections.any(
           (connection) => connection.strategy.provider == 'google',
         );
-    final showHostedPortalLink = kIsWeb;
     final isSignUpMode = _emailAuthMode == _EmailAuthMode.signUp;
     final description = envEmpty
         ? 'Clerk did not expose sign-in methods during the first render, so TubeFlow is using direct fallback actions instead.'
@@ -730,10 +729,25 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'Secure access',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             if (hasPassword) ...[
               SegmentedButton<_EmailAuthMode>(
                 segments: const [
@@ -919,7 +933,32 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
+              if (hasGoogle) ...[
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: theme.colorScheme.outline.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'or',
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: theme.colorScheme.outline.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+              ] else
+                const SizedBox(height: 12),
             ],
             if (hasGoogle)
               SizedBox(
@@ -935,41 +974,30 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 ),
               ),
             if (hasGoogle && kIsWeb) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Google opens the secure TubeFlow account page in this tab.',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-            if (showHostedPortalLink) ...[
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: loading ? null : _openHostedSignIn,
-                  child: const Text(
-                    'Create account or open more sign-in options',
-                  ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-            ],
-            if (hasPassword) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: loading
-                      ? null
-                      : () => _setEmailAuthMode(
-                            isSignUpMode
-                                ? _EmailAuthMode.signIn
-                                : _EmailAuthMode.signUp,
-                          ),
-                  child: Text(
-                    isSignUpMode
-                        ? 'Already have an account? Sign in'
-                        : 'No account yet? Create one with email',
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.open_in_new,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Google opens the secure TubeFlow account portal in this tab. Use it for Google sign-in, password recovery, or any extra sign-in methods.',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
