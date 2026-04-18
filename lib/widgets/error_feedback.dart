@@ -12,7 +12,7 @@ String _retryLabel(BuildContext context) =>
 Color _snackBarForegroundColor(BuildContext context) {
   final theme = Theme.of(context);
   return theme.snackBarTheme.contentTextStyle?.color ??
-      theme.colorScheme.inverseOnSurface;
+      theme.colorScheme.onInverseSurface;
 }
 
 String formatErrorMessage(Object error, {String? prefix}) {
