@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/models/models.dart';
+import 'package:tubeflow_app/utils/app_logger.dart';
 
 // =============================================================================
 // Typed Convex providers for the TubeFlow app.
@@ -127,6 +128,39 @@ class PreferencesData {
   final UserSettings settings;
   final UserSubscription subscription;
   final TubeFlowUser? user;
+}
+
+TubeFlowUser _fallbackUserFromAuth(AuthUser user) {
+  return TubeFlowUser(
+    id: 'user:${user.id}',
+    clerkId: user.id,
+    email: user.email,
+    name: user.displayName,
+    avatarUrl: user.imageUrl,
+    youtubeConnected: false,
+    createdAt: 0,
+    updatedAt: 0,
+  );
+}
+
+Future<dynamic> _queryWithTimeout(
+  ConvexService service,
+  String path,
+  Map<String, dynamic> args,
+) async {
+  return service
+      .query<dynamic>(path, args)
+      .timeout(const Duration(seconds: 8));
+}
+
+Future<dynamic> _mutateWithTimeout(
+  ConvexService service,
+  String path,
+  Map<String, dynamic> args,
+) async {
+  return service
+      .mutate<dynamic>(path, args)
+      .timeout(const Duration(seconds: 8));
 }
 
 // ---------------------------------------------------------------------------
@@ -284,26 +318,97 @@ final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
   final service = ref.watch(convexServiceProvider);
   final authUser = authState.user;
 
-  await service.mutate<dynamic>('users:ensureUser', {
-    'email': authUser.email,
-    if (authUser.displayName != null) 'name': authUser.displayName,
-    if (authUser.imageUrl != null) 'avatarUrl': authUser.imageUrl,
-  });
+  AppLogger.instance.log(
+    'preferencesDataProvider start for ${authUser.id}',
+    source: 'PreferencesData',
+  );
 
-  final results = await Future.wait<dynamic>([
-    service.query<dynamic>('settings:getSettings', {}),
-    service.query<dynamic>('subscriptions:getSubscription', {}),
-    service.query<dynamic>('users:getCurrentUser', {}),
-  ]);
+  try {
+    await _mutateWithTimeout(service, 'users:ensureUser', {
+      'email': authUser.email,
+      if (authUser.displayName != null) 'name': authUser.displayName,
+      if (authUser.imageUrl != null) 'avatarUrl': authUser.imageUrl,
+    });
+    AppLogger.instance.log(
+      'users:ensureUser succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'users:ensureUser failed; falling back to local defaults',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  dynamic settingsRaw;
+  dynamic subscriptionRaw;
+  dynamic currentUserRaw;
+
+  try {
+    settingsRaw = await _queryWithTimeout(service, 'settings:getSettings', {});
+    AppLogger.instance.log(
+      'settings:getSettings succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'settings:getSettings failed; using defaults',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  try {
+    subscriptionRaw = await _queryWithTimeout(
+      service,
+      'subscriptions:getSubscription',
+      {},
+    );
+    AppLogger.instance.log(
+      'subscriptions:getSubscription succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'subscriptions:getSubscription failed; using free plan fallback',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  try {
+    currentUserRaw = await _queryWithTimeout(service, 'users:getCurrentUser', {});
+    AppLogger.instance.log(
+      'users:getCurrentUser succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'users:getCurrentUser failed; using auth fallback user',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
 
   final settings = UserSettings.fromJson(
-    _normalizeSettingsMap(_decodeMap(results[0]), authUser),
+    _normalizeSettingsMap(_decodeMap(settingsRaw), authUser),
   );
   final subscription = UserSubscription.fromJson(
-    _normalizeSubscriptionMap(_decodeMap(results[1]), authUser),
+    _normalizeSubscriptionMap(_decodeMap(subscriptionRaw), authUser),
   );
-  final userJson = _decodeMap(results[2]);
-  final user = userJson != null ? TubeFlowUser.fromJson(userJson) : null;
+  final userJson = _decodeMap(currentUserRaw);
+  final user = userJson != null
+      ? TubeFlowUser.fromJson(userJson)
+      : _fallbackUserFromAuth(authUser);
 
   return PreferencesData(
     settings: settings,
