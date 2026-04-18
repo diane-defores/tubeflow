@@ -153,6 +153,8 @@ class _SignInScreen extends ConsumerStatefulWidget {
   ConsumerState<_SignInScreen> createState() => _SignInScreenState();
 }
 
+enum _EmailAuthMode { signIn, signUp }
+
 class _SignInScreenState extends ConsumerState<_SignInScreen>
     with WidgetsBindingObserver {
   static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
@@ -161,10 +163,17 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
   bool _loading = false;
   String? _error;
+  _EmailAuthMode _emailAuthMode = _EmailAuthMode.signIn;
+  bool _awaitingEmailCodeVerification = false;
+  String? _verificationEmail;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _verificationCodeController = TextEditingController();
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
+  final _verificationCodeFocusNode = FocusNode();
   Timer? _hostedRefreshTimer;
   bool _hostedResumeStarted = false;
 
@@ -239,8 +248,12 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     _hostedRefreshTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _verificationCodeController.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
+    _verificationCodeFocusNode.dispose();
     super.dispose();
   }
 
@@ -311,6 +324,153 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     } catch (e) {
       AppLogger.instance.log(
         'Password sign-in fallback failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  bool _supportsDirectEmailSignUp(ClerkAuthState authState) {
+    return authState.env.supportsEmailCode;
+  }
+
+  void _setEmailAuthMode(_EmailAuthMode mode) {
+    setState(() {
+      _emailAuthMode = mode;
+      _awaitingEmailCodeVerification = false;
+      _verificationEmail = null;
+      _verificationCodeController.clear();
+      _error = null;
+    });
+  }
+
+  Future<void> _signUpWithEmailPassword() async {
+    final authState = ClerkAuth.of(context);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final passwordConfirmation = _confirmPasswordController.text;
+
+    if (email.isEmpty || password.isEmpty || passwordConfirmation.isEmpty) {
+      setState(() {
+        _error = 'Enter email, password, and password confirmation.';
+      });
+      return;
+    }
+
+    if (password != passwordConfirmation) {
+      setState(() {
+        _error = 'Passwords do not match.';
+      });
+      return;
+    }
+
+    if (!_supportsDirectEmailSignUp(authState)) {
+      setState(() {
+        _error =
+            'This Clerk setup does not support direct email code sign-up here. Use the secure account portal instead.';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      AppLogger.instance.log(
+        'Starting email sign-up flow',
+        source: 'SignInScreen',
+      );
+      await authState.attemptSignUp(
+        strategy: clerk.Strategy.emailCode,
+        emailAddress: email,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
+
+      if (authState.isSignedIn || authState.user != null) {
+        TextInput.finishAutofillContext();
+      }
+
+      if (authState.signUp?.unverified(clerk.Field.emailAddress) == true) {
+        if (mounted) {
+          setState(() {
+            _awaitingEmailCodeVerification = true;
+            _verificationEmail = email;
+          });
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _verificationCodeFocusNode.requestFocus();
+          }
+        });
+      }
+    } catch (e) {
+      AppLogger.instance.log(
+        'Email sign-up failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _verifyEmailSignUpCode() async {
+    final authState = ClerkAuth.of(context);
+    final code = _verificationCodeController.text.trim();
+
+    if (code.isEmpty) {
+      setState(() {
+        _error = 'Enter the verification code sent by email.';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      AppLogger.instance.log(
+        'Attempting email sign-up verification',
+        source: 'SignInScreen',
+      );
+      await authState.attemptSignUp(
+        strategy: clerk.Strategy.emailCode,
+        code: code,
+      );
+
+      if (authState.isSignedIn || authState.user != null) {
+        TextInput.finishAutofillContext();
+      }
+
+      if (mounted && authState.signUp?.unverified(clerk.Field.emailAddress) != true) {
+        setState(() {
+          _awaitingEmailCodeVerification = false;
+          _verificationEmail = null;
+          _verificationCodeController.clear();
+        });
+      }
+    } catch (e) {
+      AppLogger.instance.log(
+        'Email sign-up verification failed',
         source: 'SignInScreen',
         level: LogLevel.error,
         error: e,
@@ -559,8 +719,11 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           (connection) => connection.strategy.provider == 'google',
         );
     final showHostedPortalLink = kIsWeb;
+    final isSignUpMode = _emailAuthMode == _EmailAuthMode.signUp;
     final description = envEmpty
         ? 'Clerk did not expose sign-in methods during the first render, so TubeFlow is using direct fallback actions instead.'
+        : isSignUpMode
+        ? 'Create your account with email here. Google and any other account recovery paths still open in the secure account portal.'
         : kIsWeb
         ? 'Email sign-in happens directly in TubeFlow. Google, sign-up, and recovery open in the secure account portal.'
         : 'TubeFlow uses direct email sign-in in the app and native Google sign-in when available.';
@@ -571,8 +734,34 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (hasPassword) ...[
+              SegmentedButton<_EmailAuthMode>(
+                segments: const [
+                  ButtonSegment<_EmailAuthMode>(
+                    value: _EmailAuthMode.signIn,
+                    label: Text('Sign in'),
+                  ),
+                  ButtonSegment<_EmailAuthMode>(
+                    value: _EmailAuthMode.signUp,
+                    label: Text('Create account'),
+                  ),
+                ],
+                selected: {_emailAuthMode},
+                onSelectionChanged: loading
+                    ? null
+                    : (selection) {
+                        final mode = selection.first;
+                        if (mode != _emailAuthMode) {
+                          _setEmailAuthMode(mode);
+                        }
+                      },
+              ),
+              const SizedBox(height: 16),
+            ],
             Text(
-              envEmpty ? 'Fallback sign-in' : 'Sign in',
+              envEmpty
+                  ? (isSignUpMode ? 'Fallback sign-up' : 'Fallback sign-in')
+                  : (isSignUpMode ? 'Create account' : 'Sign in'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -619,7 +808,12 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                       focusNode: _passwordFocusNode,
                       obscureText: true,
                       keyboardType: TextInputType.visiblePassword,
-                      autofillHints: const [AutofillHints.password],
+                      autofillHints: [
+                        if (isSignUpMode)
+                          AutofillHints.newPassword
+                        else
+                          AutofillHints.password,
+                      ],
                       textInputAction: TextInputAction.done,
                       autocorrect: false,
                       enableSuggestions: false,
@@ -629,8 +823,34 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                         labelText: 'Password',
                         hintText: 'Enter your password',
                       ),
-                      onSubmitted: (_) => _signInWithEmailPassword(),
+                      onSubmitted: (_) {
+                        if (isSignUpMode) {
+                          _confirmPasswordFocusNode.requestFocus();
+                        } else {
+                          _signInWithEmailPassword();
+                        }
+                      },
                     ),
+                    if (isSignUpMode) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _confirmPasswordController,
+                        focusNode: _confirmPasswordFocusNode,
+                        obscureText: true,
+                        keyboardType: TextInputType.visiblePassword,
+                        autofillHints: const [AutofillHints.newPassword],
+                        textInputAction: TextInputAction.done,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        smartDashesType: SmartDashesType.disabled,
+                        smartQuotesType: SmartQuotesType.disabled,
+                        decoration: const InputDecoration(
+                          labelText: 'Confirm password',
+                          hintText: 'Repeat your password',
+                        ),
+                        onSubmitted: (_) => _signUpWithEmailPassword(),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -638,10 +858,67 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: loading ? null : _signInWithEmailPassword,
-                  child: const Text('Sign in with email'),
+                  onPressed: loading
+                      ? null
+                      : isSignUpMode
+                      ? _signUpWithEmailPassword
+                      : _signInWithEmailPassword,
+                  child: Text(
+                    isSignUpMode ? 'Create account with email' : 'Sign in with email',
+                  ),
                 ),
               ),
+              if (isSignUpMode && _awaitingEmailCodeVerification) ...[
+                const SizedBox(height: 12),
+                Card(
+                  margin: EdgeInsets.zero,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.06),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Verify your email',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _verificationEmail == null
+                              ? 'Enter the code sent by email to finish creating your account.'
+                              : 'Enter the code sent to $_verificationEmail to finish creating your account.',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _verificationCodeController,
+                          focusNode: _verificationCodeFocusNode,
+                          keyboardType: TextInputType.number,
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          textInputAction: TextInputAction.done,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          decoration: const InputDecoration(
+                            labelText: 'Verification code',
+                            hintText: '123456',
+                          ),
+                          onSubmitted: (_) => _verifyEmailSignUpCode(),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: loading ? null : _verifyEmailSignUpCode,
+                            child: const Text('Verify email code'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
             ],
             if (hasGoogle)
@@ -672,6 +949,26 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   onPressed: loading ? null : _openHostedSignIn,
                   child: const Text(
                     'Create account or open more sign-in options',
+                  ),
+                ),
+              ),
+            ],
+            if (hasPassword) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: loading
+                      ? null
+                      : () => _setEmailAuthMode(
+                            isSignUpMode
+                                ? _EmailAuthMode.signIn
+                                : _EmailAuthMode.signUp,
+                          ),
+                  child: Text(
+                    isSignUpMode
+                        ? 'Already have an account? Sign in'
+                        : 'No account yet? Create one with email',
                   ),
                 ),
               ),
