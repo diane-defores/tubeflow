@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_http_service.dart';
+import 'package:tubeflow_app/auth/clerk_web_bridge.dart';
 import 'package:tubeflow_app/auth/clerk_web_persistor.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 
@@ -87,6 +88,9 @@ class ClerkService {
         : ClerkAuthConfig(publishableKey: _publishableKey);
 
     try {
+      if (kIsWeb) {
+        await initClerkWebBridge(_publishableKey);
+      }
       _authState = await ClerkAuthState.create(config: config);
       if (_authState?.env.isEmpty == true) {
         AppLogger.instance.log(
@@ -110,6 +114,9 @@ class ClerkService {
       );
       _authState?.addListener(_syncAuthNotifier);
       _syncAuthNotifier();
+      if (kIsWeb) {
+        await _syncWebBridgeAuthState();
+      }
     } catch (e, st) {
       AppLogger.instance.log(
         'Failed to initialise ClerkAuthState',
@@ -148,11 +155,49 @@ class ClerkService {
       }
       authNotifier.setAuthenticated(authUser);
     } else {
+      if (kIsWeb) {
+        _syncWebBridgeAuthState();
+        return;
+      }
       if (authNotifier.isAuthenticated) {
         AppLogger.instance.log('Clerk session ended', source: 'ClerkService');
       }
       authNotifier.setUnauthenticated();
     }
+  }
+
+  Future<void> _syncWebBridgeAuthState() async {
+    final signedIn = await clerkWebIsSignedIn();
+    if (!signedIn) {
+      if (authNotifier.isAuthenticated) {
+        AppLogger.instance.log(
+          'Clerk JS web session ended',
+          source: 'ClerkService',
+        );
+      }
+      authNotifier.setUnauthenticated();
+      return;
+    }
+
+    final user = await clerkWebGetUser();
+    if (user == null || user.id.isEmpty) {
+      return;
+    }
+
+    final authUser = AuthUser(
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName.isEmpty ? null : user.displayName,
+      imageUrl: user.imageUrl.isEmpty ? null : user.imageUrl,
+    );
+
+    if (authNotifier.currentUser?.id != authUser.id) {
+      AppLogger.instance.log(
+        'Clerk JS web session synced: ${authUser.id}',
+        source: 'ClerkService',
+      );
+    }
+    authNotifier.setAuthenticated(authUser);
   }
 
   AuthUser _toAuthUser(clerk.User user) {
@@ -171,6 +216,9 @@ class ClerkService {
 
   Future<void> signOut() async {
     try {
+      if (kIsWeb) {
+        await clerkWebSignOut();
+      }
       await _authState?.signOut();
     } catch (e, st) {
       AppLogger.instance.log(
@@ -195,6 +243,23 @@ class ClerkService {
   /// minting the token fails — in both cases Convex will fall back to
   /// unauthenticated access rather than raising.
   Future<String?> getConvexToken() async {
+    if (kIsWeb) {
+      try {
+        final token = await clerkWebGetToken(template: _convexJwtTemplate);
+        if (token != null && token.isNotEmpty) {
+          return token;
+        }
+      } catch (e, st) {
+        AppLogger.instance.log(
+          'Failed to mint Convex JWT from Clerk JS bridge',
+          source: 'ClerkService',
+          level: LogLevel.error,
+          error: e,
+          stackTrace: st,
+        );
+      }
+    }
+
     final auth = _authState;
     if (auth == null || !auth.isSignedIn) {
       return null;

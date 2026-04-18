@@ -14,6 +14,7 @@ import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/auth/clerk_web_bridge.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
@@ -378,9 +379,15 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               )
               .toString()
         : tubeFlowAppUrl;
+    final bridgeUrl = kIsWeb
+        ? await clerkWebBuildSignInUrl(redirectTarget)
+        : null;
     final uri = Uri.parse(
-      hostedUrl,
-    ).replace(queryParameters: {'redirect_url': redirectTarget});
+      bridgeUrl ??
+          Uri.parse(hostedUrl)
+              .replace(queryParameters: {'redirect_url': redirectTarget})
+              .toString(),
+    );
 
     try {
       await _setPendingHostedSignIn(true);
@@ -465,6 +472,30 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     final authState = ClerkAuth.of(context);
     try {
+      if (kIsWeb) {
+        final signedIn = await clerkWebIsSignedIn();
+        AppLogger.instance.log(
+          'Hosted sign-in poll result via Clerk JS bridge: isSignedIn=$signedIn',
+          source: 'SignInScreen',
+        );
+
+        if (!signedIn) {
+          return false;
+        }
+
+        final clerkService = ref.read(clerkServiceProvider);
+        await clerkService.ready;
+        await _setPendingHostedSignIn(false);
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error = null;
+          });
+          context.go(Routes.videos);
+        }
+        return true;
+      }
+
       await authState.refreshClient();
       if (authState.env.isEmpty) {
         await authState.refreshEnvironment();
