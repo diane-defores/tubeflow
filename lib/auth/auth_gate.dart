@@ -30,14 +30,15 @@ class ClerkSignInPage extends ConsumerWidget {
     final authState = ref.watch(clerkServiceProvider).authState;
 
     if (authState == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Clerk is not configured for this build. '
-              'The app is accessible in guest mode.',
-              textAlign: TextAlign.center,
+            padding: const EdgeInsets.all(24),
+            child: InlineErrorCard(
+              error:
+                  'Clerk is not configured for this build. '
+                  'The app is accessible in guest mode.',
+              prefix: 'Sign-in unavailable',
             ),
           ),
         ),
@@ -365,19 +366,14 @@ class _SignInButtons extends StatelessWidget {
         }
 
         // Env not loaded or invalid — don't expose broken sign-in actions.
-        return Column(
-          children: [
-            Text(
-              envAvailable
-                  ? 'No sign-in methods configured in Clerk.'
-                  : 'Clerk sign-in is unavailable. Check the publishable key '
-                      'and the app domain configured in Clerk.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        final message = envAvailable
+            ? 'No sign-in methods configured in Clerk.'
+            : 'Clerk sign-in is unavailable. Check the publishable key '
+                'and the app domain configured in Clerk.';
+
+        return InlineErrorCard(
+          error: message,
+          prefix: 'Sign-in unavailable',
         );
       },
     );
