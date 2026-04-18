@@ -22,6 +22,11 @@ const tubeFlowAppUrl = String.fromEnvironment(
   defaultValue: legacyTubeFlowAppUrl,
 );
 
+const configuredClerkHostedSignInUrl = String.fromEnvironment(
+  'CLERK_HOSTED_SIGN_IN_URL',
+  defaultValue: '',
+);
+
 const buildCommitSha = String.fromEnvironment(
   'BUILD_COMMIT_SHA',
   defaultValue: 'unknown',
@@ -66,4 +71,28 @@ String hostMatchLabel(String value) {
     return 'invalid';
   }
   return host == Uri.base.host ? 'yes' : 'no (expected $host)';
+}
+
+String clerkHostedSignInUrl() {
+  if (configuredClerkHostedSignInUrl.isNotEmpty) {
+    return configuredClerkHostedSignInUrl;
+  }
+
+  final fallbackBase = tubeFlowAppUrl.isNotEmpty
+      ? tubeFlowAppUrl
+      : (kIsWeb ? Uri.base.origin : '');
+  final uri = Uri.tryParse(fallbackBase);
+  if (uri == null || uri.host.isEmpty) {
+    return '';
+  }
+
+  return uri
+      .replace(
+        scheme: uri.scheme.isEmpty ? 'https' : uri.scheme,
+        host: 'accounts.${uri.host}',
+        path: '/sign-in',
+        query: null,
+        fragment: null,
+      )
+      .toString();
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
@@ -151,6 +152,8 @@ class _SignInScreen extends ConsumerStatefulWidget {
 class _SignInScreenState extends ConsumerState<_SignInScreen> {
   bool _loading = false;
   String? _error;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   List<String> _diagnosticLines({
     ClerkAuthState? authState,
@@ -179,6 +182,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
       'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'CLERK_HOSTED_SIGN_IN_URL: ${clerkHostedSignInUrl().isNotEmpty ? clerkHostedSignInUrl() : '(missing)'}',
       'Clerk service initialised: ${clerkService?.isInitialised == true ? 'yes' : 'no'}',
       'Clerk env empty: ${envEmpty ? 'yes' : 'no'}',
       'Clerk isSignedIn: ${authState?.isSignedIn == true ? 'yes' : 'no'}',
@@ -210,6 +214,13 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
   void initState() {
     super.initState();
     _logEnvState();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   void _logEnvState() {
@@ -281,12 +292,198 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
     }
   }
 
+  Future<void> _signInWithEmailPassword() async {
+    final authState = ClerkAuth.of(context);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _error = 'Enter both email and password.';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      AppLogger.instance.log(
+        'Starting password sign-in fallback',
+        source: 'SignInScreen',
+      );
+      await authState.attemptSignIn(
+        strategy: clerk.Strategy.password,
+        identifier: email,
+        password: password,
+      );
+    } catch (e) {
+      AppLogger.instance.log(
+        'Password sign-in fallback failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _continueWithGoogleFallback() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      AppLogger.instance.log(
+        'Starting Google fallback via fixed oauth strategy',
+        source: 'SignInScreen',
+      );
+      await ClerkAuth.of(
+        context,
+      ).ssoSignIn(context, clerk.Strategy.oauthGoogle);
+    } catch (e) {
+      AppLogger.instance.log(
+        'Google fallback sign-in failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _openHostedSignIn() async {
+    final hostedUrl = clerkHostedSignInUrl();
+    if (hostedUrl.isEmpty) {
+      setState(() {
+        _error = 'Clerk hosted sign-in URL is missing for this build.';
+      });
+      return;
+    }
+
+    final redirectTarget = kIsWeb ? Uri.base.toString() : tubeFlowAppUrl;
+    final uri = Uri.parse(
+      hostedUrl,
+    ).replace(queryParameters: {'redirect_url': redirectTarget});
+
+    try {
+      AppLogger.instance.log(
+        'Opening hosted Clerk sign-in: $uri',
+        source: 'SignInScreen',
+      );
+      final launched = await launchUrl(uri, webOnlyWindowName: '_self');
+      if (!launched && mounted) {
+        setState(() {
+          _error = 'Could not open hosted sign-in page.';
+        });
+      }
+    } catch (e) {
+      AppLogger.instance.log(
+        'Opening hosted Clerk sign-in failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    }
+  }
+
+  Widget _buildFallbackSignInCard(ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Fallback sign-in',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Clerk did not expose sign-in methods to the Flutter web SDK on this build, so TubeFlow is using direct fallback actions instead.',
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [
+                AutofillHints.username,
+                AutofillHints.email,
+              ],
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                hintText: 'you@example.com',
+              ),
+              onSubmitted: (_) => _signInWithEmailPassword(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: const InputDecoration(labelText: 'Password'),
+              onSubmitted: (_) => _signInWithEmailPassword(),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _signInWithEmailPassword,
+                child: const Text('Sign in with email'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _continueWithGoogleFallback,
+                icon: const Icon(Icons.login),
+                label: const Text('Continue with Google'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: _openHostedSignIn,
+                child: const Text('Open secure hosted sign-in'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final clerkService = ref.watch(clerkServiceProvider);
     final authState = ClerkAuth.of(context);
+    final envEmpty = authState.env.isEmpty;
 
     return Scaffold(
       body: SafeArea(
@@ -335,10 +532,12 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
                   const SizedBox(height: 48),
 
                   // Sign-in buttons
-                  _SignInButtons(
-                    loading: _loading,
-                    onStrategy: _signInWithStrategy,
-                  ),
+                  envEmpty
+                      ? _buildFallbackSignInCard(theme)
+                      : _SignInButtons(
+                          loading: _loading,
+                          onStrategy: _signInWithStrategy,
+                        ),
 
                   const SizedBox(height: 20),
                   Card(
