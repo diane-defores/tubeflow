@@ -13,6 +13,18 @@ import 'package:tubeflow_app/widgets/error_feedback.dart';
 class ClerkSignInPage extends ConsumerWidget {
   const ClerkSignInPage({super.key});
 
+  Future<void> _handleClerkError(
+    BuildContext context,
+    clerk.ClerkError error,
+  ) async {
+    if (!context.mounted) return;
+    showErrorSnackBar(
+      context,
+      error: error.toString(),
+      prefix: 'Sign-in error',
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(clerkServiceProvider).authState;
@@ -34,7 +46,8 @@ class ClerkSignInPage extends ConsumerWidget {
 
     return ClerkAuth(
       authState: authState,
-      child: const ClerkErrorListener(
+      child: ClerkErrorListener(
+        handler: _handleClerkError,
         child: AuthGate(
           child: SizedBox.shrink(),
         ),
