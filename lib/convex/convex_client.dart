@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:convex_flutter/convex_flutter.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:tubeflow_app/convex/convex_web_bridge.dart';
+import 'package:tubeflow_app/utils/app_logger.dart';
 
 /// A singleton service that wraps the Convex Flutter client.
 ///
@@ -59,6 +63,9 @@ class ConvexService {
   /// Handle returned by [setAuthWithRefresh], disposed on [clearAuth]/[dispose].
   dynamic _authHandle;
 
+  /// Token provider wired from Clerk during bootstrap.
+  Future<String?> Function()? _tokenProvider;
+
   /// Whether the service has been disposed.
   bool _disposed = false;
 
@@ -71,6 +78,7 @@ class ConvexService {
   ///
   /// Typically wired to `ClerkService.getConvexToken`.
   Future<void> setAuth(Future<String?> Function() getToken) async {
+    _tokenProvider = getToken;
     _authHandle = await ConvexClient.instance.setAuthWithRefresh(
       fetchToken: () async {
         final token = await getToken();
@@ -89,6 +97,7 @@ class ConvexService {
 
   /// Clears the current auth state.
   void clearAuth() {
+    _tokenProvider = null;
     if (_authHandle != null) {
       try {
         _authHandle.dispose();
@@ -113,6 +122,19 @@ class ConvexService {
   /// `query<Map<String, dynamic>>(...)`.
   Future<T> query<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    if (kIsWeb) {
+      try {
+        return await _queryViaHttpBridge<T>(path, args);
+      } catch (e, st) {
+        AppLogger.instance.log(
+          'Convex HTTP query bridge failed; falling back to WebSocket client',
+          source: 'ConvexService',
+          level: LogLevel.warning,
+          error: e,
+          stackTrace: st,
+        );
+      }
+    }
     await _waitForConnection();
     final result = await ConvexClient.instance.query(path, args);
     return _decode<T>(result);
@@ -125,6 +147,19 @@ class ConvexService {
   /// Executes a Convex mutation and returns the decoded result.
   Future<T> mutate<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    if (kIsWeb) {
+      try {
+        return await _mutationViaHttpBridge<T>(path, args);
+      } catch (e, st) {
+        AppLogger.instance.log(
+          'Convex HTTP mutation bridge failed; falling back to WebSocket client',
+          source: 'ConvexService',
+          level: LogLevel.warning,
+          error: e,
+          stackTrace: st,
+        );
+      }
+    }
     await _waitForConnection();
     final result = await ConvexClient.instance.mutation(
       name: path,
@@ -140,6 +175,19 @@ class ConvexService {
   /// Executes a Convex action and returns the decoded result.
   Future<T> action<T>(String path, Map<String, dynamic> args) async {
     _assertNotDisposed();
+    if (kIsWeb) {
+      try {
+        return await _actionViaHttpBridge<T>(path, args);
+      } catch (e, st) {
+        AppLogger.instance.log(
+          'Convex HTTP action bridge failed; falling back to WebSocket client',
+          source: 'ConvexService',
+          level: LogLevel.warning,
+          error: e,
+          stackTrace: st,
+        );
+      }
+    }
     await _waitForConnection();
     final result = await ConvexClient.instance.action(
       name: path,
@@ -248,6 +296,56 @@ class ConvexService {
             'Timed out while waiting for the Convex WebSocket connection.',
           ),
         );
+  }
+
+  Future<T> _queryViaHttpBridge<T>(
+    String path,
+    Map<String, dynamic> args,
+  ) async {
+    final token = await _getFreshAuthToken();
+    final result = await convexWebQuery(
+      convexUrl: url,
+      authToken: token,
+      path: path,
+      args: args,
+    );
+    return _decode<T>(result);
+  }
+
+  Future<T> _mutationViaHttpBridge<T>(
+    String path,
+    Map<String, dynamic> args,
+  ) async {
+    final token = await _getFreshAuthToken();
+    final result = await convexWebMutation(
+      convexUrl: url,
+      authToken: token,
+      path: path,
+      args: args,
+    );
+    return _decode<T>(result);
+  }
+
+  Future<T> _actionViaHttpBridge<T>(
+    String path,
+    Map<String, dynamic> args,
+  ) async {
+    final token = await _getFreshAuthToken();
+    final result = await convexWebAction(
+      convexUrl: url,
+      authToken: token,
+      path: path,
+      args: args,
+    );
+    return _decode<T>(result);
+  }
+
+  Future<String?> _getFreshAuthToken() async {
+    final getToken = _tokenProvider;
+    if (getToken == null) {
+      return null;
+    }
+    return getToken();
   }
 
   // ---------------------------------------------------------------------------
