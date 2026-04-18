@@ -553,6 +553,12 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         authState.env.socialConnections.any(
           (connection) => connection.strategy.provider == 'google',
         );
+    final showHostedPortalLink = kIsWeb;
+    final description = envEmpty
+        ? 'Clerk did not expose sign-in methods during the first render, so TubeFlow is using direct fallback actions instead.'
+        : kIsWeb
+        ? 'Email sign-in happens directly in TubeFlow. Google, sign-up, and recovery open in the secure account portal.'
+        : 'TubeFlow uses direct email sign-in in the app and native Google sign-in when available.';
 
     return Card(
       child: Padding(
@@ -568,9 +574,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              envEmpty
-                  ? 'Clerk did not expose sign-in methods during the first render, so TubeFlow is using direct fallback actions instead.'
-                  : 'TubeFlow is using direct email sign-in in the app and Clerk hosted sign-in for Google on the web.',
+              description,
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
@@ -619,19 +623,30 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   icon: const Icon(Icons.login),
                   label: Text(
                     kIsWeb
-                        ? 'Continue with Google on secure sign-in'
+                        ? 'Continue with Google'
                         : 'Continue with Google',
                   ),
                 ),
               ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: loading ? null : _openHostedSignIn,
-                child: const Text('Open secure hosted sign-in'),
+            if (hasGoogle && kIsWeb) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Google opens the secure TubeFlow account page in this tab.',
+                style: theme.textTheme.bodySmall,
               ),
-            ),
+            ],
+            if (showHostedPortalLink) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: loading ? null : _openHostedSignIn,
+                  child: const Text(
+                    'Create account or open more sign-in options',
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
