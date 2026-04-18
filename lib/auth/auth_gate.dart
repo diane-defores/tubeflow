@@ -252,46 +252,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
     });
   }
 
-  Future<void> _signInWithStrategy(clerk.Strategy strategy) async {
-    final authState = ClerkAuth.of(context);
-    if (authState.env.isEmpty) {
-      setState(() {
-        _error =
-            'Clerk sign-in is unavailable for this build. Verify the '
-            'production CLERK_PUBLISHABLE_KEY and the allowed app domain in '
-            'the Clerk dashboard.';
-      });
-      AppLogger.instance.log(
-        'Blocked sign-in because Clerk environment is empty',
-        source: 'SignInScreen',
-        level: LogLevel.warning,
-      );
-      return;
-    }
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      AppLogger.instance.log(
-        'Starting ssoSignIn with ${strategy.name}',
-        source: 'SignInScreen',
-      );
-      await authState.ssoSignIn(context, strategy);
-    } catch (e) {
-      AppLogger.instance.log(
-        'ssoSignIn failed',
-        source: 'SignInScreen',
-        level: LogLevel.error,
-        error: e,
-      );
-      if (mounted) setState(() => _error = '$e');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   Future<void> _signInWithEmailPassword() async {
     final authState = ClerkAuth.of(context);
     final email = _emailController.text.trim();
@@ -414,7 +374,19 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
     }
   }
 
-  Widget _buildFallbackSignInCard(ThemeData theme) {
+  Widget _buildSignInCard(
+    ThemeData theme,
+    ClerkAuthState authState, {
+    required bool loading,
+  }) {
+    final envEmpty = authState.env.isEmpty;
+    final hasPassword = envEmpty || authState.env.hasPasswordStrategy;
+    final hasGoogle =
+        envEmpty ||
+        authState.env.socialConnections.any(
+          (connection) => connection.strategy.provider == 'google',
+        );
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -422,65 +394,74 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Fallback sign-in',
+              envEmpty ? 'Fallback sign-in' : 'Sign in',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Clerk did not expose sign-in methods to the Flutter web SDK on this build, so TubeFlow is using direct fallback actions instead.',
+              envEmpty
+                  ? 'Clerk did not expose sign-in methods during the first render, so TubeFlow is using direct fallback actions instead.'
+                  : 'TubeFlow is using direct email sign-in in the app and Clerk hosted sign-in for Google on the web.',
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const [
-                AutofillHints.username,
-                AutofillHints.email,
-              ],
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'you@example.com',
+            if (loading) ...[
+              const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 16),
+            ],
+            if (hasPassword) ...[
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [
+                  AutofillHints.username,
+                  AutofillHints.email,
+                ],
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'you@example.com',
+                ),
+                onSubmitted: (_) => _signInWithEmailPassword(),
               ),
-              onSubmitted: (_) => _signInWithEmailPassword(),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              autofillHints: const [AutofillHints.password],
-              decoration: const InputDecoration(labelText: 'Password'),
-              onSubmitted: (_) => _signInWithEmailPassword(),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _signInWithEmailPassword,
-                child: const Text('Sign in with email'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                autofillHints: const [AutofillHints.password],
+                decoration: const InputDecoration(labelText: 'Password'),
+                onSubmitted: (_) => _signInWithEmailPassword(),
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _continueWithGoogleFallback,
-                icon: const Icon(Icons.login),
-                label: Text(
-                  kIsWeb
-                      ? 'Continue with Google on secure sign-in'
-                      : 'Continue with Google',
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: loading ? null : _signInWithEmailPassword,
+                  child: const Text('Sign in with email'),
                 ),
               ),
-            ),
+              const SizedBox(height: 12),
+            ],
+            if (hasGoogle)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: loading ? null : _continueWithGoogleFallback,
+                  icon: const Icon(Icons.login),
+                  label: Text(
+                    kIsWeb
+                        ? 'Continue with Google on secure sign-in'
+                        : 'Continue with Google',
+                  ),
+                ),
+              ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: _openHostedSignIn,
+                onPressed: loading ? null : _openHostedSignIn,
                 child: const Text('Open secure hosted sign-in'),
               ),
             ),
@@ -496,7 +477,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
     final colorScheme = theme.colorScheme;
     final clerkService = ref.watch(clerkServiceProvider);
     final authState = ClerkAuth.of(context);
-    final envEmpty = authState.env.isEmpty;
 
     return Scaffold(
       body: SafeArea(
@@ -545,12 +525,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
                   const SizedBox(height: 48),
 
                   // Sign-in buttons
-                  envEmpty
-                      ? _buildFallbackSignInCard(theme)
-                      : _SignInButtons(
-                          loading: _loading,
-                          onStrategy: _signInWithStrategy,
-                        ),
+                  _buildSignInCard(theme, authState, loading: _loading),
 
                   const SizedBox(height: 20),
                   Card(
@@ -605,114 +580,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Sign-in buttons — adapts to available Clerk env
-// ---------------------------------------------------------------------------
-
-class _SignInButtons extends StatelessWidget {
-  const _SignInButtons({required this.loading, required this.onStrategy});
-
-  final bool loading;
-  final Future<void> Function(clerk.Strategy) onStrategy;
-
-  static const _socialIcons = <String, IconData>{
-    'google': Icons.g_mobiledata,
-    'apple': Icons.apple,
-    'github': Icons.code,
-    'microsoft': Icons.window,
-    'facebook': Icons.facebook,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    if (loading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    return ClerkAuthBuilder(
-      builder: (context, authState) {
-        final envAvailable = authState.env.isNotEmpty;
-
-        if (envAvailable) {
-          final social = authState.env.socialConnections;
-          if (social.isNotEmpty) {
-            return Column(
-              children: [
-                for (final connection in social) ...[
-                  _SocialButton(
-                    label:
-                        connection.strategy.provider ??
-                        connection.strategy.name,
-                    icon:
-                        _socialIcons[connection.strategy.provider] ??
-                        Icons.login,
-                    onPressed: () => onStrategy(connection.strategy),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ],
-            );
-          }
-
-          final strategies = authState.env.strategies;
-          if (strategies.isNotEmpty) {
-            return Column(
-              children: [
-                for (final strategy in strategies) ...[
-                  OutlinedButton(
-                    onPressed: () => onStrategy(strategy),
-                    child: Text(strategy.provider ?? strategy.name),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ],
-            );
-          }
-        }
-
-        // Env not loaded or invalid — don't expose broken sign-in actions.
-        final message = envAvailable
-            ? 'No sign-in methods configured in Clerk.'
-            : 'Clerk sign-in is unavailable. Check the publishable key '
-                  'and the app domain configured in Clerk.';
-
-        return InlineErrorCard(error: message, prefix: 'Sign-in unavailable');
-      },
-    );
-  }
-}
-
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        icon: Icon(icon, size: 24),
-        label: Text('Continue with $label'),
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
