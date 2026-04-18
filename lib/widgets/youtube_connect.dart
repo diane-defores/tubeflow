@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// URL that starts the YouTube OAuth flow.
 ///
@@ -22,13 +23,12 @@ bool _isYoutubeConnected(AsyncValue<Map<String, dynamic>?> async) {
 
 Future<void> _launchYoutubeConnect(BuildContext context) async {
   if (_youtubeConnectOrigin.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
+    showErrorSnackBar(
+      context,
+      error:
           'YouTube connection must be initiated from the web app — '
           'TUBEFLOW_WEB_URL not configured for this build.',
-        ),
-      ),
+      prefix: 'YouTube connect unavailable',
     );
     return;
   }
@@ -37,8 +37,10 @@ Future<void> _launchYoutubeConnect(BuildContext context) async {
   try {
     final launched = await launchUrl(uri, webOnlyWindowName: '_self');
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not open $uri')),
+      showErrorSnackBar(
+        context,
+        error: 'Could not open $uri',
+        prefix: 'YouTube connect failed',
       );
     }
   } catch (e, st) {
@@ -48,6 +50,12 @@ Future<void> _launchYoutubeConnect(BuildContext context) async {
       level: LogLevel.error,
       error: e,
       stackTrace: st,
+    );
+    if (!context.mounted) return;
+    showErrorSnackBar(
+      context,
+      error: e,
+      prefix: 'YouTube connect failed',
     );
   }
 }

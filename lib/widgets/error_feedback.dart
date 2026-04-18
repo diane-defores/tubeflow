@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+bool _isFrench(BuildContext context) =>
+    Localizations.localeOf(context).languageCode == 'fr';
+
+String _copyLabel(BuildContext context) => _isFrench(context) ? 'Copier' : 'Copy';
+
+String _retryLabel(BuildContext context) =>
+    _isFrench(context) ? 'Réessayer' : 'Retry';
+
 String formatErrorMessage(Object error, {String? prefix}) {
   final message = error.toString().trim();
   if (prefix == null || prefix.isEmpty) {
@@ -19,10 +27,9 @@ Future<void> copyErrorToClipboard(
 
   if (!context.mounted) return;
 
-  final isFr = Localizations.localeOf(context).languageCode == 'fr';
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(isFr ? 'Erreur copiée' : 'Error copied'),
+      content: Text(_isFrench(context) ? 'Erreur copiée' : 'Error copied'),
       duration: const Duration(seconds: 2),
     ),
   );
@@ -33,20 +40,70 @@ void showErrorSnackBar(
   required Object error,
   String? prefix,
 }) {
-  final isFr = Localizations.localeOf(context).languageCode == 'fr';
   final message = formatErrorMessage(error, prefix: prefix);
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
       action: SnackBarAction(
-        label: isFr ? 'Copier' : 'Copy',
+        label: _copyLabel(context),
         onPressed: () {
           copyErrorToClipboard(context, error, prefix: prefix);
         },
       ),
     ),
   );
+}
+
+class InlineErrorCard extends StatelessWidget {
+  const InlineErrorCard({
+    super.key,
+    required this.error,
+    this.prefix,
+  });
+
+  final Object error;
+  final String? prefix;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final message = formatErrorMessage(error, prefix: prefix);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.error.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
+            message,
+            style: TextStyle(
+              color: colorScheme.error,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: () => copyErrorToClipboard(
+                context,
+                error,
+                prefix: prefix,
+              ),
+              icon: const Icon(Icons.copy, size: 16),
+              label: Text(_copyLabel(context)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ErrorStateView extends StatelessWidget {
@@ -100,11 +157,7 @@ class ErrorStateView extends StatelessWidget {
                       prefix: prefix,
                     ),
                     icon: const Icon(Icons.copy, size: 16),
-                    label: Text(
-                      Localizations.localeOf(context).languageCode == 'fr'
-                          ? 'Copier'
-                          : 'Copy',
-                    ),
+                    label: Text(_copyLabel(context)),
                   ),
                 ],
               ),
@@ -113,11 +166,7 @@ class ErrorStateView extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton.tonal(
                 onPressed: onRetry,
-                child: Text(
-                  Localizations.localeOf(context).languageCode == 'fr'
-                      ? 'Réessayer'
-                      : 'Retry',
-                ),
+                child: Text(_retryLabel(context)),
               ),
             ],
           ],

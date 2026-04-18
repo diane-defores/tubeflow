@@ -466,8 +466,15 @@ class _AccountTile extends ConsumerWidget {
             ListTile(
               leading: const CircleAvatar(child: Icon(Icons.person_outline)),
               title: const Text('Not signed in'),
-              subtitle: error != null ? Text(error) : null,
             ),
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: InlineErrorCard(
+                  error: error,
+                  prefix: 'Authentication error',
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Align(

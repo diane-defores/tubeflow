@@ -252,38 +252,9 @@ class _SignInScreenState extends State<_SignInScreen> {
 
                   if (_error != null) ...[
                     const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SelectableText(
-                            _error!,
-                            style: TextStyle(
-                              color: colorScheme.error,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.copy, size: 16),
-                              label: const Text('Copy'),
-                              onPressed: () => copyErrorToClipboard(
-                                context,
-                                _error!,
-                                prefix: 'Sign-in error',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    InlineErrorCard(
+                      error: _error!,
+                      prefix: 'Sign-in error',
                     ),
                   ],
 
