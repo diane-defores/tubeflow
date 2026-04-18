@@ -13,9 +13,14 @@ import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Clerk publishable key injected at build time via `--dart-define`.
+const _legacyClerkPublishableKey = String.fromEnvironment(
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  defaultValue: '',
+);
+
 const _clerkPublishableKey = String.fromEnvironment(
   'CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
+  defaultValue: _legacyClerkPublishableKey,
 );
 
 void main() async {

@@ -14,9 +14,14 @@ import 'package:tubeflow_app/utils/app_logger.dart';
 // ---------------------------------------------------------------------------
 
 /// Clerk publishable key injected at build time via `--dart-define`.
+const _legacyPublishableKey = String.fromEnvironment(
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  defaultValue: '',
+);
+
 const _publishableKey = String.fromEnvironment(
   'CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
+  defaultValue: _legacyPublishableKey,
 );
 
 /// Name of the JWT template configured in the Clerk dashboard for Convex.

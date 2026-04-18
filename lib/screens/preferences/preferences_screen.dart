@@ -13,9 +13,13 @@ import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
+const _legacyClerkPublishableKey = String.fromEnvironment(
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  defaultValue: '',
+);
 const _clerkPublishableKey = String.fromEnvironment(
   'CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
+  defaultValue: _legacyClerkPublishableKey,
 );
 const _convexUrl = String.fromEnvironment('CONVEX_URL', defaultValue: '');
 

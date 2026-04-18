@@ -9,11 +9,17 @@ import 'package:tubeflow_app/widgets/error_feedback.dart';
 /// URL that starts the YouTube OAuth flow.
 ///
 /// The Next.js web app (separate deployment) exposes `/api/auth/youtube`.
-/// Pass its origin at build time via `--dart-define=TUBEFLOW_WEB_URL=...`.
+/// Pass its origin at build time via `--dart-define=TUBEFLOW_APP_URL=...`.
+/// `TUBEFLOW_WEB_URL` remains supported as a legacy fallback.
 /// When unset, the CTA shows an informative SnackBar instead of a broken link.
-const _youtubeConnectOrigin = String.fromEnvironment(
+const _legacyYoutubeConnectOrigin = String.fromEnvironment(
   'TUBEFLOW_WEB_URL',
   defaultValue: '',
+);
+
+const _youtubeConnectOrigin = String.fromEnvironment(
+  'TUBEFLOW_APP_URL',
+  defaultValue: _legacyYoutubeConnectOrigin,
 );
 
 /// True when [youtubeConnectionProvider] reports `connected: true`.
@@ -27,7 +33,7 @@ Future<void> _launchYoutubeConnect(BuildContext context) async {
       context,
       error:
           'YouTube connection must be initiated from the web app — '
-          'TUBEFLOW_WEB_URL not configured for this build.',
+          'TUBEFLOW_APP_URL not configured for this build.',
       prefix: 'YouTube connect unavailable',
     );
     return;

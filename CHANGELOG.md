@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-04-18]
+
+### Fixed
+- Restored compatibility with legacy Vercel env names: `build.sh` now falls back to `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and Clerk bootstrap accepts the legacy publishable-key `dart-define` so sign-in buttons still render on older deployments
+
 ## [2026-04-12]
 
 ### Changed

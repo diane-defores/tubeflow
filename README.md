@@ -10,10 +10,11 @@ flutter pub get
 # Run locally (web)
 flutter run -d chrome \
   --dart-define=CONVEX_URL=https://your-deployment.convex.cloud \
-  --dart-define=CLERK_PUBLISHABLE_KEY=pk_test_...
+  --dart-define=CLERK_PUBLISHABLE_KEY=pk_test_... \
+  --dart-define=TUBEFLOW_APP_URL=https://app.tubeflow.winflowz.com
 
 # Production build
-CONVEX_URL=... CLERK_PUBLISHABLE_KEY=... bash build.sh
+CONVEX_URL=... CLERK_PUBLISHABLE_KEY=... TUBEFLOW_APP_URL=https://app.tubeflow.winflowz.com bash build.sh
 ```
 
 The `build.sh` script wraps `flutter build web` and passes the required `--dart-define` values. Vercel runs it via `vercel.json`.
@@ -26,8 +27,9 @@ Both are required at **build time** (`--dart-define`), not runtime. Flutter web 
 |---|---|
 | `CONVEX_URL` | Convex deployment URL (e.g. `https://xxx.convex.cloud`). App fails explicitly when missing. |
 | `CLERK_PUBLISHABLE_KEY` | Clerk publishable key. When missing, app runs in guest mode without auth. |
+| `TUBEFLOW_APP_URL` | Web app origin used for the YouTube OAuth handoff banner (current deployment: `https://app.tubeflow.winflowz.com`). |
 
-See `.env.example`. No `NEXT_PUBLIC_` / `EXPO_` prefixes — plain names.
+See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks.
 
 ## Tech Stack
 
