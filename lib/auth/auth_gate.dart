@@ -163,6 +163,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
   bool _loading = false;
   String? _error;
+  String? _notice;
   _EmailAuthMode _emailAuthMode = _EmailAuthMode.signIn;
   bool _awaitingEmailCodeVerification = false;
   String? _verificationEmail;
@@ -301,6 +302,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         _error = 'Enter both email and password.';
+        _notice = null;
       });
       return;
     }
@@ -308,6 +310,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     setState(() {
       _loading = true;
       _error = null;
+      _notice = null;
     });
 
     try {
@@ -329,7 +332,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         error: e,
       );
       if (mounted) {
-        setState(() => _error = '$e');
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
       }
     } finally {
       if (mounted) {
@@ -349,6 +355,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       _verificationEmail = null;
       _verificationCodeController.clear();
       _error = null;
+      _notice = null;
     });
   }
 
@@ -361,6 +368,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     if (email.isEmpty || password.isEmpty || passwordConfirmation.isEmpty) {
       setState(() {
         _error = 'Enter email, password, and password confirmation.';
+        _notice = null;
       });
       return;
     }
@@ -368,6 +376,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     if (password != passwordConfirmation) {
       setState(() {
         _error = 'Passwords do not match.';
+        _notice = null;
       });
       return;
     }
@@ -376,6 +385,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       setState(() {
         _error =
             'This Clerk setup does not support direct email code sign-up here. Use the secure account portal instead.';
+        _notice = null;
       });
       return;
     }
@@ -383,6 +393,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     setState(() {
       _loading = true;
       _error = null;
+      _notice = null;
     });
 
     try {
@@ -422,7 +433,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         error: e,
       );
       if (mounted) {
-        setState(() => _error = '$e');
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
       }
     } finally {
       if (mounted) {
@@ -438,6 +452,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     if (code.isEmpty) {
       setState(() {
         _error = 'Enter the verification code sent by email.';
+        _notice = null;
       });
       return;
     }
@@ -445,6 +460,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     setState(() {
       _loading = true;
       _error = null;
+      _notice = null;
     });
 
     try {
@@ -476,7 +492,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         error: e,
       );
       if (mounted) {
-        setState(() => _error = '$e');
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
       }
     } finally {
       if (mounted) {
@@ -498,6 +517,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     setState(() {
       _loading = true;
       _error = null;
+      _notice = null;
     });
 
     try {
@@ -516,7 +536,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         error: e,
       );
       if (mounted) {
-        setState(() => _error = '$e');
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
       }
     } finally {
       if (mounted) {
@@ -530,6 +553,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     if (hostedUrl.isEmpty) {
       setState(() {
         _error = 'Clerk hosted sign-in URL is missing for this build.';
+        _notice = null;
       });
       return;
     }
@@ -564,6 +588,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       if (!launched && mounted) {
         setState(() {
           _error = 'Could not open hosted sign-in page.';
+          _notice = null;
         });
       }
     } catch (e) {
@@ -574,7 +599,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         error: e,
       );
       if (mounted) {
-        setState(() => _error = '$e');
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
       }
     }
   }
@@ -599,6 +627,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     setState(() {
       _loading = true;
       _error = null;
+      _notice = null;
     });
 
     var attempts = 0;
@@ -619,14 +648,14 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         if (mounted) {
           setState(() {
             _loading = false;
-            _error =
-                'Google sign-in completed on Clerk, but TubeFlow could not see the session after returning. Retry once, then share diagnostics if it persists.';
+            _notice =
+                'TubeFlow could not confirm the Google return automatically. If you are still signed out, retry Google once.';
           });
         }
         AppLogger.instance.log(
           'Hosted sign-in return did not produce an active Clerk session after polling',
           source: 'SignInScreen',
-          level: LogLevel.error,
+          level: LogLevel.warning,
         );
       }
     });
@@ -655,6 +684,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           setState(() {
             _loading = false;
             _error = null;
+            _notice = null;
           });
           context.go(Routes.videos);
         }
@@ -681,6 +711,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         setState(() {
           _loading = false;
           _error = null;
+          _notice = null;
         });
         context.go(Routes.videos);
       }
@@ -1016,6 +1047,34 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     final errorCard = _error != null
         ? InlineErrorCard(error: _error!, prefix: 'Sign-in error')
         : null;
+    final noticeCard = _notice != null
+        ? Card(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _notice!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : null;
 
     return Scaffold(
       body: Container(
@@ -1079,6 +1138,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                                       theme,
                                       authState,
                                       clerkService,
+                                      noticeCard,
                                       errorCard,
                                     ),
                                   ),
@@ -1097,6 +1157,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                                       theme,
                                       authState,
                                       clerkService,
+                                      noticeCard,
                                       errorCard,
                                     ),
                                   ),
@@ -1262,12 +1323,17 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     ThemeData theme,
     ClerkAuthState authState,
     ClerkService clerkService,
+    Widget? noticeCard,
     Widget? errorCard,
   ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSignInCard(theme, authState, loading: _loading),
+        if (noticeCard != null) ...[
+          const SizedBox(height: 16),
+          noticeCard,
+        ],
         if (errorCard != null) ...[
           const SizedBox(height: 16),
           errorCard,
