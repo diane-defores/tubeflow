@@ -3,7 +3,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
+import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/app/theme.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
@@ -11,17 +13,6 @@ import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
-
-/// Clerk publishable key injected at build time via `--dart-define`.
-const _legacyClerkPublishableKey = String.fromEnvironment(
-  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
-);
-
-const _clerkPublishableKey = String.fromEnvironment(
-  'CLERK_PUBLISHABLE_KEY',
-  defaultValue: _legacyClerkPublishableKey,
-);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,11 +41,12 @@ void main() async {
 
   AppLogger.instance.log(
     'main() start — CONVEX_URL=${const bool.hasEnvironment('CONVEX_URL')} '
-    'CLERK_PUBLISHABLE_KEY=${_clerkPublishableKey.isNotEmpty}',
+    'CLERK_PUBLISHABLE_KEY=${clerkPublishableKey.isNotEmpty} '
+    'BUILD_COMMIT_SHA=$buildCommitSha '
+    'BUILD_ENVIRONMENT=$buildEnvironment',
     source: 'main',
   );
 
-  const convexUrl = String.fromEnvironment('CONVEX_URL');
   if (convexUrl.isNotEmpty) {
     try {
       await ConvexService.initialize(convexUrl);
@@ -76,11 +68,7 @@ void main() async {
     );
   }
 
-  runApp(
-    const ProviderScope(
-      child: _AppBootstrap(),
-    ),
-  );
+  runApp(const ProviderScope(child: _AppBootstrap()));
 }
 
 // ---------------------------------------------------------------------------
@@ -105,10 +93,9 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
   bool _initialised = false;
   String? _bootstrapError;
 
-  bool get _hasConvexConfig =>
-      const String.fromEnvironment('CONVEX_URL').isNotEmpty;
+  bool get _hasConvexConfig => convexUrl.isNotEmpty;
 
-  bool get _hasClerkConfig => _clerkPublishableKey.isNotEmpty;
+  bool get _hasClerkConfig => clerkPublishableKey.isNotEmpty;
 
   @override
   void initState() {
@@ -166,9 +153,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        home: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
@@ -200,6 +185,32 @@ class _ConfigFallbackScreen extends StatelessWidget {
   final bool hasConvexConfig;
   final bool hasClerkConfig;
   final String? bootstrapError;
+
+  Future<void> _copyDiagnostics(BuildContext context) async {
+    final lines = <String>[
+      'TubeFlow bootstrap diagnostics',
+      'Build commit: $buildCommitSha',
+      'Build environment: $buildEnvironment',
+      'Build timestamp: $buildTimestamp',
+      'Build mode: ${buildModeLabel()}',
+      'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
+      'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
+      'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
+      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
+      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
+      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'Bootstrap error: ${bootstrapError ?? 'none'}',
+      '',
+      'Recent logs:',
+      AppLogger.instance.formatAll(),
+    ];
+
+    await Clipboard.setData(ClipboardData(text: lines.join('\n')));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bootstrap diagnostics copied.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,8 +250,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
                       missing.isEmpty
                           ? 'The app started, but bootstrap failed.'
                           : 'This build succeeded, but the app is running in '
-                              'fallback mode because required environment '
-                              'variables are missing.',
+                                'fallback mode because required environment '
+                                'variables are missing.',
                     ),
                     if (missing.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -253,6 +264,24 @@ class _ConfigFallbackScreen extends StatelessWidget {
                     const SelectableText(
                       'Set these at build time with --dart-define or in Vercel '
                       'project environment variables.',
+                    ),
+                    const SizedBox(height: 16),
+                    SelectableText(
+                      'Build commit: $buildCommitSha\n'
+                      'Build environment: $buildEnvironment\n'
+                      'Build timestamp: $buildTimestamp\n'
+                      'Build mode: ${buildModeLabel()}\n'
+                      'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}\n'
+                      'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}\n'
+                      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}\n'
+                      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}\n'
+                      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _copyDiagnostics(context),
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy diagnostics'),
                     ),
                     if (bootstrapError != null) ...[
                       const SizedBox(height: 16),

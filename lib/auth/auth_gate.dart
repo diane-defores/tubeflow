@@ -1,9 +1,12 @@
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
@@ -49,9 +52,7 @@ class ClerkSignInPage extends ConsumerWidget {
       authState: authState,
       child: ClerkErrorListener(
         handler: _handleClerkError,
-        child: AuthGate(
-          child: SizedBox.shrink(),
-        ),
+        child: AuthGate(child: SizedBox.shrink()),
       ),
     );
   }
@@ -77,9 +78,7 @@ class AuthGate extends ConsumerWidget {
         // Clerk signed the user in — sync to our AuthNotifier so the
         // router picks it up and redirects away from /sign-in.
         _syncSignedIn(ref, context);
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
       signedOutBuilder: (context, authState) {
         return _SignInScreen(child: child);
@@ -105,13 +104,15 @@ class AuthGate extends ConsumerWidget {
             'Clerk user synced: ${user.id}',
             source: 'AuthGate',
           );
-          notifier.setAuthenticated(AuthUser(
-            id: user.id,
-            email: user.emailAddresses?.firstOrNull?.identifier ?? '',
-            displayName:
-                '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
-            imageUrl: user.imageUrl,
-          ));
+          notifier.setAuthenticated(
+            AuthUser(
+              id: user.id,
+              email: user.emailAddresses?.firstOrNull?.identifier ?? '',
+              displayName: '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                  .trim(),
+              imageUrl: user.imageUrl,
+            ),
+          );
           if (context.mounted) {
             context.go(Routes.videos);
           }
@@ -138,18 +139,72 @@ class AuthGate extends ConsumerWidget {
 // Sign-in screen — custom UI replacing ClerkAuthentication widget
 // ---------------------------------------------------------------------------
 
-class _SignInScreen extends StatefulWidget {
+class _SignInScreen extends ConsumerStatefulWidget {
   const _SignInScreen({required this.child});
 
   final Widget child;
 
   @override
-  State<_SignInScreen> createState() => _SignInScreenState();
+  ConsumerState<_SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<_SignInScreen> {
+class _SignInScreenState extends ConsumerState<_SignInScreen> {
   bool _loading = false;
   String? _error;
+
+  List<String> _diagnosticLines({
+    ClerkAuthState? authState,
+    ClerkService? clerkService,
+  }) {
+    final envEmpty = authState?.env.isEmpty ?? true;
+    final strategies = envEmpty || authState == null
+        ? const <String>[]
+        : authState.env.strategies.map((s) => s.name).toList();
+    final social = envEmpty || authState == null
+        ? const <String>[]
+        : authState.env.socialConnections
+              .map((s) => s.strategy.provider ?? s.strategy.name)
+              .toList();
+
+    return [
+      'TubeFlow sign-in diagnostics',
+      'Build commit: $buildCommitSha',
+      'Build environment: $buildEnvironment',
+      'Build timestamp: $buildTimestamp',
+      'Build mode: ${buildModeLabel()}',
+      'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
+      'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
+      'Current path: ${kIsWeb ? Uri.base.path : 'not-web'}',
+      'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
+      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
+      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
+      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'Clerk service initialised: ${clerkService?.isInitialised == true ? 'yes' : 'no'}',
+      'Clerk env empty: ${envEmpty ? 'yes' : 'no'}',
+      'Clerk isSignedIn: ${authState?.isSignedIn == true ? 'yes' : 'no'}',
+      'Strategies: ${strategies.isEmpty ? 'none' : strategies.join(', ')}',
+      'Social connections: ${social.isEmpty ? 'none' : social.join(', ')}',
+      'Last sign-in error: ${_error ?? 'none'}',
+    ];
+  }
+
+  Future<void> _copyDiagnostics({
+    required ClerkAuthState authState,
+    required ClerkService clerkService,
+  }) async {
+    final lines = [
+      ..._diagnosticLines(authState: authState, clerkService: clerkService),
+      '',
+      'Recent logs:',
+      AppLogger.instance.formatAll(),
+    ];
+
+    await Clipboard.setData(ClipboardData(text: lines.join('\n')));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sign-in diagnostics copied.')),
+    );
+  }
 
   @override
   void initState() {
@@ -163,8 +218,12 @@ class _SignInScreenState extends State<_SignInScreen> {
       try {
         final authState = ClerkAuth.of(context);
         final envEmpty = authState.env.isEmpty;
-        final strategies = envEmpty ? <clerk.Strategy>[] : authState.env.strategies;
-        final social = envEmpty ? <clerk.SocialConnection>[] : authState.env.socialConnections;
+        final strategies = envEmpty
+            ? <clerk.Strategy>[]
+            : authState.env.strategies;
+        final social = envEmpty
+            ? <clerk.SocialConnection>[]
+            : authState.env.socialConnections;
         AppLogger.instance.log(
           'SignIn env: isEmpty=$envEmpty, '
           'strategies=${strategies.map((s) => s.name).toList()}, '
@@ -226,6 +285,8 @@ class _SignInScreenState extends State<_SignInScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final clerkService = ref.watch(clerkServiceProvider);
+    final authState = ClerkAuth.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -279,12 +340,52 @@ class _SignInScreenState extends State<_SignInScreen> {
                     onStrategy: _signInWithStrategy,
                   ),
 
+                  const SizedBox(height: 20),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.bug_report_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Diagnostics',
+                                style: theme.textTheme.titleSmall,
+                              ),
+                              const Spacer(),
+                              TextButton.icon(
+                                onPressed: () => _copyDiagnostics(
+                                  authState: authState,
+                                  clerkService: clerkService,
+                                ),
+                                icon: const Icon(Icons.copy, size: 16),
+                                label: const Text('Copy'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            _diagnosticLines(
+                              authState: authState,
+                              clerkService: clerkService,
+                            ).join('\n'),
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   if (_error != null) ...[
                     const SizedBox(height: 16),
-                    InlineErrorCard(
-                      error: _error!,
-                      prefix: 'Sign-in error',
-                    ),
+                    InlineErrorCard(error: _error!, prefix: 'Sign-in error'),
                   ],
 
                   const SizedBox(height: 32),
@@ -303,10 +404,7 @@ class _SignInScreenState extends State<_SignInScreen> {
 // ---------------------------------------------------------------------------
 
 class _SignInButtons extends StatelessWidget {
-  const _SignInButtons({
-    required this.loading,
-    required this.onStrategy,
-  });
+  const _SignInButtons({required this.loading, required this.onStrategy});
 
   final bool loading;
   final Future<void> Function(clerk.Strategy) onStrategy;
@@ -339,8 +437,12 @@ class _SignInButtons extends StatelessWidget {
               children: [
                 for (final connection in social) ...[
                   _SocialButton(
-                    label: connection.strategy.provider ?? connection.strategy.name,
-                    icon: _socialIcons[connection.strategy.provider] ?? Icons.login,
+                    label:
+                        connection.strategy.provider ??
+                        connection.strategy.name,
+                    icon:
+                        _socialIcons[connection.strategy.provider] ??
+                        Icons.login,
                     onPressed: () => onStrategy(connection.strategy),
                   ),
                   const SizedBox(height: 12),
@@ -369,12 +471,9 @@ class _SignInButtons extends StatelessWidget {
         final message = envAvailable
             ? 'No sign-in methods configured in Clerk.'
             : 'Clerk sign-in is unavailable. Check the publishable key '
-                'and the app domain configured in Clerk.';
+                  'and the app domain configured in Clerk.';
 
-        return InlineErrorCard(
-          error: message,
-          prefix: 'Sign-in unavailable',
-        );
+        return InlineErrorCard(error: message, prefix: 'Sign-in unavailable');
       },
     );
   }
@@ -401,9 +500,7 @@ class _SocialButton extends StatelessWidget {
         label: Text('Continue with $label'),
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );

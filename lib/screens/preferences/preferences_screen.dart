@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
@@ -12,16 +14,6 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
-
-const _legacyClerkPublishableKey = String.fromEnvironment(
-  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-  defaultValue: '',
-);
-const _clerkPublishableKey = String.fromEnvironment(
-  'CLERK_PUBLISHABLE_KEY',
-  defaultValue: _legacyClerkPublishableKey,
-);
-const _convexUrl = String.fromEnvironment('CONVEX_URL', defaultValue: '');
 
 /// Preferences screen with grouped settings sections.
 ///
@@ -57,9 +49,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     final userAsync = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preferences'),
-      ),
+      appBar: AppBar(title: const Text('Preferences')),
       body: ListView(
         children: [
           _buildSectionHeader(context, 'Account'),
@@ -101,12 +91,8 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
 
     return [
       settingsAsync.when(
-        data: (settings) => _buildSettingsBody(
-          context,
-          settings,
-          subscriptionAsync,
-          userAsync,
-        ),
+        data: (settings) =>
+            _buildSettingsBody(context, settings, subscriptionAsync, userAsync),
         loading: () => _buildShimmerLoading(),
         error: (error, stack) => ErrorStateView(
           error: error,
@@ -155,9 +141,11 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           data: (subscription) => ListTile(
             leading: const Icon(Icons.workspace_premium),
             title: const Text('Subscription'),
-            subtitle: Text(subscription != null
-                ? '${subscription.plan.name.toUpperCase()} plan - ${subscription.status.name}'
-                : 'Free tier'),
+            subtitle: Text(
+              subscription != null
+                  ? '${subscription.plan.name.toUpperCase()} plan - ${subscription.status.name}'
+                  : 'Free tier',
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: navigate to subscription management
@@ -184,9 +172,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           subtitle: const Text('Use dark theme'),
           value: darkMode,
           onChanged: (value) {
-            _updateSettings({
-              'theme': value ? 'dark' : 'light',
-            });
+            _updateSettings({'theme': value ? 'dark' : 'light'});
           },
         ),
         const Divider(),
@@ -270,35 +256,39 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         ListTile(
           leading: const Icon(Icons.schedule),
           title: const Text('Check Interval'),
-          subtitle: Text(_intervalLabel(
-              settings?.notifications.feedRefreshIntervalMinutes ?? 60)),
-          enabled: notificationsEnabled &&
+          subtitle: Text(
+            _intervalLabel(
+              settings?.notifications.feedRefreshIntervalMinutes ?? 60,
+            ),
+          ),
+          enabled:
+              notificationsEnabled &&
               (settings?.notifications.newVideos ?? true),
           trailing: const Icon(Icons.chevron_right),
-          onTap: (notificationsEnabled &&
+          onTap:
+              (notificationsEnabled &&
                   (settings?.notifications.newVideos ?? true))
               ? () => _showChoiceDialog(
-                    title: 'Check Interval',
-                    options: [
-                      'Off',
-                      'Every 30 minutes',
-                      'Every hour',
-                      'Every 2 hours',
-                      'Every 6 hours',
-                      'Daily',
-                    ],
-                    currentValue: _intervalLabel(
-                        settings?.notifications.feedRefreshIntervalMinutes ??
-                            60),
-                    onSelected: (value) {
-                      _updateSettings({
-                        'notifications': {
-                          'feedRefreshIntervalMinutes':
-                              _intervalFromLabel(value),
-                        },
-                      });
-                    },
-                  )
+                  title: 'Check Interval',
+                  options: [
+                    'Off',
+                    'Every 30 minutes',
+                    'Every hour',
+                    'Every 2 hours',
+                    'Every 6 hours',
+                    'Daily',
+                  ],
+                  currentValue: _intervalLabel(
+                    settings?.notifications.feedRefreshIntervalMinutes ?? 60,
+                  ),
+                  onSelected: (value) {
+                    _updateSettings({
+                      'notifications': {
+                        'feedRefreshIntervalMinutes': _intervalFromLabel(value),
+                      },
+                    });
+                  },
+                )
               : null,
         ),
         const Divider(),
@@ -308,7 +298,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         ListTile(
           leading: const Icon(Icons.translate),
           title: const Text('Transcript Language'),
-          subtitle: Text(settings?.transcripts.defaultLanguage ?? 'Auto-detect'),
+          subtitle: Text(
+            settings?.transcripts.defaultLanguage ?? 'Auto-detect',
+          ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showChoiceDialog(
             title: 'Transcript Language',
@@ -318,7 +310,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             onSelected: (value) {
               _updateSettings({
                 'transcripts': {
-                  'defaultLanguage': value == 'Auto-detect' ? null : value.toLowerCase(),
+                  'defaultLanguage': value == 'Auto-detect'
+                      ? null
+                      : value.toLowerCase(),
                 },
               });
             },
@@ -330,9 +324,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         Center(
           child: Text(
             'TubeFlow v1.0.0',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: Colors.grey),
           ),
         ),
         const SizedBox(height: 16),
@@ -346,9 +340,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -441,8 +435,9 @@ class _AccountTile extends ConsumerWidget {
           children: [
             ListTile(
               leading: CircleAvatar(
-                backgroundImage:
-                    user.imageUrl != null ? NetworkImage(user.imageUrl!) : null,
+                backgroundImage: user.imageUrl != null
+                    ? NetworkImage(user.imageUrl!)
+                    : null,
                 child: user.imageUrl == null ? const Icon(Icons.person) : null,
               ),
               title: Text(user.label),
@@ -503,6 +498,51 @@ class _AccountTile extends ConsumerWidget {
 class _DiagnosticsCard extends ConsumerWidget {
   const _DiagnosticsCard();
 
+  Future<void> _copyDiagnostics(
+    BuildContext context,
+    ClerkService clerk,
+    AuthState authState,
+  ) async {
+    final lines = _buildLines(clerk, authState);
+    await Clipboard.setData(ClipboardData(text: lines.join('\n')));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Diagnostics copied.')));
+  }
+
+  List<String> _buildLines(ClerkService clerk, AuthState authState) {
+    String authLabel;
+    switch (authState) {
+      case AuthLoading():
+        authLabel = 'Loading';
+      case AuthAuthenticated():
+        authLabel = 'Authenticated';
+      case AuthUnauthenticated():
+        authLabel = 'Unauthenticated';
+    }
+
+    return [
+      'TubeFlow preferences diagnostics',
+      'Build commit: $buildCommitSha',
+      'Build environment: $buildEnvironment',
+      'Build timestamp: $buildTimestamp',
+      'Build mode: ${buildModeLabel()}',
+      'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
+      'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
+      'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
+      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
+      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
+      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'Clerk initialised: ${clerk.isInitialised ? 'yes' : 'no'}',
+      'Auth state: $authLabel',
+      'Current user: ${clerk.currentUser?.id ?? 'none'}',
+      '',
+      'Recent logs:',
+      AppLogger.instance.formatAll(),
+    ];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clerk = ref.watch(clerkServiceProvider);
@@ -521,26 +561,44 @@ class _DiagnosticsCard extends ConsumerWidget {
     final rows = <({String key, String value, bool ok})>[
       (
         key: 'CONVEX_URL',
-        value: _convexUrl.isNotEmpty ? _convexUrl : '(missing)',
-        ok: _convexUrl.isNotEmpty,
+        value: convexUrl.isNotEmpty ? convexUrl : '(missing)',
+        ok: convexUrl.isNotEmpty,
       ),
       (
         key: 'CLERK_PUBLISHABLE_KEY',
-        value: _clerkPublishableKey.isNotEmpty
-            ? '${_clerkPublishableKey.substring(0, _clerkPublishableKey.length.clamp(0, 10))}…'
+        value: clerkPublishableKey.isNotEmpty
+            ? maskValue(clerkPublishableKey)
             : '(missing)',
-        ok: _clerkPublishableKey.isNotEmpty,
+        ok: clerkPublishableKey.isNotEmpty,
+      ),
+      (
+        key: 'BUILD_COMMIT_SHA',
+        value: buildCommitSha,
+        ok: buildCommitSha != 'unknown',
+      ),
+      (
+        key: 'BUILD_ENVIRONMENT',
+        value: buildEnvironment,
+        ok: buildEnvironment != 'unknown',
+      ),
+      (
+        key: 'TUBEFLOW_APP_URL',
+        value: tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)',
+        ok: tubeFlowAppUrl.isNotEmpty,
+      ),
+      (
+        key: 'APP_URL host match',
+        value: hostMatchLabel(tubeFlowAppUrl),
+        ok:
+            hostMatchLabel(tubeFlowAppUrl) == 'yes' ||
+            hostMatchLabel(tubeFlowAppUrl) == 'not-web',
       ),
       (
         key: 'Clerk initialised',
         value: clerk.isInitialised ? 'yes' : 'no',
         ok: clerk.isInitialised,
       ),
-      (
-        key: 'Auth state',
-        value: authLabel,
-        ok: authState is AuthAuthenticated,
-      ),
+      (key: 'Auth state', value: authLabel, ok: authState is AuthAuthenticated),
     ];
 
     return Padding(
@@ -558,6 +616,13 @@ class _DiagnosticsCard extends ConsumerWidget {
                   Text(
                     'Diagnostics',
                     style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () =>
+                        _copyDiagnostics(context, clerk, authState),
+                    icon: const Icon(Icons.copy, size: 16),
+                    label: const Text('Copy'),
                   ),
                 ],
               ),
@@ -579,14 +644,18 @@ class _DiagnosticsCard extends ConsumerWidget {
                         child: Text(
                           r.key,
                           style: const TextStyle(
-                              fontFamily: 'monospace', fontSize: 12),
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       Expanded(
                         child: SelectableText(
                           r.value,
                           style: const TextStyle(
-                              fontFamily: 'monospace', fontSize: 12),
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
@@ -633,9 +702,9 @@ class _LogsCardState extends State<_LogsCard> {
       ClipboardData(text: AppLogger.instance.formatAll()),
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logs copied')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Logs copied')));
   }
 
   @override
