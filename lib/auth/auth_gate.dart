@@ -156,6 +156,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     with WidgetsBindingObserver {
   static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
   static const _hostedSignInPollAttempts = 6;
+  static const _clerkSyncedParam = '__clerk_synced';
 
   bool _loading = false;
   String? _error;
@@ -367,7 +368,16 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       return;
     }
 
-    final redirectTarget = kIsWeb ? Uri.base.toString() : tubeFlowAppUrl;
+    final redirectTarget = kIsWeb
+        ? Uri.base
+              .replace(
+                queryParameters: {
+                  ...Uri.base.queryParameters,
+                  _clerkSyncedParam: 'false',
+                },
+              )
+              .toString()
+        : tubeFlowAppUrl;
     final uri = Uri.parse(
       hostedUrl,
     ).replace(queryParameters: {'redirect_url': redirectTarget});
@@ -375,7 +385,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     try {
       await _setPendingHostedSignIn(true);
       AppLogger.instance.log(
-        'Opening hosted Clerk sign-in: $uri',
+        'Opening hosted Clerk sign-in: $uri (redirect_url=$redirectTarget)',
         source: 'SignInScreen',
       );
       final launched = await launchUrl(uri, webOnlyWindowName: '_self');
