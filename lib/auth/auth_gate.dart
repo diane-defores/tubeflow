@@ -182,12 +182,27 @@ class _SignInScreenState extends State<_SignInScreen> {
   }
 
   Future<void> _signInWithStrategy(clerk.Strategy strategy) async {
+    final authState = ClerkAuth.of(context);
+    if (authState.env.isEmpty) {
+      setState(() {
+        _error =
+            'Clerk sign-in is unavailable for this build. Verify the '
+            'production CLERK_PUBLISHABLE_KEY and the allowed app domain in '
+            'the Clerk dashboard.';
+      });
+      AppLogger.instance.log(
+        'Blocked sign-in because Clerk environment is empty',
+        source: 'SignInScreen',
+        level: LogLevel.warning,
+      );
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final authState = ClerkAuth.of(context);
       AppLogger.instance.log(
         'Starting ssoSignIn with ${strategy.name}',
         source: 'SignInScreen',
@@ -349,29 +364,18 @@ class _SignInButtons extends StatelessWidget {
           }
         }
 
-        // Env not loaded — show fallback with Google (most common) + status
+        // Env not loaded or invalid — don't expose broken sign-in actions.
         return Column(
           children: [
             Text(
               envAvailable
                   ? 'No sign-in methods configured in Clerk.'
-                  : 'Loading sign-in options…',
+                  : 'Clerk sign-in is unavailable. Check the publishable key '
+                      'and the app domain configured in Clerk.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            _SocialButton(
-              label: 'Google',
-              icon: Icons.g_mobiledata,
-              onPressed: () => onStrategy(clerk.Strategy.oauthGoogle),
-            ),
-            const SizedBox(height: 12),
-            _SocialButton(
-              label: 'Apple',
-              icon: Icons.apple,
-              onPressed: () => onStrategy(clerk.Strategy.oauthApple),
             ),
           ],
         );
