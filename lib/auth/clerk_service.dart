@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/auth/clerk_http_service.dart';
 import 'package:tubeflow_app/auth/clerk_web_persistor.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 
@@ -81,13 +82,12 @@ class ClerkService {
             publishableKey: _publishableKey,
             persistor: ClerkWebPersistor(),
             fileCache: NoopClerkFileCache(),
+            httpService: ClerkHttpService(),
           )
         : ClerkAuthConfig(publishableKey: _publishableKey);
 
     try {
-      _authState = await ClerkAuthState.create(
-        config: config,
-      );
+      _authState = await ClerkAuthState.create(config: config);
       AppLogger.instance.log(
         'ClerkAuthState.create succeeded (isSignedIn=${_authState?.isSignedIn})',
         source: 'ClerkService',
@@ -140,8 +140,7 @@ class ClerkService {
   }
 
   AuthUser _toAuthUser(clerk.User user) {
-    final displayName =
-        '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
+    final displayName = '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
     return AuthUser(
       id: user.id,
       email: user.emailAddresses?.firstOrNull?.identifier ?? '',
