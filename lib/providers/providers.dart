@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
