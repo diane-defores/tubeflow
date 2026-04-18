@@ -163,6 +163,8 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   String? _error;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   Timer? _hostedRefreshTimer;
   bool _hostedResumeStarted = false;
 
@@ -237,6 +239,8 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     _hostedRefreshTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -303,6 +307,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         identifier: email,
         password: password,
       );
+      TextInput.finishAutofillContext();
     } catch (e) {
       AppLogger.instance.log(
         'Password sign-in fallback failed',
@@ -583,27 +588,51 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               const SizedBox(height: 16),
             ],
             if (hasPassword) ...[
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [
-                  AutofillHints.username,
-                  AutofillHints.email,
-                ],
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'you@example.com',
+              AutofillGroup(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _emailController,
+                      focusNode: _emailFocusNode,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.none,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      smartDashesType: SmartDashesType.disabled,
+                      smartQuotesType: SmartQuotesType.disabled,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        hintText: 'you@example.com',
+                      ),
+                      onSubmitted: (_) {
+                        _passwordFocusNode.requestFocus();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _passwordController,
+                      focusNode: _passwordFocusNode,
+                      obscureText: true,
+                      keyboardType: TextInputType.visiblePassword,
+                      autofillHints: const [AutofillHints.password],
+                      textInputAction: TextInputAction.done,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      smartDashesType: SmartDashesType.disabled,
+                      smartQuotesType: SmartQuotesType.disabled,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                      ),
+                      onSubmitted: (_) => _signInWithEmailPassword(),
+                    ),
+                  ],
                 ),
-                onSubmitted: (_) => _signInWithEmailPassword(),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                autofillHints: const [AutofillHints.password],
-                decoration: const InputDecoration(labelText: 'Password'),
-                onSubmitted: (_) => _signInWithEmailPassword(),
               ),
               const SizedBox(height: 16),
               SizedBox(
