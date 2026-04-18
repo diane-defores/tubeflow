@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/providers.dart';
+import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Notes overview screen with search and grouped display.
@@ -42,6 +43,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               // TODO: show sort options (by date, by video, by timestamp)
             },
           ),
+          ...commonAppBarActions(context, ref),
         ],
       ),
       body: Column(

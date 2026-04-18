@@ -8,6 +8,7 @@ import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
+import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 class ClerkSignInPage extends ConsumerWidget {
   const ClerkSignInPage({super.key});
@@ -258,12 +259,30 @@ class _SignInScreenState extends State<_SignInScreen> {
                         color: colorScheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: SelectableText(
-                        _error!,
-                        style: TextStyle(
-                          color: colorScheme.error,
-                          fontSize: 13,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SelectableText(
+                            _error!,
+                            style: TextStyle(
+                              color: colorScheme.error,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.copy, size: 16),
+                              label: const Text('Copy'),
+                              onPressed: () => copyErrorToClipboard(
+                                context,
+                                _error!,
+                                prefix: 'Sign-in error',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

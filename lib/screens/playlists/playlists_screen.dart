@@ -7,6 +7,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
+import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Playlists overview screen showing all user playlists.
@@ -53,6 +54,7 @@ class PlaylistsScreen extends ConsumerWidget {
               }
             },
           ),
+          ...commonAppBarActions(context, ref),
         ],
       ),
       body: playlistsAsync.when(

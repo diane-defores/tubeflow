@@ -154,10 +154,6 @@ const Map<String, dynamic> en = {
     'recentCalls': 'Recent API calls',
     'noData': 'No data yet',
   },
-  'browsePage': {
-    'noVideos': 'No videos to browse',
-    'signInRequired': 'Sign in to browse videos',
-  },
   'transcript': {
     'title': 'Transcript',
     'loading': 'Loading transcript...',

@@ -8,6 +8,7 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Video feed screen with multiple view modes.
@@ -68,6 +69,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
               // TODO: show filter bottom sheet (by playlist, date, etc.)
             },
           ),
+          ...commonAppBarActions(context, ref),
         ],
       ),
       body: videosAsync.when(

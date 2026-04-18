@@ -6,6 +6,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
+import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 /// Video player screen with notes, transcript, and comments tabs.
@@ -95,6 +96,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
               // TODO: show options (share, hide, report)
             },
           ),
+          ...commonAppBarActions(context, ref),
         ],
       ),
       body: Column(

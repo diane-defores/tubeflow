@@ -153,10 +153,6 @@ const Map<String, dynamic> fr = {
     'recentCalls': 'Appels récents',
     'noData': 'Aucune donnée',
   },
-  'browsePage': {
-    'noVideos': 'Aucune vidéo à parcourir',
-    'signInRequired': 'Connectez-vous pour parcourir les vidéos',
-  },
   'transcript': {
     'title': 'Transcription',
     'loading': 'Chargement de la transcription...',

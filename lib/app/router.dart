@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/auth/auth_gate.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
-import 'package:tubeflow_app/screens/browse/browse_screen.dart';
 import 'package:tubeflow_app/screens/hidden/hidden_screen.dart';
 import 'package:tubeflow_app/screens/notes/note_detail_screen.dart';
 import 'package:tubeflow_app/screens/notes/notes_screen.dart';
@@ -25,7 +24,6 @@ import 'package:tubeflow_app/widgets/app_shell.dart';
 abstract final class Routes {
   static const signIn = '/sign-in';
   static const videos = '/videos';
-  static const browse = '/browse';
   static const play = '/play';
   static const playlists = '/playlists';
   static const playlistCreate = '/playlists/create';
@@ -73,13 +71,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const VideosScreen(),
-            ),
-          ),
-          GoRoute(
-            path: Routes.browse,
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const BrowseScreen(),
             ),
           ),
           GoRoute(

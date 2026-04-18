@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
-import 'package:tubeflow_app/providers/providers.dart';
 
 /// Responsive app shell with bottom navigation (mobile) or side rail
 /// (tablet / web).
@@ -26,12 +25,6 @@ class AppShell extends ConsumerWidget {
       icon: Icons.video_library_outlined,
       selectedIcon: Icons.video_library,
       path: Routes.videos,
-    ),
-    _NavDestination(
-      label: 'Browse',
-      icon: Icons.explore_outlined,
-      selectedIcon: Icons.explore,
-      path: Routes.browse,
     ),
     _NavDestination(
       label: 'Play',
@@ -89,55 +82,13 @@ class AppShell extends ConsumerWidget {
     return _buildWithBottomNav(context, ref, selected);
   }
 
-  /// Builds the notification bell icon with an unread badge.
-  Widget _buildNotificationBell(BuildContext context, WidgetRef ref) {
-    final unreadAsync = ref.watch(unreadNotificationCountProvider);
-    final unreadCount = unreadAsync.asData?.value ?? 0;
-
-    return IconButton(
-      icon: Badge(
-        isLabelVisible: unreadCount > 0,
-        label: Text(
-          unreadCount > 99 ? '99+' : '$unreadCount',
-          style: const TextStyle(fontSize: 10),
-        ),
-        child: const Icon(Icons.notifications_outlined),
-      ),
-      tooltip: 'Notifications',
-      onPressed: () => context.go(Routes.notifications),
-    );
-  }
-
-  Widget _buildSettingsButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.settings_outlined),
-      tooltip: 'Preferences',
-      onPressed: () => context.go(Routes.preferences),
-    );
-  }
-
   // ---------------------------------------------------------------------------
   // Bottom navigation (mobile)
   // ---------------------------------------------------------------------------
 
   Widget _buildWithBottomNav(BuildContext context, WidgetRef ref, int selected) {
     return Scaffold(
-      body: Stack(
-        children: [
-          child,
-          Positioned(
-            top: MediaQuery.paddingOf(context).top + 4,
-            right: 4,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildNotificationBell(context, ref),
-                _buildSettingsButton(context),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected,
         onDestinationSelected: (i) => _onDestinationSelected(context, i),
@@ -176,8 +127,6 @@ class AppShell extends ConsumerWidget {
                   color: colorScheme.primary,
                 ),
                 const SizedBox(height: 8),
-                _buildNotificationBell(context, ref),
-                _buildSettingsButton(context),
               ],
             ),
             destinations: [
