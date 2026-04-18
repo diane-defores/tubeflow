@@ -63,7 +63,6 @@ const Map<String, dynamic> fr = {
   'playPage': {
     'noVideoPlaying': 'Aucune vidéo en cours',
     'noVideoPlayingDesc': 'Sélectionnez une vidéo pour commencer.',
-    'browseVideos': 'Parcourir les vidéos',
     'fullscreen': 'Plein écran',
     'showComments': 'Afficher les commentaires',
     'hideComments': 'Masquer les commentaires',

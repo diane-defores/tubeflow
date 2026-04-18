@@ -64,7 +64,6 @@ const Map<String, dynamic> en = {
   'playPage': {
     'noVideoPlaying': 'No video playing',
     'noVideoPlayingDesc': 'Select a video from your feed to start watching.',
-    'browseVideos': 'Browse Videos',
     'fullscreen': 'Fullscreen',
     'showComments': 'Show comments',
     'hideComments': 'Hide comments',

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,6 +87,8 @@ class ClerkService {
         'ClerkAuthState.create succeeded (isSignedIn=${_authState?.isSignedIn})',
         source: 'ClerkService',
       );
+      _authState?.addListener(_syncAuthNotifier);
+      _syncAuthNotifier();
     } catch (e, st) {
       AppLogger.instance.log(
         'Failed to initialise ClerkAuthState',
@@ -96,6 +99,50 @@ class ClerkService {
       );
       rethrow;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reactive sync Clerk → AuthNotifier
+  // ---------------------------------------------------------------------------
+
+  /// Listener wired on [ClerkAuthState]. Translates the Clerk session into
+  /// the app's sealed [AuthState] so the router can react immediately.
+  void _syncAuthNotifier() {
+    final auth = _authState;
+    if (auth == null) {
+      authNotifier.setUnauthenticated();
+      return;
+    }
+
+    if (auth.isSignedIn) {
+      final user = auth.user;
+      final authUser = user != null
+          ? _toAuthUser(user)
+          : const AuthUser(id: 'clerk-user', email: '');
+      if (authNotifier.currentUser?.id != authUser.id) {
+        AppLogger.instance.log(
+          'Clerk session synced: ${authUser.id}',
+          source: 'ClerkService',
+        );
+      }
+      authNotifier.setAuthenticated(authUser);
+    } else {
+      if (authNotifier.isAuthenticated) {
+        AppLogger.instance.log('Clerk session ended', source: 'ClerkService');
+      }
+      authNotifier.setUnauthenticated();
+    }
+  }
+
+  AuthUser _toAuthUser(clerk.User user) {
+    final displayName =
+        '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
+    return AuthUser(
+      id: user.id,
+      email: user.emailAddresses?.firstOrNull?.identifier ?? '',
+      displayName: displayName.isEmpty ? null : displayName,
+      imageUrl: user.imageUrl,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -162,6 +209,7 @@ class ClerkService {
 
   void dispose() {
     try {
+      _authState?.removeListener(_syncAuthNotifier);
       _authState?.terminate();
     } catch (_) {
       // ignore — already terminated

@@ -53,6 +53,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated && goingToSignIn) {
         return Routes.videos;
       }
+      if (!isAuthenticated && !goingToSignIn) {
+        return Routes.signIn;
+      }
       return null;
     },
     routes: [

@@ -10,6 +10,7 @@ import 'package:tubeflow_app/utils/color_utils.dart';
 import 'package:tubeflow_app/utils/duration_utils.dart';
 import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Video feed screen with multiple view modes.
 ///
@@ -85,18 +86,12 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           });
 
           if (videos.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.video_library_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No videos yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                  SizedBox(height: 8),
-                  Text('Sync your YouTube playlists to get started',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
+            return YoutubeAwareEmptyState(
+              fallbackIcon: Icons.video_library_outlined,
+              fallbackTitle: 'Aucune vidéo',
+              fallbackDescription:
+                  'Lancez une synchronisation pour importer vos vidéos YouTube.',
+              onRefresh: () => syncAllPlaylists(ref),
             );
           }
 

@@ -9,6 +9,7 @@ import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/date_utils.dart';
 import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Playlists overview screen showing all user playlists.
 ///
@@ -60,19 +61,12 @@ class PlaylistsScreen extends ConsumerWidget {
       body: playlistsAsync.when(
         data: (playlists) {
           if (playlists.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.playlist_play, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No playlists yet',
-                      style: TextStyle(color: Colors.grey, fontSize: 16)),
-                  SizedBox(height: 8),
-                  Text('Create a playlist or sync from YouTube',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
+            return YoutubeAwareEmptyState(
+              fallbackIcon: Icons.playlist_play,
+              fallbackTitle: 'Aucune playlist',
+              fallbackDescription:
+                  'Créez une playlist ou lancez une synchronisation YouTube.',
+              onRefresh: () => syncAllPlaylists(ref),
             );
           }
           return ListView.builder(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
+import 'package:tubeflow_app/widgets/youtube_connect.dart';
 
 /// Responsive app shell with bottom navigation (mobile) or side rail
 /// (tablet / web).
@@ -88,7 +89,12 @@ class AppShell extends ConsumerWidget {
 
   Widget _buildWithBottomNav(BuildContext context, WidgetRef ref, int selected) {
     return Scaffold(
-      body: child,
+      body: Column(
+        children: [
+          const YoutubeConnectBanner(),
+          Expanded(child: child),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected,
         onDestinationSelected: (i) => _onDestinationSelected(context, i),
@@ -139,7 +145,14 @@ class AppShell extends ConsumerWidget {
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: child),
+          Expanded(
+            child: Column(
+              children: [
+                const YoutubeConnectBanner(),
+                Expanded(child: child),
+              ],
+            ),
+          ),
         ],
       ),
     );
