@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/app/build_info.dart';
@@ -149,11 +152,16 @@ class _SignInScreen extends ConsumerStatefulWidget {
   ConsumerState<_SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends ConsumerState<_SignInScreen> {
+class _SignInScreenState extends ConsumerState<_SignInScreen>
+    with WidgetsBindingObserver {
+  static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
+  static const _hostedSignInPollAttempts = 6;
+
   bool _loading = false;
   String? _error;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  Timer? _hostedRefreshTimer;
 
   List<String> _diagnosticLines({
     ClerkAuthState? authState,
@@ -213,14 +221,27 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _logEnvState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _resumeHostedSignInIfNeeded();
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _hostedRefreshTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _resumeHostedSignInIfNeeded();
+    }
   }
 
   void _logEnvState() {
@@ -351,6 +372,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
     ).replace(queryParameters: {'redirect_url': redirectTarget});
 
     try {
+      await _setPendingHostedSignIn(true);
       AppLogger.instance.log(
         'Opening hosted Clerk sign-in: $uri',
         source: 'SignInScreen',
@@ -372,6 +394,106 @@ class _SignInScreenState extends ConsumerState<_SignInScreen> {
         setState(() => _error = '$e');
       }
     }
+  }
+
+  Future<void> _resumeHostedSignInIfNeeded() async {
+    if (!kIsWeb) return;
+
+    final pending = await _isPendingHostedSignIn();
+    if (!pending || !mounted) return;
+
+    AppLogger.instance.log(
+      'Detected pending hosted sign-in return; polling Clerk client state',
+      source: 'SignInScreen',
+      level: LogLevel.warning,
+    );
+
+    _hostedRefreshTimer?.cancel();
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    var attempts = 0;
+    _hostedRefreshTimer = Timer.periodic(const Duration(seconds: 1), (
+      timer,
+    ) async {
+      attempts += 1;
+      final resolved = await _attemptHostedSignInResume();
+      if (resolved) {
+        timer.cancel();
+        _hostedRefreshTimer = null;
+        return;
+      }
+
+      if (attempts >= _hostedSignInPollAttempts) {
+        timer.cancel();
+        _hostedRefreshTimer = null;
+        await _setPendingHostedSignIn(false);
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error =
+                'Google sign-in completed on Clerk, but TubeFlow could not see the session after returning. Retry once, then share diagnostics if it persists.';
+          });
+        }
+        AppLogger.instance.log(
+          'Hosted sign-in return did not produce an active Clerk session after polling',
+          source: 'SignInScreen',
+          level: LogLevel.error,
+        );
+      }
+    });
+  }
+
+  Future<bool> _attemptHostedSignInResume() async {
+    if (!mounted) return false;
+
+    final authState = ClerkAuth.of(context);
+    try {
+      await authState.refreshClient();
+      if (authState.env.isEmpty) {
+        await authState.refreshEnvironment();
+      }
+
+      final signedIn = authState.isSignedIn;
+      AppLogger.instance.log(
+        'Hosted sign-in poll result: isSignedIn=$signedIn envEmpty=${authState.env.isEmpty} clientEmpty=${authState.client.isEmpty}',
+        source: 'SignInScreen',
+      );
+
+      if (!signedIn) {
+        return false;
+      }
+
+      await _setPendingHostedSignIn(false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = null;
+        });
+        context.go(Routes.videos);
+      }
+      return true;
+    } catch (e) {
+      AppLogger.instance.log(
+        'Hosted sign-in poll failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> _isPendingHostedSignIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_pendingHostedSignInKey) ?? false;
+  }
+
+  Future<void> _setPendingHostedSignIn(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pendingHostedSignInKey, value);
   }
 
   Widget _buildSignInCard(
