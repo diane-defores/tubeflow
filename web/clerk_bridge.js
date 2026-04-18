@@ -1,15 +1,24 @@
 (function () {
   let loadPromise = null;
+  const CLERK_JS_SCRIPT_ID = 'tubeflow-clerk-js';
+  const CLERK_UI_SCRIPT_ID = 'tubeflow-clerk-ui';
 
   function deriveFrontendApi(publishableKey) {
     const encoded = publishableKey.split('_')[2];
     return atob(encoded).slice(0, -1);
   }
 
-  function loadScript(src) {
+  function loadScript(src, options) {
+    const { id, attributes } = options || {};
     return new Promise((resolve, reject) => {
-      const existing = document.querySelector(`script[src="${src}"]`);
+      const existing =
+        (id ? document.getElementById(id) : null) ||
+        document.querySelector(`script[src="${src}"]`);
       if (existing) {
+        if (existing.dataset.loaded === 'true') {
+          resolve();
+          return;
+        }
         existing.addEventListener('load', () => resolve(), { once: true });
         existing.addEventListener(
           'error',
@@ -20,12 +29,48 @@
       }
 
       const script = document.createElement('script');
+      if (id) {
+        script.id = id;
+      }
       script.src = src;
-      script.async = true;
+      script.defer = true;
       script.crossOrigin = 'anonymous';
-      script.onload = () => resolve();
+      script.type = 'text/javascript';
+      if (attributes) {
+        Object.entries(attributes).forEach(([key, value]) => {
+          if (value) {
+            script.setAttribute(key, value);
+          }
+        });
+      }
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      };
       script.onerror = () => reject(new Error(`Failed to load ${src}`));
       document.head.appendChild(script);
+    });
+  }
+
+  function waitForClerk(timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const deadline = Date.now() + timeoutMs;
+
+      function poll() {
+        if (window.Clerk) {
+          resolve(window.Clerk);
+          return;
+        }
+
+        if (Date.now() >= deadline) {
+          reject(new Error('ClerkJS loaded but window.Clerk is still undefined'));
+          return;
+        }
+
+        window.setTimeout(poll, 25);
+      }
+
+      poll();
     });
   }
 
@@ -41,14 +86,30 @@
     if (!loadPromise) {
       loadPromise = (async () => {
         const frontendApi = deriveFrontendApi(publishableKey);
-        const src = `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+        const uiSrc = `https://${frontendApi}/npm/@clerk/ui@1/dist/ui.browser.js`;
+        const clerkSrc = `https://${frontendApi}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+
+        window.__clerk_publishable_key = publishableKey;
 
         if (!window.Clerk) {
-          await loadScript(src);
+          await loadScript(uiSrc, { id: CLERK_UI_SCRIPT_ID });
+          await loadScript(clerkSrc, {
+            id: CLERK_JS_SCRIPT_ID,
+            attributes: {
+              'data-clerk-publishable-key': publishableKey,
+            },
+          });
         }
 
-        await window.Clerk.load();
-        return window.Clerk;
+        const clerk = await waitForClerk(5000);
+        if (!clerk.loaded) {
+          await clerk.load({
+            ui: window.__internal_ClerkUICtor
+              ? { ClerkUI: window.__internal_ClerkUICtor }
+              : undefined,
+          });
+        }
+        return clerk;
       })();
     }
 
