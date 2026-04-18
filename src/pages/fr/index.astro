@@ -1,9 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro'
 import { getTranslations } from '../../i18n'
+import { appUrl } from '../../config/site'
 
 const t = getTranslations('fr')
-const appUrl = 'https://tubeflow.app/videos'
+const appUrlValue = appUrl('/videos')
 ---
 
 <Layout
@@ -31,8 +32,8 @@ const appUrl = 'https://tubeflow.app/videos'
         </div>
         <div class="hidden md:flex items-center gap-3">
           <a href="/" class="text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-2" title="English version">EN</a>
-          <a href={appUrl} class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">{t.nav.signIn}</a>
-          <a href={appUrl} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">{t.nav.getStarted}</a>
+          <a href={appUrlValue} class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">{t.nav.signIn}</a>
+          <a href={appUrlValue} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">{t.nav.getStarted}</a>
         </div>
         <button id="fr-mobile-menu-btn" class="md:hidden p-2 text-muted-foreground hover:text-foreground" aria-label="Menu" aria-expanded="false" aria-controls="fr-mobile-menu">
           <svg class="w-5 h-5 fr-menu-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
@@ -46,8 +47,8 @@ const appUrl = 'https://tubeflow.app/videos'
           <a href="#pricing" class="fr-mobile-link px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">{t.nav.pricing}</a>
           <a href="#reviews" class="fr-mobile-link px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">{t.nav.reviews}</a>
           <hr class="border-border my-2" />
-          <a href={appUrl} class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">{t.nav.signIn}</a>
-          <a href={appUrl} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">{t.nav.getStarted}</a>
+          <a href={appUrlValue} class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">{t.nav.signIn}</a>
+          <a href={appUrlValue} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">{t.nav.getStarted}</a>
         </div>
       </div>
     </header>
@@ -84,7 +85,7 @@ const appUrl = 'https://tubeflow.app/videos'
         </h1>
         <p class="animate-fade-up delay-500 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">{t.hero.subtitle}</p>
         <div class="animate-fade-up delay-600 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <a href={appUrl} class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-white/10 transition-colors">
+          <a href={appUrlValue} class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-white/10 transition-colors">
             {t.hero.cta}
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>

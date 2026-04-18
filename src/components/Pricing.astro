@@ -1,4 +1,6 @@
 ---
+import { appUrl } from '../config/site'
+
 const plans = [
   {
     name: 'Free',
@@ -111,7 +113,7 @@ const plans = [
           </ul>
 
           <a
-            href="https://tubeflow.app/videos"
+            href={appUrl('/videos')}
             class={`block w-full text-center rounded-full py-3 text-sm font-medium transition-colors ${
               plan.highlighted
                 ? 'shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200'

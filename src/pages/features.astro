@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro'
 import Navbar from '../components/Navbar.astro'
 import Newsletter from '../components/Newsletter.astro'
 import Footer from '../components/Footer.astro'
+import { appUrl, siteUrl } from '../config/site'
 
 const features = [
   { title: 'Timestamped Notes', desc: 'Capture thoughts at the exact moment they happen. Click any note to jump back to that point in the video instantly.', icon: '🕐' },
@@ -25,8 +26,8 @@ const jsonLd = [{
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: "https://tubeflow.app/" },
-    { "@type": "ListItem", position: 2, name: "Features", item: "https://tubeflow.app/features" },
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl('/') },
+    { "@type": "ListItem", position: 2, name: "Features", item: siteUrl('/features') },
   ],
 }]
 ---
@@ -49,7 +50,7 @@ const jsonLd = [{
         TubeFlow combines powerful note-taking with seamless video playback. Stop losing insights. Start building knowledge.
       </p>
       <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-        <a href="https://tubeflow.app/videos" class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">Get Started Free</a>
+        <a href={appUrl('/videos')} class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">Get Started Free</a>
         <a href="/pricing" class="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium border border-border text-muted-foreground hover:bg-card hover:text-foreground transition-colors">View Pricing</a>
       </div>
     </section>
@@ -91,7 +92,7 @@ const jsonLd = [{
       <div class="max-w-3xl mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold text-foreground mb-4">Ready to transform how you learn?</h2>
         <p class="text-lg text-muted-foreground mb-8">Join thousands of learners who use TubeFlow to capture insights from video.</p>
-        <a href="https://tubeflow.app/videos" class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 py-3 text-base font-medium transition-colors">Start Free Today</a>
+        <a href={appUrl('/videos')} class="shimmer-btn inline-flex items-center bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 py-3 text-base font-medium transition-colors">Start Free Today</a>
       </div>
     </section>
 

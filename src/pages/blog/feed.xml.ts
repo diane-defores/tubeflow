@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
-
-const BASE_URL = 'https://tubeflow.app'
+import { SITE_URL } from '../../config/site'
 
 export const GET: APIRoute = async () => {
   const posts = (await getCollection('blog')).sort(
@@ -13,8 +12,8 @@ export const GET: APIRoute = async () => {
   <channel>
     <title>TubeFlow Blog</title>
     <description>Tips, guides, and insights for better video-based learning and note-taking.</description>
-    <link>${BASE_URL}/blog</link>
-    <atom:link href="${BASE_URL}/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <link>${SITE_URL}/blog</link>
+    <atom:link href="${SITE_URL}/blog/feed.xml" rel="self" type="application/rss+xml"/>
     <language>en-US</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     ${posts
@@ -23,8 +22,8 @@ export const GET: APIRoute = async () => {
     <item>
       <title><![CDATA[${post.data.title}]]></title>
       <description><![CDATA[${post.data.description}]]></description>
-      <link>${BASE_URL}/blog/${post.id}</link>
-      <guid isPermaLink="true">${BASE_URL}/blog/${post.id}</guid>
+      <link>${SITE_URL}/blog/${post.id}</link>
+      <guid isPermaLink="true">${SITE_URL}/blog/${post.id}</guid>
       <pubDate>${new Date(post.data.date).toUTCString()}</pubDate>
     </item>`
       )

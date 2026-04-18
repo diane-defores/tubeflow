@@ -1,4 +1,6 @@
 ---
+import { appUrl } from '../config/site'
+
 const navItems = [
   { label: 'Benefits', href: '/#benefits' },
   { label: 'Features', href: '/#features' },
@@ -34,11 +36,11 @@ const navItems = [
     <!-- CTA Buttons -->
     <div class="hidden md:flex items-center gap-3">
       <a href="/fr" class="text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-2" title="Version française">FR</a>
-      <a href="https://tubeflow.app/videos" class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">
+      <a href={appUrl('/videos')} class="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2">
         Sign in
       </a>
       <a
-        href="https://tubeflow.app/videos"
+        href={appUrl('/videos')}
         class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-2 text-sm font-medium transition-colors"
       >
         Get Started
@@ -70,8 +72,8 @@ const navItems = [
         </a>
       ))}
       <hr class="border-border my-2" />
-      <a href="https://tubeflow.app/videos" class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</a>
-      <a href="https://tubeflow.app/videos" class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">Get Started</a>
+      <a href={appUrl('/videos')} class="px-4 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</a>
+      <a href={appUrl('/videos')} class="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4 py-3 text-sm font-medium text-center transition-colors">Get Started</a>
     </div>
   </div>
 </header>

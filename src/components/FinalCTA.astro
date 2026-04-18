@@ -1,3 +1,7 @@
+---
+import { appUrl } from '../config/site'
+---
+
 <section class="py-16 sm:py-24 bg-background">
   <div class="max-w-4xl mx-auto px-4 text-center" data-reveal>
     <h2 class="animate-fade-up-slow text-3xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 tracking-tight" style="font-family: var(--font-cal-sans);">
@@ -9,7 +13,7 @@
 
     <div class="animate-fade-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-4">
       <a
-        href="https://tubeflow.app/videos"
+        href={appUrl('/videos')}
         class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-14 text-base font-medium shadow-lg shadow-white/20 transition-colors"
       >
         Get Started Free

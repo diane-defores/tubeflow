@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import { SITE_URL, siteUrl } from '../config/site'
 
 interface Props {
   title?: string
@@ -11,8 +12,6 @@ interface Props {
   lang?: string
 }
 
-const BASE_URL = 'https://tubeflow.app'
-
 const {
   title = 'TubeFlow - The Smart Way to Learn from Online Videos',
   description = 'Watch videos, take timestamped notes, and organize your learning with TubeFlow. Never lose an insight again.',
@@ -23,30 +22,30 @@ const {
   lang = 'en',
 } = Astro.props
 
-const canonicalUrl = `${BASE_URL}${path}`
-const ogImageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`
+const canonicalUrl = siteUrl(path)
+const ogImageUrl = image.startsWith('http') ? image : siteUrl(image)
 
 const defaultSchemas = [
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "TubeFlow",
-    url: BASE_URL,
+    url: SITE_URL,
     description: "The smart way to learn from online videos",
   },
   {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "TubeFlow",
-    url: BASE_URL,
-    logo: `${BASE_URL}/icon-512.png`,
+    url: SITE_URL,
+    logo: siteUrl('/icon-512.png'),
     sameAs: [],
   },
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "TubeFlow",
-    url: BASE_URL,
+    url: SITE_URL,
     applicationCategory: "EducationalApplication",
     operatingSystem: "Web",
     description: "Watch videos, take timestamped notes, and organize your learning with TubeFlow.",
@@ -76,9 +75,9 @@ const allSchemas = [...defaultSchemas, ...jsonLd]
       const enPath = path.startsWith('/fr') ? path.replace(/^\/fr/, '') || '/' : path || '/'
       const frPath = path.startsWith('/fr') ? path : `/fr${path || ''}`
       return <>
-        <link rel="alternate" hreflang="en" href={`${BASE_URL}${enPath}`} />
-        <link rel="alternate" hreflang="fr" href={`${BASE_URL}${frPath}`} />
-        <link rel="alternate" hreflang="x-default" href={`${BASE_URL}${enPath}`} />
+        <link rel="alternate" hreflang="en" href={siteUrl(enPath)} />
+        <link rel="alternate" hreflang="fr" href={siteUrl(frPath)} />
+        <link rel="alternate" hreflang="x-default" href={siteUrl(enPath)} />
       </>
     })()}
 
