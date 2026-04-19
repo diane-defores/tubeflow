@@ -105,6 +105,7 @@ module.exports = async function handler(req, res) {
   const storedState = cookies.youtube_oauth_state;
   const returnTo = cookies.youtube_oauth_return_to;
   const sessionId = cookies.clerk_session_id;
+  const popupMode = cookies.youtube_oauth_popup === '1';
 
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
@@ -135,15 +136,97 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 0,
     }),
+    serializeCookie('youtube_oauth_popup', '', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure,
+      maxAge: 0,
+    }),
   ];
 
+  function sendPopupResult({ connected, error, fallbackUrl }) {
+    if (!popupMode) {
+      sendRedirect(res, fallbackUrl, cleanupCookies);
+      return;
+    }
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    cleanupCookies.forEach((cookie) => {
+      const current = res.getHeader('Set-Cookie');
+      const normalized = Array.isArray(current)
+        ? current.slice()
+        : current
+          ? [current]
+          : [];
+      res.setHeader('Set-Cookie', normalized.concat(cookie));
+    });
+
+    const payload = JSON.stringify({
+      source: 'tubeflow-youtube-oauth',
+      connected,
+      error: error || '',
+    });
+    const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TubeFlow YouTube OAuth</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        font: 16px/1.5 system-ui, sans-serif;
+        color: #111827;
+        background: #f8fafc;
+      }
+      main {
+        max-width: 420px;
+        margin: 12vh auto 0;
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+      }
+      h1 { margin: 0 0 12px; font-size: 20px; }
+      p { margin: 0; color: #475569; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>${connected ? 'YouTube connected' : 'YouTube connection failed'}</h1>
+      <p>${connected ? 'TubeFlow is updating the app. This window can close automatically.' : error || 'TubeFlow could not finish the YouTube OAuth callback.'}</p>
+    </main>
+    <script>
+      (function () {
+        var payload = ${JSON.stringify(payload)};
+        var fallbackUrl = ${JSON.stringify(fallbackUrl)};
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(payload, ${JSON.stringify(origin)});
+            window.close();
+            return;
+          }
+        } catch (error) {}
+        window.location.replace(fallbackUrl);
+      })();
+    </script>
+  </body>
+</html>`;
+    res.end(html);
+  }
+
   function redirectWithError(message) {
-    sendRedirect(
-      res,
-      buildReturnUrl(origin, returnTo, {
-        youtube_error: message,
-      }),
-      cleanupCookies,
+    sendPopupResult(
+      {
+        connected: false,
+        error: message,
+        fallbackUrl: buildReturnUrl(origin, returnTo, {
+          youtube_error: message,
+        }),
+      },
     );
   }
 
@@ -194,12 +277,13 @@ module.exports = async function handler(req, res) {
     const convexJwt = await mintConvexJwt(sessionId, clerkSecretKey);
     await saveYoutubeTokens(convexUrl, convexJwt, tokens);
 
-    sendRedirect(
-      res,
-      buildReturnUrl(origin, returnTo, {
-        youtube_connected: 'true',
-      }),
-      cleanupCookies,
+    sendPopupResult(
+      {
+        connected: true,
+        fallbackUrl: buildReturnUrl(origin, returnTo, {
+          youtube_connected: 'true',
+        }),
+      },
     );
   } catch (error) {
     redirectWithError(

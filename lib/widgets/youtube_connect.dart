@@ -10,6 +10,8 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
+import 'package:tubeflow_app/widgets/youtube_oauth_popup_bridge.dart';
+import 'package:tubeflow_app/widgets/youtube_oauth_popup_result.dart';
 
 /// Legacy build-time origin fallback kept for compatibility with older
 /// deployments. On the web we prefer the current browser origin, because the
@@ -105,8 +107,89 @@ void _invalidateYoutubeData(WidgetRef ref) {
   ref.invalidate(videosProvider(const VideosArgs()));
 }
 
+Future<bool> _waitForYoutubeConnection(WidgetRef ref) async {
+  for (var attempt = 0; attempt < 5; attempt++) {
+    _invalidateYoutubeData(ref);
+    try {
+      final status = await ref
+          .read(youtubeConnectionProvider.future)
+          .timeout(const Duration(seconds: 3));
+      if (status?['connected'] == true) {
+        return true;
+      }
+    } catch (_) {
+      // Retry below.
+    }
+
+    if (attempt < 4) {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+    }
+  }
+  return false;
+}
+
+Future<void> _handleYoutubePopupResult(
+  BuildContext context,
+  WidgetRef ref,
+  YoutubeOAuthPopupResult result,
+) async {
+  if (!context.mounted) return;
+
+  if (result.closed) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('YouTube connect was closed before TubeFlow received a result.'),
+      ),
+    );
+    return;
+  }
+
+  if (result.hasError || !result.connected) {
+    showErrorSnackBar(
+      context,
+      error: result.error ?? 'TubeFlow could not complete the YouTube OAuth flow.',
+      prefix: 'YouTube connect failed',
+    );
+    return;
+  }
+
+  final connected = await _waitForYoutubeConnection(ref);
+  if (!connected) {
+    if (!context.mounted) return;
+    showErrorSnackBar(
+      context,
+      error:
+          'Google authorised YouTube, but TubeFlow could not confirm the saved connection yet.',
+      prefix: 'YouTube connect incomplete',
+    );
+    return;
+  }
+
+  try {
+    await syncAllPlaylists(ref);
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'Initial popup-based YouTube sync failed',
+      source: 'YoutubeConnect',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  } finally {
+    _invalidateYoutubeData(ref);
+  }
+
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('YouTube connected. TubeFlow is syncing your playlists.'),
+    ),
+  );
+}
+
 Future<void> _launchYoutubeConnect(
   BuildContext context, {
+  required WidgetRef ref,
   String? returnTo,
 }) async {
   final origin = _resolveYoutubeOrigin();
@@ -139,12 +222,19 @@ Future<void> _launchYoutubeConnect(
         .resolve(_youtubeConnectPath)
         .replace(queryParameters: {
       'return_to': _currentYoutubeReturnTo(preferredRoute: returnTo),
+      if (kIsWeb) 'popup': '1',
     });
 
     AppLogger.instance.log(
       'Launching YouTube OAuth: $target',
       source: 'YoutubeConnect',
     );
+
+    if (kIsWeb) {
+      final result = await openYoutubeOauthPopup(target);
+      await _handleYoutubePopupResult(context, ref, result);
+      return;
+    }
 
     final launched = await launchUrl(target, webOnlyWindowName: '_self');
     if (!launched && context.mounted) {
@@ -173,9 +263,10 @@ Future<void> _launchYoutubeConnect(
 
 Future<void> startYoutubeConnectFlow(
   BuildContext context, {
+  required WidgetRef ref,
   String? returnTo,
 }) {
-  return _launchYoutubeConnect(context, returnTo: returnTo);
+  return _launchYoutubeConnect(context, ref: ref, returnTo: returnTo);
 }
 
 class YoutubeConnectionLoadingState extends StatelessWidget {
@@ -234,7 +325,7 @@ class YoutubeConnectionLoadingState extends StatelessWidget {
   }
 }
 
-class YoutubeConnectRequiredState extends StatelessWidget {
+class YoutubeConnectRequiredState extends ConsumerWidget {
   const YoutubeConnectRequiredState({
     super.key,
     required this.title,
@@ -249,7 +340,7 @@ class YoutubeConnectRequiredState extends StatelessWidget {
   final String ctaLabel;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
@@ -298,6 +389,7 @@ class YoutubeConnectRequiredState extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: () => startYoutubeConnectFlow(
                         context,
+                        ref: ref,
                         returnTo: returnTo,
                       ),
                       icon: const Icon(Icons.open_in_new_rounded, size: 18),
@@ -311,7 +403,9 @@ class YoutubeConnectRequiredState extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Google opens in this tab, then returns to TubeFlow automatically.',
+                    kIsWeb
+                        ? 'Google opens in a secure popup so TubeFlow stays open while you connect your account.'
+                        : 'Google opens in this tab, then returns to TubeFlow automatically.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.textTheme.bodySmall?.color
                           ?.withValues(alpha: 0.74),
@@ -585,7 +679,7 @@ class _YoutubeOAuthFeedbackBannerState
                   ),
                   if (isError)
                     OutlinedButton.icon(
-                      onPressed: () => _launchYoutubeConnect(context),
+                      onPressed: () => _launchYoutubeConnect(context, ref: ref),
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('Retry connection'),
                     ),
@@ -669,7 +763,7 @@ class YoutubeConnectBanner extends ConsumerWidget {
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => _launchYoutubeConnect(context),
+                onPressed: () => _launchYoutubeConnect(context, ref: ref),
                 child: const Text('Connect'),
               ),
             ],
@@ -734,7 +828,7 @@ class _YoutubeConnectionSettingsCardState
   }
 
   Future<void> _connect() async {
-    await _launchYoutubeConnect(context, returnTo: widget.returnTo);
+    await _launchYoutubeConnect(context, ref: ref, returnTo: widget.returnTo);
   }
 
   Future<void> _disconnect() async {
@@ -961,13 +1055,13 @@ class YoutubeAwareEmptyState extends ConsumerWidget {
   }
 }
 
-class _ConnectYoutubeEmptyState extends StatelessWidget {
+class _ConnectYoutubeEmptyState extends ConsumerWidget {
   const _ConnectYoutubeEmptyState({required this.loading});
 
   final bool loading;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
@@ -1010,7 +1104,9 @@ class _ConnectYoutubeEmptyState extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed:
-                      loading ? null : () => _launchYoutubeConnect(context),
+                      loading
+                          ? null
+                          : () => _launchYoutubeConnect(context, ref: ref),
                   icon: loading
                       ? const SizedBox(
                           width: 16,
@@ -1030,7 +1126,9 @@ class _ConnectYoutubeEmptyState extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Google opens in this tab, then returns to TubeFlow automatically.',
+                kIsWeb
+                    ? 'Google opens in a secure popup so TubeFlow stays open while you connect your account.'
+                    : 'Google opens in this tab, then returns to TubeFlow automatically.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.textTheme.bodySmall?.color
                       ?.withValues(alpha: 0.74),

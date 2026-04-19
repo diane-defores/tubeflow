@@ -24,6 +24,7 @@ module.exports = async function handler(req, res) {
   const secure = isSecureOrigin(origin);
   const requestUrl = new URL(req.url, origin);
   const returnTo = sanitizeReturnTo(requestUrl.searchParams.get('return_to'));
+  const popupMode = requestUrl.searchParams.get('popup') === '1';
   const cookies = parseCookies(req.headers.cookie);
   const sessionId = cookies.clerk_session_id;
   const googleClientId = getEnv(
@@ -74,6 +75,13 @@ module.exports = async function handler(req, res) {
       maxAge: 600,
     }),
     serializeCookie('youtube_oauth_return_to', returnTo, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure,
+      maxAge: 600,
+    }),
+    serializeCookie('youtube_oauth_popup', popupMode ? '1' : '0', {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
