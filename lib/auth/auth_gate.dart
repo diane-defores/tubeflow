@@ -35,7 +35,25 @@ class ClerkSignInPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appAuthState = ref.watch(authStateProvider);
     final authState = ref.watch(clerkServiceProvider).authState;
+
+    if (appAuthState is AuthLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (appAuthState is AuthAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.go(Routes.videos);
+        }
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (authState == null) {
       return Scaffold(
