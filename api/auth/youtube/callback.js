@@ -62,7 +62,7 @@ async function mintConvexJwt(sessionId, clerkSecretKey) {
   return payload.jwt;
 }
 
-async function saveYoutubeTokens(convexUrl, convexJwt, tokens) {
+async function runConvexMutation(convexUrl, convexJwt, path, args) {
   const response = await fetch(`${convexUrl.replace(/\/+$/, '')}/api/mutation`, {
     method: 'POST',
     headers: {
@@ -70,12 +70,8 @@ async function saveYoutubeTokens(convexUrl, convexJwt, tokens) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      path: 'youtube:saveYoutubeTokens',
-      args: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresIn: tokens.expires_in,
-      },
+      path,
+      args,
       format: 'json',
     }),
   });
@@ -84,6 +80,88 @@ async function saveYoutubeTokens(convexUrl, convexJwt, tokens) {
     const errorText = await response.text();
     throw new Error(`Convex mutation failed: ${errorText}`);
   }
+
+  const payload = await response.json();
+  if (payload?.status === 'error') {
+    throw new Error(
+      `Convex mutation ${path} failed: ${payload.errorMessage || JSON.stringify(payload)}`,
+    );
+  }
+
+  return payload;
+}
+
+async function fetchClerkSession(sessionId, clerkSecretKey) {
+  const response = await fetch(
+    `https://api.clerk.com/v1/sessions/${encodeURIComponent(sessionId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${clerkSecretKey}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Clerk session lookup failed: ${errorText}`);
+  }
+
+  return response.json();
+}
+
+async function fetchClerkUser(userId, clerkSecretKey) {
+  const response = await fetch(
+    `https://api.clerk.com/v1/users/${encodeURIComponent(userId)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${clerkSecretKey}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Clerk user lookup failed: ${errorText}`);
+  }
+
+  return response.json();
+}
+
+async function ensureConvexUser(convexUrl, convexJwt, clerkSecretKey, sessionId) {
+  const session = await fetchClerkSession(sessionId, clerkSecretKey);
+  const userId = session?.user_id;
+  if (!userId) {
+    throw new Error('Clerk session lookup returned no user_id.');
+  }
+
+  const user = await fetchClerkUser(userId, clerkSecretKey);
+  const primaryEmailId = user?.primary_email_address_id;
+  const emailAddress =
+    user?.email_addresses?.find((entry) => entry?.id === primaryEmailId)
+      ?.email_address ||
+    user?.email_addresses?.[0]?.email_address;
+
+  if (!emailAddress) {
+    throw new Error('Clerk user lookup returned no email address.');
+  }
+
+  await runConvexMutation(convexUrl, convexJwt, 'users:ensureUser', {
+    email: emailAddress,
+    name:
+      [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || undefined,
+    avatarUrl: user?.image_url || undefined,
+  });
+}
+
+async function saveYoutubeTokens(convexUrl, convexJwt, tokens) {
+  await runConvexMutation(convexUrl, convexJwt, 'youtube:saveYoutubeTokens', {
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token,
+    expiresIn: tokens.expires_in,
+  });
 }
 
 module.exports = async function handler(req, res) {
@@ -275,6 +353,7 @@ module.exports = async function handler(req, res) {
     });
 
     const convexJwt = await mintConvexJwt(sessionId, clerkSecretKey);
+    await ensureConvexUser(convexUrl, convexJwt, clerkSecretKey, sessionId);
     await saveYoutubeTokens(convexUrl, convexJwt, tokens);
 
     sendPopupResult(
