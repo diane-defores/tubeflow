@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
@@ -32,6 +33,7 @@ const _publishableKey = String.fromEnvironment(
 /// Must match `applicationID` in `packages/backend/convex/auth.config.ts`.
 const _convexJwtTemplate = 'convex';
 const _knownClerkWebSessionKey = 'known_clerk_web_session';
+const _lastKnownWebUserKey = 'last_known_clerk_web_user';
 
 // ---------------------------------------------------------------------------
 // ClerkService
@@ -164,6 +166,7 @@ class ClerkService {
       }
       authNotifier.setAuthenticated(authUser);
       unawaited(_persistKnownWebSession(true));
+      unawaited(_persistLastKnownWebUser(authUser));
     } else {
       if (kIsWeb) {
         if (_webStartupRestorePending) {
@@ -217,6 +220,7 @@ class ClerkService {
         );
         authNotifier.setAuthenticated(authUser);
         await _persistKnownWebSession(true);
+        await _persistLastKnownWebUser(authUser);
         return;
       }
 
@@ -230,6 +234,17 @@ class ClerkService {
     }
 
     _webStartupRestorePending = false;
+    final fallbackUser = await _readLastKnownWebUser();
+    if (fallbackUser != null) {
+      authNotifier.setAuthenticated(fallbackUser);
+      AppLogger.instance.log(
+        'Clerk web startup restore exhausted; falling back to last known authenticated user ${fallbackUser.id}',
+        source: 'ClerkService',
+        level: LogLevel.warning,
+      );
+      return;
+    }
+
     authNotifier.setUnauthenticated();
     AppLogger.instance.log(
       'Clerk web startup restore exhausted without an active session',
@@ -275,6 +290,7 @@ class ClerkService {
     }
     authNotifier.setAuthenticated(authUser);
     unawaited(_persistKnownWebSession(true));
+    unawaited(_persistLastKnownWebUser(authUser));
   }
 
   AuthUser _toAuthUser(clerk.User user) {
@@ -307,6 +323,7 @@ class ClerkService {
       );
     }
     await _persistKnownWebSession(false);
+    await _persistLastKnownWebUser(null);
     authNotifier.setUnauthenticated();
   }
 
@@ -314,6 +331,56 @@ class ClerkService {
     if (!kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_knownClerkWebSessionKey, value);
+  }
+
+  Future<void> _persistLastKnownWebUser(AuthUser? user) async {
+    if (!kIsWeb) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (user == null) {
+      await prefs.remove(_lastKnownWebUserKey);
+      return;
+    }
+
+    await prefs.setString(_lastKnownWebUserKey, jsonEncode({
+      'id': user.id,
+      'email': user.email,
+      'displayName': user.displayName,
+      'imageUrl': user.imageUrl,
+    }));
+  }
+
+  Future<AuthUser?> _readLastKnownWebUser() async {
+    if (!kIsWeb) return null;
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_lastKnownWebUserKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final id = json['id'] as String? ?? '';
+      final email = json['email'] as String? ?? '';
+      if (id.isEmpty || email.isEmpty) {
+        return null;
+      }
+
+      return AuthUser(
+        id: id,
+        email: email,
+        displayName: json['displayName'] as String?,
+        imageUrl: json['imageUrl'] as String?,
+      );
+    } catch (e, st) {
+      AppLogger.instance.log(
+        'Failed to decode last known Clerk web user',
+        source: 'ClerkService',
+        level: LogLevel.warning,
+        error: e,
+        stackTrace: st,
+      );
+      return null;
+    }
   }
 
   // ---------------------------------------------------------------------------
