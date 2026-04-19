@@ -45,7 +45,6 @@ class PlaylistsScreen extends ConsumerWidget {
               if (!youtubeConnected) {
                 await startYoutubeConnectFlow(
                   context,
-                  ref: ref,
                   returnTo: Routes.playlists,
                 );
                 return;

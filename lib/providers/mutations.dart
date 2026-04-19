@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 
 // =============================================================================
@@ -173,16 +174,48 @@ Future<dynamic> upsertProgress(
 // Playlists
 // ---------------------------------------------------------------------------
 
-/// Triggers a YouTube sync for all playlists.
-Future<dynamic> syncAllPlaylists(WidgetRef ref) async {
-  final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('youtube:syncAllPlaylists', {});
+List<String> _extractYoutubePlaylistIds(dynamic rawPlaylists) {
+  if (rawPlaylists is! List) return const <String>[];
+
+  return rawPlaylists
+      .whereType<Map>()
+      .map((playlist) => playlist['youtubePlaylistId']?.toString() ?? '')
+      .where((playlistId) => playlistId.isNotEmpty)
+      .toList(growable: false);
 }
 
-/// Triggers a YouTube sync for a single playlist.
+Future<dynamic> _syncAllPlaylistsWithService(ConvexService service) async {
+  final rawPlaylists =
+      await service.action<dynamic>('youtube:fetchYoutubePlaylists', {});
+  final playlistIds = _extractYoutubePlaylistIds(rawPlaylists);
+
+  for (final playlistId in playlistIds) {
+    await service.action<dynamic>('youtube:fetchPlaylistItems', {
+      'playlistId': playlistId,
+    });
+  }
+
+  return <String, dynamic>{
+    'playlistCount': playlistIds.length,
+  };
+}
+
+/// Triggers a full YouTube refresh using the current backend action names.
+Future<dynamic> syncAllPlaylists(WidgetRef ref) async {
+  final service = ref.read(convexServiceProvider);
+  return _syncAllPlaylistsWithService(service);
+}
+
+/// Triggers the same full refresh without relying on a widget-bound [WidgetRef].
+Future<dynamic> syncAllPlaylistsWithContainer(ProviderContainer container) async {
+  final service = container.read(convexServiceProvider);
+  return _syncAllPlaylistsWithService(service);
+}
+
+/// Refreshes a single YouTube playlist and updates its cached videos.
 Future<dynamic> syncPlaylist(WidgetRef ref, String playlistId) async {
   final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('youtube:syncPlaylist', {
+  return service.action<dynamic>('youtube:fetchPlaylistItems', {
     'playlistId': playlistId,
   });
 }

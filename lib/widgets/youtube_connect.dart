@@ -135,19 +135,23 @@ String _cleanYoutubeFlowRoute(Uri uri) {
   return cleaned.toString();
 }
 
-void _invalidateYoutubeData(WidgetRef ref) {
-  ref.invalidate(youtubeConnectionProvider);
-  ref.invalidate(currentUserProvider);
-  ref.invalidate(preferencesDataProvider);
-  ref.invalidate(playlistsProvider);
-  ref.invalidate(videosProvider(const VideosArgs()));
+ProviderContainer _providerContainer(BuildContext context) {
+  return ProviderScope.containerOf(context, listen: false);
 }
 
-Future<bool> _waitForYoutubeConnection(WidgetRef ref) async {
+void _invalidateYoutubeData(ProviderContainer container) {
+  container.invalidate(youtubeConnectionProvider);
+  container.invalidate(currentUserProvider);
+  container.invalidate(preferencesDataProvider);
+  container.invalidate(playlistsProvider);
+  container.invalidate(videosProvider(const VideosArgs()));
+}
+
+Future<bool> _waitForYoutubeConnection(ProviderContainer container) async {
   for (var attempt = 0; attempt < 5; attempt++) {
-    _invalidateYoutubeData(ref);
+    _invalidateYoutubeData(container);
     try {
-      final status = await ref
+      final status = await container
           .read(youtubeConnectionProvider.future)
           .timeout(const Duration(seconds: 3));
       if (_hasYoutubeAccess(status)) {
@@ -166,30 +170,32 @@ Future<bool> _waitForYoutubeConnection(WidgetRef ref) async {
 
 Future<void> _handleYoutubePopupResult(
   BuildContext context,
-  WidgetRef ref,
+  ProviderContainer container,
   YoutubeOAuthPopupResult result,
 ) async {
-  if (!context.mounted) return;
-
   if (result.closed) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('YouTube connect was closed before TubeFlow received a result.'),
-      ),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('YouTube connect was closed before TubeFlow received a result.'),
+        ),
+      );
+    }
     return;
   }
 
   if (result.hasError || !result.connected) {
-    showErrorSnackBar(
-      context,
-      error: result.error ?? 'TubeFlow could not complete the YouTube OAuth flow.',
-      prefix: 'YouTube connect failed',
-    );
+    if (context.mounted) {
+      showErrorSnackBar(
+        context,
+        error: result.error ?? 'TubeFlow could not complete the YouTube OAuth flow.',
+        prefix: 'YouTube connect failed',
+      );
+    }
     return;
   }
 
-  final connected = await _waitForYoutubeConnection(ref);
+  final connected = await _waitForYoutubeConnection(container);
   if (!connected) {
     AppLogger.instance.log(
       'YouTube OAuth popup returned success before Convex status reflected the saved tokens',
@@ -200,7 +206,7 @@ Future<void> _handleYoutubePopupResult(
 
   var syncStarted = false;
   try {
-    await syncAllPlaylists(ref);
+    await syncAllPlaylistsWithContainer(container);
     syncStarted = true;
   } catch (e, st) {
     AppLogger.instance.log(
@@ -211,7 +217,7 @@ Future<void> _handleYoutubePopupResult(
       stackTrace: st,
     );
   } finally {
-    _invalidateYoutubeData(ref);
+    _invalidateYoutubeData(container);
   }
 
   if (!context.mounted) return;
@@ -234,7 +240,6 @@ Future<void> _handleYoutubePopupResult(
 
 Future<void> _launchYoutubeConnect(
   BuildContext context, {
-  required WidgetRef ref,
   String? returnTo,
 }) async {
   final origin = _resolveYoutubeOrigin();
@@ -247,6 +252,8 @@ Future<void> _launchYoutubeConnect(
     );
     return;
   }
+
+  final container = _providerContainer(context);
 
   try {
     if (kIsWeb) {
@@ -277,7 +284,7 @@ Future<void> _launchYoutubeConnect(
 
     if (kIsWeb) {
       final result = await openYoutubeOauthPopup(target);
-      await _handleYoutubePopupResult(context, ref, result);
+      await _handleYoutubePopupResult(context, container, result);
       return;
     }
 
@@ -308,10 +315,9 @@ Future<void> _launchYoutubeConnect(
 
 Future<void> startYoutubeConnectFlow(
   BuildContext context, {
-  required WidgetRef ref,
   String? returnTo,
 }) {
-  return _launchYoutubeConnect(context, ref: ref, returnTo: returnTo);
+  return _launchYoutubeConnect(context, returnTo: returnTo);
 }
 
 class YoutubeConnectionLoadingState extends StatelessWidget {
@@ -434,7 +440,6 @@ class YoutubeConnectRequiredState extends ConsumerWidget {
                     child: FilledButton.icon(
                       onPressed: () => startYoutubeConnectFlow(
                         context,
-                        ref: ref,
                         returnTo: returnTo,
                       ),
                       icon: const Icon(Icons.open_in_new_rounded, size: 18),
@@ -514,10 +519,11 @@ class _YoutubeOAuthFeedbackBannerState
   }
 
   Future<bool> _waitForConnectionStatus() async {
+    final container = _providerContainer(context);
     for (var attempt = 0; attempt < 5; attempt++) {
-      _invalidateYoutubeData(ref);
+      _invalidateYoutubeData(container);
       try {
-        final status = await ref
+        final status = await container
             .read(youtubeConnectionProvider.future)
             .timeout(const Duration(seconds: 3));
         if (_hasYoutubeAccess(status)) {
@@ -536,6 +542,7 @@ class _YoutubeOAuthFeedbackBannerState
 
   Future<void> _runPostConnectSync() async {
     if (!mounted) return;
+    final container = _providerContainer(context);
 
     setState(() {
       _syncing = true;
@@ -558,8 +565,8 @@ class _YoutubeOAuthFeedbackBannerState
         );
       }
 
-      await syncAllPlaylists(ref);
-      _invalidateYoutubeData(ref);
+      await syncAllPlaylistsWithContainer(container);
+      _invalidateYoutubeData(container);
 
       if (!mounted) return;
       setState(() {
@@ -726,7 +733,7 @@ class _YoutubeOAuthFeedbackBannerState
                   ),
                   if (isError)
                     OutlinedButton.icon(
-                      onPressed: () => _launchYoutubeConnect(context, ref: ref),
+                      onPressed: () => _launchYoutubeConnect(context),
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('Retry connection'),
                     ),
@@ -810,7 +817,7 @@ class YoutubeConnectBanner extends ConsumerWidget {
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => _launchYoutubeConnect(context, ref: ref),
+                onPressed: () => _launchYoutubeConnect(context),
                 child: const Text('Connect'),
               ),
             ],
@@ -854,6 +861,7 @@ class _YoutubeConnectionSettingsCardState
   }
 
   Future<void> _runAction(Future<void> Function() action) async {
+    final container = _providerContainer(context);
     setState(() {
       _busy = true;
       _inlineError = null;
@@ -861,8 +869,8 @@ class _YoutubeConnectionSettingsCardState
 
     try {
       await action();
+      _invalidateYoutubeData(container);
       if (!mounted) return;
-      _invalidateYoutubeData(ref);
     } catch (e, st) {
       AppLogger.instance.log(
         'YouTube settings action failed',
@@ -885,7 +893,7 @@ class _YoutubeConnectionSettingsCardState
   }
 
   Future<void> _connect() async {
-    await _launchYoutubeConnect(context, ref: ref, returnTo: widget.returnTo);
+    await _launchYoutubeConnect(context, returnTo: widget.returnTo);
   }
 
   Future<void> _disconnect() async {
@@ -1207,7 +1215,7 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
                   onPressed:
                       loading
                           ? null
-                          : () => _launchYoutubeConnect(context, ref: ref),
+                          : () => _launchYoutubeConnect(context),
                   icon: loading
                       ? const SizedBox(
                           width: 16,

@@ -100,7 +100,6 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
               if (!youtubeConnected) {
                 startYoutubeConnectFlow(
                   context,
-                  ref: ref,
                   returnTo: Routes.play,
                 );
                 return;

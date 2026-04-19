@@ -152,7 +152,6 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
               if (!youtubeConnected) {
                 await startYoutubeConnectFlow(
                   context,
-                  ref: ref,
                   returnTo: Routes.videos,
                 );
                 return;
