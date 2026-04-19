@@ -51,6 +51,7 @@ class ClerkService {
 
   ClerkAuthState? _authState;
   late final Future<void> _readyFuture;
+  bool _webStartupRestorePending = false;
 
   /// Completes once [authState] is available (or initialisation has failed).
   Future<void> get ready => _readyFuture;
@@ -68,6 +69,8 @@ class ClerkService {
   // ---------------------------------------------------------------------------
 
   Future<void> _init() async {
+    authNotifier.setLoading();
+
     if (_publishableKey.isEmpty) {
       AppLogger.instance.log(
         'CLERK_PUBLISHABLE_KEY is empty — auth will not work. '
@@ -75,6 +78,7 @@ class ClerkService {
         source: 'ClerkService',
         level: LogLevel.warning,
       );
+      authNotifier.setUnauthenticated();
       return;
     }
 
@@ -90,6 +94,7 @@ class ClerkService {
     try {
       if (kIsWeb) {
         await initClerkWebBridge(_publishableKey);
+        _webStartupRestorePending = true;
       }
       _authState = await ClerkAuthState.create(config: config);
       if (_authState?.env.isEmpty == true) {
@@ -113,9 +118,10 @@ class ClerkService {
         source: 'ClerkService',
       );
       _authState?.addListener(_syncAuthNotifier);
-      _syncAuthNotifier();
       if (kIsWeb) {
-        await _syncWebBridgeAuthState();
+        await _restoreWebSessionOnStartup();
+      } else {
+        _syncAuthNotifier();
       }
     } catch (e, st) {
       AppLogger.instance.log(
@@ -125,6 +131,7 @@ class ClerkService {
         error: e,
         stackTrace: st,
       );
+      authNotifier.setUnauthenticated(error: '$e');
       rethrow;
     }
   }
@@ -138,7 +145,7 @@ class ClerkService {
   void _syncAuthNotifier() {
     final auth = _authState;
     if (auth == null) {
-      authNotifier.setUnauthenticated();
+      authNotifier.setLoading();
       return;
     }
 
@@ -156,7 +163,11 @@ class ClerkService {
       authNotifier.setAuthenticated(authUser);
     } else {
       if (kIsWeb) {
-        _syncWebBridgeAuthState();
+        if (_webStartupRestorePending) {
+          authNotifier.setLoading();
+          return;
+        }
+        unawaited(_syncWebBridgeAuthState());
         return;
       }
       if (authNotifier.isAuthenticated) {
@@ -166,9 +177,70 @@ class ClerkService {
     }
   }
 
+  Future<void> _restoreWebSessionOnStartup() async {
+    const maxAttempts = 7;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      final auth = _authState;
+      if (auth?.isSignedIn == true) {
+        _webStartupRestorePending = false;
+        _syncAuthNotifier();
+        AppLogger.instance.log(
+          'Clerk web startup restore resolved via ClerkAuthState on attempt $attempt',
+          source: 'ClerkService',
+        );
+        return;
+      }
+
+      final signedIn = await clerkWebIsSignedIn();
+      final user = signedIn ? await clerkWebGetUser() : null;
+
+      AppLogger.instance.log(
+        'Clerk web startup restore attempt $attempt/$maxAttempts: bridgeSignedIn=$signedIn user=${user?.id ?? 'none'}',
+        source: 'ClerkService',
+      );
+
+      if (signedIn && user != null && user.id.isNotEmpty) {
+        _webStartupRestorePending = false;
+        final authUser = AuthUser(
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName.isEmpty ? null : user.displayName,
+          imageUrl: user.imageUrl.isEmpty ? null : user.imageUrl,
+        );
+        AppLogger.instance.log(
+          'Clerk JS web session restored during startup: ${authUser.id}',
+          source: 'ClerkService',
+        );
+        authNotifier.setAuthenticated(authUser);
+        return;
+      }
+
+      if (attempt < maxAttempts) {
+        await _authState?.refreshClient();
+        if (_authState?.env.isEmpty == true) {
+          await _authState?.refreshEnvironment();
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 450));
+      }
+    }
+
+    _webStartupRestorePending = false;
+    authNotifier.setUnauthenticated();
+    AppLogger.instance.log(
+      'Clerk web startup restore exhausted without an active session',
+      source: 'ClerkService',
+      level: LogLevel.warning,
+    );
+  }
+
   Future<void> _syncWebBridgeAuthState() async {
     final signedIn = await clerkWebIsSignedIn();
     if (!signedIn) {
+      if (_webStartupRestorePending) {
+        authNotifier.setLoading();
+        return;
+      }
       if (authNotifier.isAuthenticated) {
         AppLogger.instance.log(
           'Clerk JS web session ended',

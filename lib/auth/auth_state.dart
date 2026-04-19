@@ -88,7 +88,7 @@ class AuthAuthenticated extends AuthState {
 /// [setAuthenticated], or [setUnauthenticated] as the Clerk session changes.
 class AuthNotifier extends Notifier<AuthState> {
   @override
-  AuthState build() => const AuthUnauthenticated();
+  AuthState build() => const AuthLoading();
 
   /// Transition to the loading state (sign-in initiated).
   void setLoading() => state = const AuthLoading();

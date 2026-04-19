@@ -44,11 +44,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   // Derive a simple boolean from the sealed AuthState for redirect logic.
   final authState = ref.watch(authStateProvider);
   final isAuthenticated = authState is AuthAuthenticated;
+  final isLoading = authState is AuthLoading;
 
   return GoRouter(
     initialLocation: Routes.videos,
     redirect: (BuildContext context, GoRouterState state) {
       final goingToSignIn = state.matchedLocation == Routes.signIn;
+
+      if (isLoading) {
+        return null;
+      }
 
       if (isAuthenticated && goingToSignIn) {
         return Routes.videos;
