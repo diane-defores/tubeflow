@@ -176,6 +176,7 @@ enum _EmailAuthMode { signIn, signUp }
 class _SignInScreenState extends ConsumerState<_SignInScreen>
     with WidgetsBindingObserver {
   static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
+  static const _knownClerkWebSessionKey = 'known_clerk_web_session';
   static const _hostedSignInPollAttempts = 6;
   static const _clerkSyncedParam = '__clerk_synced';
 
@@ -195,6 +196,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   final _verificationCodeFocusNode = FocusNode();
   Timer? _hostedRefreshTimer;
   bool _hostedResumeStarted = false;
+  bool _autoHostedSyncAttempted = false;
 
   List<String> _diagnosticLines({
     ClerkAuthState? authState,
@@ -256,8 +258,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _logEnvState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _resumeHostedSignInIfNeeded();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _resumeHostedSignInIfNeeded();
+      await _maybeAutoTriggerHostedSync();
     });
   }
 
@@ -677,6 +680,36 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         );
       }
     });
+  }
+
+  Future<void> _maybeAutoTriggerHostedSync() async {
+    if (!kIsWeb || _autoHostedSyncAttempted || _hostedResumeStarted || !mounted) {
+      return;
+    }
+
+    final pending = await _isPendingHostedSignIn();
+    if (pending) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final hadKnownSession = prefs.getBool(_knownClerkWebSessionKey) ?? false;
+    if (!hadKnownSession) return;
+
+    _autoHostedSyncAttempted = true;
+    AppLogger.instance.log(
+      'Detected previous Clerk web session; triggering hosted sync handshake',
+      source: 'SignInScreen',
+      level: LogLevel.warning,
+    );
+
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+        _notice = 'Restoring your secure session...';
+      });
+    }
+
+    await _openHostedSignIn();
   }
 
   Future<bool> _attemptHostedSignInResume() async {

@@ -4,6 +4,7 @@ import 'package:clerk_auth/clerk_auth.dart' as clerk;
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
 import 'package:tubeflow_app/auth/clerk_http_service.dart';
@@ -30,6 +31,7 @@ const _publishableKey = String.fromEnvironment(
 ///
 /// Must match `applicationID` in `packages/backend/convex/auth.config.ts`.
 const _convexJwtTemplate = 'convex';
+const _knownClerkWebSessionKey = 'known_clerk_web_session';
 
 // ---------------------------------------------------------------------------
 // ClerkService
@@ -161,6 +163,7 @@ class ClerkService {
         );
       }
       authNotifier.setAuthenticated(authUser);
+      unawaited(_persistKnownWebSession(true));
     } else {
       if (kIsWeb) {
         if (_webStartupRestorePending) {
@@ -213,6 +216,7 @@ class ClerkService {
           source: 'ClerkService',
         );
         authNotifier.setAuthenticated(authUser);
+        await _persistKnownWebSession(true);
         return;
       }
 
@@ -270,6 +274,7 @@ class ClerkService {
       );
     }
     authNotifier.setAuthenticated(authUser);
+    unawaited(_persistKnownWebSession(true));
   }
 
   AuthUser _toAuthUser(clerk.User user) {
@@ -301,7 +306,14 @@ class ClerkService {
         stackTrace: st,
       );
     }
+    await _persistKnownWebSession(false);
     authNotifier.setUnauthenticated();
+  }
+
+  Future<void> _persistKnownWebSession(bool value) async {
+    if (!kIsWeb) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_knownClerkWebSessionKey, value);
   }
 
   // ---------------------------------------------------------------------------
