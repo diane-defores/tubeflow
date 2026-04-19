@@ -121,42 +121,43 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           }
 
           return videosAsync!.when(
-        data: (videos) {
-          final notesByVideo = <String, int>{};
-          notesAsync?.whenData((notes) {
-            for (final note in notes) {
-              if (note.youtubeVideoId != null) {
-                notesByVideo[note.youtubeVideoId!] =
-                    (notesByVideo[note.youtubeVideoId!] ?? 0) + 1;
+            data: (videos) {
+              final notesByVideo = <String, int>{};
+              notesAsync?.whenData((notes) {
+                for (final note in notes) {
+                  if (note.youtubeVideoId != null) {
+                    notesByVideo[note.youtubeVideoId!] =
+                        (notesByVideo[note.youtubeVideoId!] ?? 0) + 1;
+                  }
+                }
+              });
+
+              if (videos.isEmpty) {
+                return YoutubeAwareEmptyState(
+                  fallbackIcon: Icons.video_library_outlined,
+                  fallbackTitle: 'Aucune vidéo',
+                  fallbackDescription:
+                      'Lancez une synchronisation pour importer vos vidéos YouTube.',
+                  onRefresh: () => syncAllPlaylists(ref),
+                );
               }
-            }
-          });
 
-          if (videos.isEmpty) {
-            return YoutubeAwareEmptyState(
-              fallbackIcon: Icons.video_library_outlined,
-              fallbackTitle: 'Aucune vidéo',
-              fallbackDescription:
-                  'Lancez une synchronisation pour importer vos vidéos YouTube.',
-              onRefresh: () => syncAllPlaylists(ref),
-            );
-          }
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildCardView(videos),
-              _buildListView(videos),
-              _buildSummaryView(videos, notesByVideo),
-            ],
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildCardView(videos),
+                  _buildListView(videos),
+                  _buildSummaryView(videos, notesByVideo),
+                ],
+              );
+            },
+            loading: () => _buildShimmerLoading(),
+            error: (error, stack) => ErrorStateView(
+              error: error,
+              prefix: 'Failed to load videos',
+              onRetry: () => ref.invalidate(videosProvider(const VideosArgs())),
+            ),
           );
-        },
-        loading: () => _buildShimmerLoading(),
-        error: (error, stack) => ErrorStateView(
-          error: error,
-          prefix: 'Failed to load videos',
-          onRetry: () => ref.invalidate(videosProvider(const VideosArgs())),
-        ),
         },
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking your YouTube library',

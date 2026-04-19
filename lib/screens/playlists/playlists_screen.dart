@@ -83,59 +83,67 @@ class PlaylistsScreen extends ConsumerWidget {
           }
 
           return playlistsAsync!.when(
-        data: (playlists) {
-          if (playlists.isEmpty) {
-            return YoutubeAwareEmptyState(
-              fallbackIcon: Icons.playlist_play,
-              fallbackTitle: 'Aucune playlist',
-              fallbackDescription:
-                  'Créez une playlist ou lancez une synchronisation YouTube.',
-              onRefresh: () => syncAllPlaylists(ref),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: playlists.length,
-            itemBuilder: (context, index) {
-              return _buildPlaylistCard(context, ref, playlists[index]);
+            data: (playlists) {
+              if (playlists.isEmpty) {
+                return YoutubeAwareEmptyState(
+                  fallbackIcon: Icons.playlist_play,
+                  fallbackTitle: 'Aucune playlist',
+                  fallbackDescription:
+                      'Créez une playlist ou lancez une synchronisation YouTube.',
+                  onRefresh: () => syncAllPlaylists(ref),
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: playlists.length,
+                itemBuilder: (context, index) {
+                  return _buildPlaylistCard(context, ref, playlists[index]);
+                },
+              );
             },
-          );
-        },
-        loading: () => Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: 4,
-            itemBuilder: (context, index) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Container(width: 120, height: 90, color: Colors.white),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(height: 14, width: 100, color: Colors.white),
-                          const SizedBox(height: 8),
-                          Container(height: 10, width: 60, color: Colors.white),
-                        ],
+            loading: () => Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 4,
+                itemBuilder: (context, index) => Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Container(width: 120, height: 90, color: Colors.white),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                height: 14,
+                                width: 100,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                height: 10,
+                                width: 60,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-        error: (error, stack) => ErrorStateView(
-          error: error,
-          prefix: 'Failed to load playlists',
-          onRetry: () => ref.invalidate(playlistsProvider),
-        ),
-        );
+            error: (error, stack) => ErrorStateView(
+              error: error,
+              prefix: 'Failed to load playlists',
+              onRetry: () => ref.invalidate(playlistsProvider),
+            ),
+          );
         },
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking your YouTube playlists',

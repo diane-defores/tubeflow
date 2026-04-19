@@ -438,10 +438,11 @@ class _YoutubeOAuthFeedbackBannerState
         _syncError = e;
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _syncing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _syncing = false;
+        });
+      }
     }
   }
 
@@ -724,10 +725,11 @@ class _YoutubeConnectionSettingsCardState
         _inlineError = e;
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-      });
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
     }
   }
 

@@ -165,33 +165,33 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           }
 
           return Column(
-        children: [
-          // Video player area
-          _buildPlayerArea(),
-          // Playback controls
-          _buildPlaybackControls(),
-          // Tabs for Notes / Transcript / Comments
-          TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Notes'),
-              Tab(text: 'Transcript'),
-              Tab(text: 'Comments'),
+            children: [
+              // Video player area
+              _buildPlayerArea(),
+              // Playback controls
+              _buildPlaybackControls(),
+              // Tabs for Notes / Transcript / Comments
+              TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Notes'),
+                  Tab(text: 'Transcript'),
+                  Tab(text: 'Comments'),
+                ],
+              ),
+              // Tab content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildNotesTab(notesAsync),
+                    _buildTranscriptTab(),
+                    _buildCommentsTab(),
+                  ],
+                ),
+              ),
             ],
-          ),
-          // Tab content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildNotesTab(notesAsync),
-                _buildTranscriptTab(),
-                _buildCommentsTab(),
-              ],
-            ),
-          ),
-        ],
-      );
+          );
         },
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking playback access',
