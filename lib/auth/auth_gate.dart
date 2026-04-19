@@ -177,6 +177,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     with WidgetsBindingObserver {
   static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
   static const _knownClerkWebSessionKey = 'known_clerk_web_session';
+  static const _clerkPersistPrefix = 'clerk_sdk:';
   static const _hostedSignInPollAttempts = 6;
   static const _clerkSyncedParam = '__clerk_synced';
 
@@ -692,11 +693,16 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     final prefs = await SharedPreferences.getInstance();
     final hadKnownSession = prefs.getBool(_knownClerkWebSessionKey) ?? false;
-    if (!hadKnownSession) return;
+    final hasPersistedClerkState = prefs
+        .getKeys()
+        .any((key) => key.startsWith(_clerkPersistPrefix));
+    if (!hadKnownSession && !hasPersistedClerkState) {
+      return;
+    }
 
     _autoHostedSyncAttempted = true;
     AppLogger.instance.log(
-      'Detected previous Clerk web session; triggering hosted sync handshake',
+      'Detected previous Clerk web session state; triggering hosted sync handshake (known=$hadKnownSession persisted=$hasPersistedClerkState)',
       source: 'SignInScreen',
       level: LogLevel.warning,
     );
