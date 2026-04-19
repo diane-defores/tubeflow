@@ -145,6 +145,7 @@ class AuthGate extends ConsumerWidget {
       if (!context.mounted) return;
 
       final notifier = ref.read(authStateProvider.notifier);
+      final clerkService = ref.read(clerkServiceProvider);
       if (notifier.isAuthenticated) {
         context.go(_resolvedPostAuthRoute());
         return;
@@ -158,18 +159,18 @@ class AuthGate extends ConsumerWidget {
             'Clerk user synced: ${user.id}',
             source: 'AuthGate',
           );
-          notifier.setAuthenticated(
-            AuthUser(
-              id: user.id,
-              email: user.emailAddresses?.firstOrNull?.identifier ?? '',
-              displayName: '${user.firstName ?? ''} ${user.lastName ?? ''}'
-                  .trim(),
-              imageUrl: user.imageUrl,
-            ),
+          final authUser = AuthUser(
+            id: user.id,
+            email: user.emailAddresses?.firstOrNull?.identifier ?? '',
+            displayName: '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                .trim(),
+            imageUrl: user.imageUrl,
           );
-          if (context.mounted) {
-            context.go(_resolvedPostAuthRoute());
-          }
+          clerkService.markAuthenticatedUser(authUser).then((_) {
+            if (context.mounted) {
+              context.go(_resolvedPostAuthRoute());
+            }
+          });
           return;
         }
       } catch (e) {
@@ -181,10 +182,13 @@ class AuthGate extends ConsumerWidget {
         );
       }
 
-      notifier.setAuthenticated(const AuthUser(id: 'clerk-user', email: ''));
-      if (context.mounted) {
-        context.go(_resolvedPostAuthRoute());
-      }
+      clerkService
+          .markAuthenticatedUser(const AuthUser(id: 'clerk-user', email: ''))
+          .then((_) {
+            if (context.mounted) {
+              context.go(_resolvedPostAuthRoute());
+            }
+          });
     });
   }
 }

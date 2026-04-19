@@ -293,6 +293,12 @@ class ClerkService {
     unawaited(_persistLastKnownWebUser(authUser));
   }
 
+  Future<void> markAuthenticatedUser(AuthUser user) async {
+    authNotifier.setAuthenticated(user);
+    await _persistKnownWebSession(true);
+    await _persistLastKnownWebUser(user);
+  }
+
   AuthUser _toAuthUser(clerk.User user) {
     final displayName = '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
     return AuthUser(
