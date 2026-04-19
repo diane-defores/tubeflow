@@ -1,0 +1,51 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    if: github.ref == 'refs/heads/android-ci'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build release APK
+        run: >
+          flutter build apk --release
+          --dart-define=CONVEX_URL=${{ secrets.CONVEX_URL }}
+          --dart-define=CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          --dart-define=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          --dart-define=TUBEFLOW_APP_URL=${{ secrets.TUBEFLOW_APP_URL }}
+          --dart-define=TUBEFLOW_WEB_URL=${{ secrets.TUBEFLOW_APP_URL }}
+          --dart-define=CLERK_HOSTED_SIGN_IN_URL=${{ secrets.CLERK_HOSTED_SIGN_IN_URL }}
+          --dart-define=BUILD_ENVIRONMENT=github-actions
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tubeflow-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
