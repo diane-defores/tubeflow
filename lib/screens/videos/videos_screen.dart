@@ -28,22 +28,88 @@ class VideosScreen extends ConsumerStatefulWidget {
 
 class _VideosScreenState extends ConsumerState<VideosScreen>
     with SingleTickerProviderStateMixin {
+  static const _compactViewBreakpoint = 640.0;
   late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_handleTabChanged);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     super.dispose();
   }
 
+  void _handleTabChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  bool _useCompactViewSwitcher(BuildContext context) {
+    return MediaQuery.sizeOf(context).width < _compactViewBreakpoint;
+  }
+
+  ({IconData icon, String label}) _viewModeMeta(int index) {
+    switch (index) {
+      case 1:
+        return (icon: Icons.list_rounded, label: 'List');
+      case 2:
+        return (icon: Icons.notes_rounded, label: 'Notes');
+      default:
+        return (icon: Icons.grid_view_rounded, label: 'Cards');
+    }
+  }
+
+  Widget _buildViewModeAction(BuildContext context) {
+    final current = _viewModeMeta(_tabController.index);
+
+    return PopupMenuButton<int>(
+      tooltip: 'View mode: ${current.label}',
+      icon: Icon(current.icon),
+      position: PopupMenuPosition.under,
+      onSelected: (index) {
+        if (index != _tabController.index) {
+          _tabController.animateTo(index);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<int>(
+          value: 0,
+          child: _ViewModeMenuItem(
+            icon: Icons.grid_view_rounded,
+            label: 'Cards',
+            selected: _tabController.index == 0,
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 1,
+          child: _ViewModeMenuItem(
+            icon: Icons.list_rounded,
+            label: 'List',
+            selected: _tabController.index == 1,
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 2,
+          child: _ViewModeMenuItem(
+            icon: Icons.notes_rounded,
+            label: 'Notes',
+            selected: _tabController.index == 2,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final useCompactViewSwitcher = _useCompactViewSwitcher(context);
     final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
     final youtubeConnected =
         youtubeConnectionAsync.asData?.value?['connected'] == true;
@@ -56,15 +122,18 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Videos'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.grid_view), text: 'Cards'),
-            Tab(icon: Icon(Icons.list), text: 'List'),
-            Tab(icon: Icon(Icons.summarize), text: 'Summary'),
-          ],
-        ),
+        bottom: useCompactViewSwitcher
+            ? null
+            : TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(icon: Icon(Icons.grid_view_rounded), text: 'Cards'),
+                  Tab(icon: Icon(Icons.list_rounded), text: 'List'),
+                  Tab(icon: Icon(Icons.notes_rounded), text: 'Notes'),
+                ],
+              ),
         actions: [
+          if (useCompactViewSwitcher) _buildViewModeAction(context),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -440,4 +509,37 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     );
   }
 
+}
+
+class _ViewModeMenuItem extends StatelessWidget {
+  const _ViewModeMenuItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 10),
+        Expanded(child: Text(label)),
+        if (selected) ...[
+          const SizedBox(width: 12),
+          Icon(
+            Icons.check_rounded,
+            size: 18,
+            color: theme.colorScheme.primary,
+          ),
+        ],
+      ],
+    );
+  }
 }
