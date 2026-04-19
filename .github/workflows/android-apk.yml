@@ -16,12 +16,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -29,8 +32,23 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
       - name: Flutter pub get
         run: flutter pub get
+
+      - name: Build metadata
+        id: meta
+        run: |
+          echo "build_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - name: Build release APK
         run: >
@@ -41,7 +59,9 @@ jobs:
           --dart-define=TUBEFLOW_APP_URL=${{ secrets.TUBEFLOW_APP_URL }}
           --dart-define=TUBEFLOW_WEB_URL=${{ secrets.TUBEFLOW_APP_URL }}
           --dart-define=CLERK_HOSTED_SIGN_IN_URL=${{ secrets.CLERK_HOSTED_SIGN_IN_URL }}
+          --dart-define=BUILD_COMMIT_SHA=${{ github.sha }}
           --dart-define=BUILD_ENVIRONMENT=github-actions
+          --dart-define=BUILD_TIMESTAMP=${{ steps.meta.outputs.build_timestamp }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
