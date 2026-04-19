@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,6 +34,36 @@ const _youtubeErrorParam = 'youtube_error';
 /// True when [youtubeConnectionProvider] reports `connected: true`.
 bool _isYoutubeConnected(AsyncValue<Map<String, dynamic>?> async) {
   return async.asData?.value?['connected'] == true;
+}
+
+String _formatYoutubeDiagnostics(Map<String, dynamic>? status) {
+  final logs = AppLogger.instance.entries
+      .where(
+        (entry) =>
+            entry.source == 'YoutubeConnect' ||
+            entry.source == 'ConvexService',
+      )
+      .toList();
+
+  final lines = <String>[
+    'TubeFlow YouTube diagnostics',
+    'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
+    'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
+    'Current path: ${kIsWeb ? Uri.base.path : 'not-web'}',
+    'Current fragment: ${kIsWeb ? Uri.base.fragment : 'not-web'}',
+    'OAuth return_to: ${_currentYoutubeReturnTo()}',
+    'YouTube connected: ${status?['connected'] == true ? 'yes' : 'no'}',
+    'YouTube hasTokens: ${status?['hasTokens'] == true ? 'yes' : 'no'}',
+    'YouTube channelId: ${status?['channelId'] ?? 'unknown'}',
+    'YouTube channelTitle: ${status?['channelTitle'] ?? 'unknown'}',
+    'YouTube lastSyncAt: ${status?['lastSyncAt'] ?? 'unknown'}',
+    '',
+    'Recent YouTube logs:',
+    if (logs.isEmpty) '(no YoutubeConnect / ConvexService logs)'
+    else ...logs.map((entry) => entry.format()),
+  ];
+
+  return lines.join('\n');
 }
 
 String _resolveYoutubeOrigin() {
@@ -796,6 +827,16 @@ class _YoutubeConnectionSettingsCardState
   bool _busy = false;
   Object? _inlineError;
 
+  Future<void> _copyDiagnostics(Map<String, dynamic>? status) async {
+    await Clipboard.setData(
+      ClipboardData(text: _formatYoutubeDiagnostics(status)),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('YouTube diagnostics copied.')),
+    );
+  }
+
   Future<void> _runAction(Future<void> Function() action) async {
     setState(() {
       _busy = true;
@@ -860,6 +901,7 @@ class _YoutubeConnectionSettingsCardState
     final status = statusAsync.asData?.value;
     final connected = status?['connected'] == true;
     final hasTokens = status?['hasTokens'] == true;
+    final diagnosticsText = _formatYoutubeDiagnostics(status);
 
     final accentColor = connected ? colorScheme.primary : Colors.red.shade600;
     final icon = connected
@@ -998,6 +1040,49 @@ class _YoutubeConnectionSettingsCardState
                   prefix: 'YouTube action failed',
                 ),
               ],
+              const SizedBox(height: 12),
+              Card(
+                margin: EdgeInsets.zero,
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                child: ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  leading: const Icon(Icons.bug_report_outlined, size: 20),
+                  title: const Text('YouTube diagnostics'),
+                  subtitle: Text(
+                    connected
+                        ? 'Connection confirmed. Copy recent sync logs if something still looks wrong.'
+                        : hasTokens
+                        ? 'TubeFlow sees saved tokens but not a confirmed connected state yet.'
+                        : 'Copy this if YouTube connect stalls or comes back incomplete.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: SelectableText(
+                        diagnosticsText,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _copyDiagnostics(status),
+                        icon: const Icon(Icons.copy_all_rounded),
+                        label: const Text('Copy diagnostics'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
