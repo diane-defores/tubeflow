@@ -18,6 +18,37 @@ import 'package:tubeflow_app/auth/clerk_web_bridge.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
+const _postAuthRouteParam = 'tf_redirect';
+
+String _normalizePostAuthRoute(String? route) {
+  if (route == null || route.isEmpty) return Routes.videos;
+  if (route.startsWith('/')) return route;
+  return '/$route';
+}
+
+String _currentPostAuthRoute() {
+  if (!kIsWeb) return Routes.videos;
+
+  final fragment = Uri.base.fragment;
+  if (fragment.isEmpty) return Routes.videos;
+
+  final parsed = Uri.parse(fragment.startsWith('/') ? fragment : '/$fragment');
+  final path = parsed.path.isEmpty ? Routes.videos : parsed.path;
+  if (path == '/' || path == Routes.signIn) {
+    return Routes.videos;
+  }
+
+  return Uri(
+    path: path,
+    queryParameters: parsed.queryParameters.isEmpty ? null : parsed.queryParameters,
+  ).toString();
+}
+
+String _resolvedPostAuthRoute() {
+  if (!kIsWeb) return Routes.videos;
+  return _normalizePostAuthRoute(Uri.base.queryParameters[_postAuthRouteParam]);
+}
+
 class ClerkSignInPage extends ConsumerWidget {
   const ClerkSignInPage({super.key});
 
@@ -47,7 +78,7 @@ class ClerkSignInPage extends ConsumerWidget {
     if (appAuthState is AuthAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
-          context.go(Routes.videos);
+          context.go(_resolvedPostAuthRoute());
         }
       });
       return const Scaffold(
@@ -115,7 +146,7 @@ class AuthGate extends ConsumerWidget {
 
       final notifier = ref.read(authStateProvider.notifier);
       if (notifier.isAuthenticated) {
-        context.go(Routes.videos);
+        context.go(_resolvedPostAuthRoute());
         return;
       }
 
@@ -137,7 +168,7 @@ class AuthGate extends ConsumerWidget {
             ),
           );
           if (context.mounted) {
-            context.go(Routes.videos);
+            context.go(_resolvedPostAuthRoute());
           }
           return;
         }
@@ -152,7 +183,7 @@ class AuthGate extends ConsumerWidget {
 
       notifier.setAuthenticated(const AuthUser(id: 'clerk-user', email: ''));
       if (context.mounted) {
-        context.go(Routes.videos);
+        context.go(_resolvedPostAuthRoute());
       }
     });
   }
@@ -580,12 +611,14 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       return;
     }
 
+    final postAuthRoute = _currentPostAuthRoute();
     final redirectTarget = kIsWeb
-        ? Uri.base
+        ? Uri.parse(Uri.base.origin)
               .replace(
+                path: '/',
                 queryParameters: {
-                  ...Uri.base.queryParameters,
                   _clerkSyncedParam: 'false',
+                  _postAuthRouteParam: postAuthRoute,
                 },
               )
               .toString()
@@ -603,7 +636,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     try {
       await _setPendingHostedSignIn(true);
       AppLogger.instance.log(
-        'Opening hosted Clerk sign-in: $uri (redirect_url=$redirectTarget)',
+        'Opening hosted Clerk sign-in: $uri (redirect_url=$redirectTarget, postAuthRoute=$postAuthRoute)',
         source: 'SignInScreen',
       );
       final launched = await launchUrl(uri, webOnlyWindowName: '_self');
@@ -743,7 +776,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             _error = null;
             _notice = null;
           });
-          context.go(Routes.videos);
+          context.go(_resolvedPostAuthRoute());
         }
         return true;
       }
@@ -770,7 +803,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           _error = null;
           _notice = null;
         });
-        context.go(Routes.videos);
+        context.go(_resolvedPostAuthRoute());
       }
       return true;
     } catch (e) {
