@@ -299,7 +299,17 @@ final youtubeConnectionProvider =
     'youtube:getYoutubeConnectionStatus',
     {},
   );
-  return _decodeMap(raw);
+  final status = _decodeMap(raw);
+  if (status == null) return null;
+
+  final hasTokens = status['hasTokens'] == true;
+  final connected = status['connected'] == true || hasTokens;
+
+  return <String, dynamic>{
+    ...status,
+    'hasTokens': hasTokens,
+    'connected': connected,
+  };
 });
 
 // ---------------------------------------------------------------------------

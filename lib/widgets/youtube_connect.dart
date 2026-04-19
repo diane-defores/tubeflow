@@ -33,7 +33,12 @@ const _youtubeErrorParam = 'youtube_error';
 
 /// True when [youtubeConnectionProvider] reports `connected: true`.
 bool _isYoutubeConnected(AsyncValue<Map<String, dynamic>?> async) {
-  return async.asData?.value?['connected'] == true;
+  return _hasYoutubeAccess(async.asData?.value);
+}
+
+bool _hasYoutubeAccess(Map<String, dynamic>? status) {
+  if (status == null) return false;
+  return status['connected'] == true || status['hasTokens'] == true;
 }
 
 String _formatYoutubeDiagnostics(Map<String, dynamic>? status) {
@@ -145,7 +150,7 @@ Future<bool> _waitForYoutubeConnection(WidgetRef ref) async {
       final status = await ref
           .read(youtubeConnectionProvider.future)
           .timeout(const Duration(seconds: 3));
-      if (status?['connected'] == true) {
+      if (_hasYoutubeAccess(status)) {
         return true;
       }
     } catch (_) {
@@ -186,18 +191,17 @@ Future<void> _handleYoutubePopupResult(
 
   final connected = await _waitForYoutubeConnection(ref);
   if (!connected) {
-    if (!context.mounted) return;
-    showErrorSnackBar(
-      context,
-      error:
-          'Google authorised YouTube, but TubeFlow could not confirm the saved connection yet.',
-      prefix: 'YouTube connect incomplete',
+    AppLogger.instance.log(
+      'YouTube OAuth popup returned success before Convex status reflected the saved tokens',
+      source: 'YoutubeConnect',
+      level: LogLevel.warning,
     );
-    return;
   }
 
+  var syncStarted = false;
   try {
     await syncAllPlaylists(ref);
+    syncStarted = true;
   } catch (e, st) {
     AppLogger.instance.log(
       'Initial popup-based YouTube sync failed',
@@ -211,10 +215,20 @@ Future<void> _handleYoutubePopupResult(
   }
 
   if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('YouTube connected. TubeFlow is syncing your playlists.'),
-    ),
+  if (connected || syncStarted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('YouTube connected. TubeFlow is syncing your playlists.'),
+      ),
+    );
+    return;
+  }
+
+  showErrorSnackBar(
+    context,
+    error:
+        'Google authorised YouTube, but TubeFlow could not confirm the saved connection yet.',
+    prefix: 'YouTube connect incomplete',
   );
 }
 
@@ -506,7 +520,7 @@ class _YoutubeOAuthFeedbackBannerState
         final status = await ref
             .read(youtubeConnectionProvider.future)
             .timeout(const Duration(seconds: 3));
-        if (status?['connected'] == true) {
+        if (_hasYoutubeAccess(status)) {
           return true;
         }
       } catch (_) {
@@ -537,8 +551,10 @@ class _YoutubeOAuthFeedbackBannerState
     try {
       final connected = await _waitForConnectionStatus();
       if (!connected) {
-        throw StateError(
-          'Google authorised YouTube, but TubeFlow could not confirm the saved connection yet.',
+        AppLogger.instance.log(
+          'YouTube OAuth return is waiting on Convex status propagation; continuing with playlist sync',
+          source: 'YoutubeConnect',
+          level: LogLevel.warning,
         );
       }
 
