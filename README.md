@@ -34,6 +34,12 @@ Both are required at **build time** (`--dart-define`), not runtime. Flutter web 
 
 See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks.
 
+Convex deployment variables used by backend features:
+
+| Variable | Purpose |
+|---|---|
+| `FEEDBACK_ADMIN_EMAILS` | Comma-separated allowlist of admin emails allowed to open the in-app feedback admin screen. Set on the Convex deployment, not in Flutter `--dart-define`. |
+
 ## Tech Stack
 
 - **Flutter 3.8+ / Dart 3.8+** — web target
@@ -43,6 +49,7 @@ See `.env.example`. Preferred names are the plain variables above; `build.sh` al
 - **Convex** (`convex_flutter 3.0.1`) — backend queries / mutations / subscriptions, JWT-authenticated via Clerk `convex` template
 - **youtube_player_flutter** — video playback
 - **Material 3** — theming (light / dark / system)
+- **record + just_audio** — feedback audio capture and playback
 
 Convex backend lives in a **separate repository** at `/home/claude/tubeflow/packages/backend/convex/` — not in this project.
 

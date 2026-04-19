@@ -1424,6 +1424,15 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSignInCard(theme, authState, loading: _loading),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => context.go(Routes.feedback),
+            icon: const Icon(Icons.feedback_outlined, size: 18),
+            label: const Text('Send feedback without signing in'),
+          ),
+        ),
         if (noticeCard != null) ...[
           const SizedBox(height: 16),
           noticeCard,

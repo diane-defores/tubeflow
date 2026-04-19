@@ -431,6 +431,49 @@ final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
   );
 });
 
+class FeedbackAdminListArgs {
+  const FeedbackAdminListArgs({
+    this.status,
+    this.type,
+  });
+
+  final FeedbackEntryStatus? status;
+  final FeedbackEntryType? type;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FeedbackAdminListArgs &&
+          status == other.status &&
+          type == other.type;
+
+  @override
+  int get hashCode => Object.hash(status, type);
+}
+
+/// One-shot query for `feedback:isAdmin`.
+final feedbackIsAdminProvider = FutureProvider<bool>((ref) async {
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>('feedback:isAdmin', {});
+  return raw == true;
+});
+
+/// One-shot query for `feedback:listAdmin`.
+final feedbackAdminEntriesProvider =
+    FutureProvider.family<List<FeedbackEntry>, FeedbackAdminListArgs>((
+      ref,
+      args,
+    ) async {
+      final service = ref.watch(convexServiceProvider);
+      final raw = await service.query<dynamic>('feedback:listAdmin', {
+        if (args.status != null) 'status': args.status!.jsonValue,
+        if (args.type != null) 'type': args.type!.name,
+      });
+      return _decodeList(raw)
+          .map((json) => FeedbackEntry.fromJson(json))
+          .toList(growable: false);
+    });
+
 // ---------------------------------------------------------------------------
 // 8. hiddenItemsProvider
 // ---------------------------------------------------------------------------

@@ -15,5 +15,6 @@
 - [x] Extract duplicated `_parseColor()` into shared `color_utils.dart`
 - [x] Add security headers to `vercel.json` (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
 - [x] Use mutation helpers from `mutations.dart` consistently instead of calling `convexServiceProvider` directly in screens
+- [x] Implement feedback collection + admin review flow (text/audio, Convex storage, admin allowlist)
 - [ ] Verify Clerk + Convex bootstrap and WebSocket startup end-to-end in a real Flutter environment
 - [ ] Add tests (zero test coverage currently)

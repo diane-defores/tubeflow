@@ -304,3 +304,74 @@ Future<dynamic> updateSettings(
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('settings:updateAllSettings', patch);
 }
+
+// ---------------------------------------------------------------------------
+// Feedback
+// ---------------------------------------------------------------------------
+
+/// Requests a short-lived Convex upload URL for feedback audio blobs.
+Future<String> getFeedbackUploadUrl(WidgetRef ref) async {
+  final service = ref.read(convexServiceProvider);
+  final raw = await service.mutate<dynamic>('feedback:getUploadUrl', {});
+  if (raw is String && raw.isNotEmpty) {
+    return raw;
+  }
+  throw StateError('Convex feedback upload URL is missing');
+}
+
+/// Creates a text feedback entry.
+Future<dynamic> createFeedbackText(
+  WidgetRef ref, {
+  required String message,
+  required String platform,
+  required String locale,
+  String? buildCommitSha,
+  String? buildEnvironment,
+  String? buildTimestamp,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('feedback:createText', {
+    'message': message,
+    'platform': platform,
+    'locale': locale,
+    if (buildCommitSha != null) 'buildCommitSha': buildCommitSha,
+    if (buildEnvironment != null) 'buildEnvironment': buildEnvironment,
+    if (buildTimestamp != null) 'buildTimestamp': buildTimestamp,
+  });
+}
+
+/// Creates an audio feedback entry after the audio file has been uploaded.
+Future<dynamic> createFeedbackAudio(
+  WidgetRef ref, {
+  required String audioStorageId,
+  required int audioDurationMs,
+  required String platform,
+  required String locale,
+  String? message,
+  String? buildCommitSha,
+  String? buildEnvironment,
+  String? buildTimestamp,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('feedback:createAudio', {
+    'audioStorageId': audioStorageId,
+    'audioDurationMs': audioDurationMs,
+    'platform': platform,
+    'locale': locale,
+    if (message != null) 'message': message,
+    if (buildCommitSha != null) 'buildCommitSha': buildCommitSha,
+    if (buildEnvironment != null) 'buildEnvironment': buildEnvironment,
+    if (buildTimestamp != null) 'buildTimestamp': buildTimestamp,
+  });
+}
+
+/// Marks an admin feedback entry as reviewed.
+Future<dynamic> markFeedbackReviewed(
+  WidgetRef ref,
+  String feedbackId,
+) async {
+  final service = ref.read(convexServiceProvider);
+  return service.mutate<dynamic>('feedback:markReviewed', {
+    'feedbackId': feedbackId,
+  });
+}

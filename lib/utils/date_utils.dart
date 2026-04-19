@@ -43,3 +43,13 @@ String formatDate(int? timestampMs, {String locale = 'en'}) {
   final fmt = locale == 'fr' ? DateFormat('d MMM yyyy', 'fr') : DateFormat('MMM d, yyyy');
   return fmt.format(date);
 }
+
+/// Format a timestamp (milliseconds since epoch) as a date + time string.
+String formatDateTime(int? timestampMs, {String locale = 'en'}) {
+  if (timestampMs == null) return '';
+  final date = DateTime.fromMillisecondsSinceEpoch(timestampMs);
+  final fmt = locale == 'fr'
+      ? DateFormat('d MMM yyyy HH:mm', 'fr')
+      : DateFormat('MMM d, yyyy HH:mm');
+  return fmt.format(date);
+}

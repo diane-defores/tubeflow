@@ -149,6 +149,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     final playback = settings.playback;
     final notes = settings.notes;
     final transcriptLanguage = settings.transcripts.defaultLanguage;
+    final feedbackIsAdmin = ref.watch(feedbackIsAdminProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -423,6 +424,32 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               });
             },
           ),
+        ),
+        const Divider(),
+
+        _buildSectionHeader(context, 'Support'),
+        ListTile(
+          leading: const Icon(Icons.feedback_outlined),
+          title: const Text('Send feedback'),
+          subtitle: const Text('Report issues or tell us what to improve'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.go(Routes.feedback),
+        ),
+        feedbackIsAdmin.when(
+          data: (isAdmin) => isAdmin
+              ? ListTile(
+                  leading: const Icon(Icons.admin_panel_settings_outlined),
+                  title: const Text('Feedback admin'),
+                  subtitle: const Text('Review incoming text and audio feedback'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.go(Routes.feedbackAdmin),
+                )
+              : const SizedBox.shrink(),
+          loading: () => const ListTile(
+            leading: Icon(Icons.admin_panel_settings_outlined),
+            title: Text('Checking admin access…'),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
         ),
         const SizedBox(height: 32),
 

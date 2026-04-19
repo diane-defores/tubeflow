@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-04-19]
+
+### Added
+- In-app feedback submission flow with text and audio support, anonymous fallback, and dedicated Flutter screens/services for creation and admin review
+- Admin-only feedback inbox in Preferences with filters, audio playback, metadata, and mark-as-reviewed actions
+- `FEEDBACK_ADMIN_EMAILS` deployment variable documentation for the Convex-backed feedback admin allowlist
+
+### Changed
+- Router/auth flow now keeps `/feedback` publicly reachable while exposing the admin screen only to allowlisted users
+- Flutter feedback submissions now depend on Convex-backed providers/mutations instead of a local-only draft flow
+- Web deployment now allows microphone access via `Permissions-Policy` so browser audio feedback recording works in production
+
 ## [2026-04-18]
 
 ### Fixed

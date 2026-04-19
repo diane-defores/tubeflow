@@ -32,13 +32,16 @@ dependencies:
   cached_network_image: ^3.4.0
   shimmer: ^3.0.0
   google_fonts: ^6.2.0
+  just_audio: ^0.10.5
 
   # Storage
+  path_provider: ^2.1.5
   shared_preferences: ^2.3.0
 
   # Utilities
   intl: ^0.20.2
   http: ^1.6.0
+  record: ^6.2.0
   url_launcher: ^6.3.0
 
 dev_dependencies:

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/auth/auth_gate.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/screens/feedback/feedback_admin_screen.dart';
+import 'package:tubeflow_app/screens/feedback/feedback_screen.dart';
 import 'package:tubeflow_app/screens/hidden/hidden_screen.dart';
 import 'package:tubeflow_app/screens/notes/note_detail_screen.dart';
 import 'package:tubeflow_app/screens/notes/notes_screen.dart';
@@ -32,6 +34,8 @@ abstract final class Routes {
   static String noteDetail(String slug) => '/notes/$slug';
   static const notifications = '/notifications';
   static const preferences = '/preferences';
+  static const feedback = '/feedback';
+  static const feedbackAdmin = '/feedback/admin';
   static const hidden = '/hidden';
   static const stats = '/stats';
 }
@@ -50,6 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.videos,
     redirect: (BuildContext context, GoRouterState state) {
       final goingToSignIn = state.matchedLocation == Routes.signIn;
+      final goingToPublicFeedback = state.matchedLocation == Routes.feedback;
 
       if (isLoading) {
         return null;
@@ -58,7 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated && goingToSignIn) {
         return Routes.videos;
       }
-      if (!isAuthenticated && !goingToSignIn) {
+      if (!isAuthenticated && !goingToSignIn && !goingToPublicFeedback) {
         return Routes.signIn;
       }
       return null;
@@ -68,6 +73,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.signIn,
         builder: (context, state) => const ClerkSignInPage(),
+      ),
+      GoRoute(
+        path: Routes.feedback,
+        builder: (context, state) => const FeedbackScreen(),
+      ),
+      GoRoute(
+        path: Routes.feedbackAdmin,
+        builder: (context, state) => const FeedbackAdminScreen(),
       ),
 
       // Main app with shell navigation
