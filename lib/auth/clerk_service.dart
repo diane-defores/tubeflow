@@ -234,20 +234,10 @@ class ClerkService {
     }
 
     _webStartupRestorePending = false;
-    final fallbackUser = await _readLastKnownWebUser();
-    if (fallbackUser != null) {
-      authNotifier.setAuthenticated(fallbackUser);
-      AppLogger.instance.log(
-        'Clerk web startup restore exhausted; falling back to last known authenticated user ${fallbackUser.id}',
-        source: 'ClerkService',
-        level: LogLevel.warning,
-      );
-      return;
-    }
-
     authNotifier.setUnauthenticated();
+    await _persistKnownWebSession(false);
     AppLogger.instance.log(
-      'Clerk web startup restore exhausted without an active session',
+      'Clerk web startup restore exhausted without an active session; sign-in is required',
       source: 'ClerkService',
       level: LogLevel.warning,
     );
@@ -347,46 +337,15 @@ class ClerkService {
       return;
     }
 
-    await prefs.setString(_lastKnownWebUserKey, jsonEncode({
-      'id': user.id,
-      'email': user.email,
-      'displayName': user.displayName,
-      'imageUrl': user.imageUrl,
-    }));
-  }
-
-  Future<AuthUser?> _readLastKnownWebUser() async {
-    if (!kIsWeb) return null;
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_lastKnownWebUserKey);
-    if (raw == null || raw.isEmpty) {
-      return null;
-    }
-
-    try {
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      final id = json['id'] as String? ?? '';
-      final email = json['email'] as String? ?? '';
-      if (id.isEmpty || email.isEmpty) {
-        return null;
-      }
-
-      return AuthUser(
-        id: id,
-        email: email,
-        displayName: json['displayName'] as String?,
-        imageUrl: json['imageUrl'] as String?,
-      );
-    } catch (e, st) {
-      AppLogger.instance.log(
-        'Failed to decode last known Clerk web user',
-        source: 'ClerkService',
-        level: LogLevel.warning,
-        error: e,
-        stackTrace: st,
-      );
-      return null;
-    }
+    await prefs.setString(
+      _lastKnownWebUserKey,
+      jsonEncode({
+        'id': user.id,
+        'email': user.email,
+        'displayName': user.displayName,
+        'imageUrl': user.imageUrl,
+      }),
+    );
   }
 
   // ---------------------------------------------------------------------------

@@ -121,6 +121,21 @@ String _currentYoutubeReturnTo({String? preferredRoute}) {
   return _normaliseReturnTo(fragment);
 }
 
+String _currentRouterRoute({String? preferredRoute}) {
+  if (preferredRoute != null && preferredRoute.isNotEmpty) {
+    return preferredRoute.startsWith('/') ? preferredRoute : '/$preferredRoute';
+  }
+  if (!kIsWeb) return Routes.playlists;
+  final fragment = _fragmentUri(Uri.base);
+  if (fragment == null) return Routes.playlists;
+  return Uri(
+    path: fragment.path.isEmpty ? Routes.playlists : fragment.path,
+    queryParameters: fragment.queryParameters.isEmpty
+        ? null
+        : fragment.queryParameters,
+  ).toString();
+}
+
 String _cleanYoutubeFlowRoute(Uri uri) {
   final fragment = _fragmentUri(uri);
   if (fragment == null) return Routes.playlists;
@@ -192,11 +207,17 @@ Future<void> _launchYoutubeConnect(
       final prepared = await clerkWebPrepareSessionCookie();
       if (!prepared) {
         if (!context.mounted) return;
-        showErrorSnackBar(
-          context,
-          error:
-              'TubeFlow could not prepare your Clerk session for YouTube. Sign in again, then retry.',
-          prefix: 'YouTube connect failed',
+        final routeAfterSignIn = _currentRouterRoute(preferredRoute: returnTo);
+        AppLogger.instance.log(
+          'Cannot start YouTube OAuth because Clerk JS has no active session; routing to sign-in',
+          source: 'YoutubeConnect',
+          level: LogLevel.warning,
+        );
+        context.go(
+          Uri(
+            path: Routes.signIn,
+            queryParameters: {'tf_redirect': routeAfterSignIn},
+          ).toString(),
         );
         return;
       }
