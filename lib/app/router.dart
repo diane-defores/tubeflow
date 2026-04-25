@@ -49,6 +49,13 @@ String _redirectTarget(GoRouterState state) {
   ).toString();
 }
 
+String _resolvedRedirectTarget(GoRouterState state) {
+  final target = state.uri.queryParameters['tf_redirect'];
+  if (target == null || target.isEmpty) return Routes.videos;
+  if (target.startsWith('/')) return target;
+  return '/$target';
+}
+
 // ---------------------------------------------------------------------------
 // Router provider
 // ---------------------------------------------------------------------------
@@ -70,7 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (isAuthenticated && goingToSignIn) {
-        return Routes.videos;
+        return _resolvedRedirectTarget(state);
       }
       if (!isAuthenticated && !goingToSignIn && !goingToPublicFeedback) {
         return Uri(
