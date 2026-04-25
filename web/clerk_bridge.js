@@ -296,12 +296,28 @@
 
     async startGoogleSignIn(publishableKey, redirectUrl, redirectUrlComplete) {
       const clerk = await ensureLoaded(publishableKey);
-      await clerk.signIn.authenticateWithRedirect({
-        strategy: 'oauth_google',
-        redirectUrl,
-        redirectUrlComplete,
-      });
-      return true;
+      const signIn = clerk.signIn || clerk.client?.signIn;
+      if (signIn?.authenticateWithRedirect) {
+        await signIn.authenticateWithRedirect({
+          strategy: 'oauth_google',
+          redirectUrl,
+          redirectUrlComplete,
+        });
+        return true;
+      }
+
+      if (clerk.openSignIn) {
+        clerk.openSignIn({
+          oauthFlow: 'redirect',
+          forceRedirectUrl: redirectUrlComplete,
+          fallbackRedirectUrl: redirectUrlComplete,
+          signUpForceRedirectUrl: redirectUrlComplete,
+          signUpFallbackRedirectUrl: redirectUrlComplete,
+        });
+        return true;
+      }
+
+      throw new Error('Clerk JS does not expose a supported Google sign-in flow.');
     },
 
     async handleOAuthRedirect(publishableKey, redirectUrlComplete) {

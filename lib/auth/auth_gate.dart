@@ -550,7 +550,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   Future<void> _continueWithGoogleFallback() async {
     if (kIsWeb) {
       AppLogger.instance.log(
-        'Starting Google sign-in through Clerk JS redirect flow',
+        'Starting Google sign-in through Clerk JS flow',
         source: 'SignInScreen',
       );
       await _startGoogleSignInWithClerkJs();
