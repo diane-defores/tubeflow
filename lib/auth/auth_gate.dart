@@ -19,6 +19,7 @@ import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
 const _postAuthRouteParam = 'tf_redirect';
+const _postOAuthRouteParam = 'tf_redirect';
 
 String _normalizePostAuthRoute(String? route) {
   if (route == null || route.isEmpty) return Routes.videos;
@@ -563,10 +564,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   Future<void> _continueWithGoogleFallback() async {
     if (kIsWeb) {
       AppLogger.instance.log(
-        'Google fallback on web is routed to hosted Clerk sign-in because clerk_flutter uses the native sign-in endpoint for OAuth.',
+        'Starting Google sign-in through Clerk JS redirect flow',
         source: 'SignInScreen',
       );
-      await _openHostedSignIn();
+      await _startGoogleSignInWithClerkJs();
       return;
     }
 
@@ -601,6 +602,41 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       if (mounted) {
         setState(() => _loading = false);
       }
+    }
+  }
+
+  Future<void> _startGoogleSignInWithClerkJs() async {
+    final postAuthRoute = _currentPostAuthRoute();
+    final origin = Uri.base.origin;
+    final redirectUrl = Uri.parse(origin)
+        .replace(
+          path: '/sso-callback',
+          queryParameters: {_postOAuthRouteParam: postAuthRoute},
+        )
+        .toString();
+    final redirectUrlComplete = Uri.parse(
+      origin,
+    ).replace(fragment: postAuthRoute).toString();
+
+    try {
+      await _setPendingHostedSignIn(false);
+      await clerkWebStartGoogleSignIn(
+        redirectUrl: redirectUrl,
+        redirectUrlComplete: redirectUrlComplete,
+      );
+    } catch (e) {
+      AppLogger.instance.log(
+        'Google Clerk JS redirect sign-in failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = '$e';
+        _notice = null;
+      });
     }
   }
 

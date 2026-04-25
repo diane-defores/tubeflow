@@ -34,6 +34,7 @@ const _publishableKey = String.fromEnvironment(
 const _convexJwtTemplate = 'convex';
 const _knownClerkWebSessionKey = 'known_clerk_web_session';
 const _lastKnownWebUserKey = 'last_known_clerk_web_user';
+const _postOAuthRouteParam = 'tf_redirect';
 
 // ---------------------------------------------------------------------------
 // ClerkService
@@ -98,6 +99,9 @@ class ClerkService {
     try {
       if (kIsWeb) {
         await initClerkWebBridge(_publishableKey);
+        if (await _handleWebOAuthRedirectIfNeeded()) {
+          return;
+        }
         _webStartupRestorePending = true;
       }
       _authState = await ClerkAuthState.create(config: config);
@@ -143,6 +147,36 @@ class ClerkService {
   // ---------------------------------------------------------------------------
   // Reactive sync Clerk → AuthNotifier
   // ---------------------------------------------------------------------------
+
+  Future<bool> _handleWebOAuthRedirectIfNeeded() async {
+    if (!kIsWeb || Uri.base.path != '/sso-callback') {
+      return false;
+    }
+
+    final target = Uri.base.queryParameters[_postOAuthRouteParam] ?? '/videos';
+    final completeUrl = Uri.parse(Uri.base.origin)
+        .replace(fragment: target.startsWith('/') ? target : '/$target')
+        .toString();
+
+    AppLogger.instance.log(
+      'Handling Clerk OAuth redirect callback; completeUrl=$completeUrl',
+      source: 'ClerkService',
+    );
+
+    try {
+      await clerkWebHandleOAuthRedirect(completeUrl);
+    } catch (e, st) {
+      AppLogger.instance.log(
+        'Clerk OAuth redirect callback failed',
+        source: 'ClerkService',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
+      authNotifier.setUnauthenticated(error: '$e');
+    }
+    return true;
+  }
 
   /// Listener wired on [ClerkAuthState]. Translates the Clerk session into
   /// the app's sealed [AuthState] so the router can react immediately.

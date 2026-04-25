@@ -16,6 +16,15 @@ extension type _TubeFlowClerkBridge(JSObject _) implements JSObject {
     JSString publishableKey,
     JSString redirectUrl,
   );
+  external JSPromise<JSBoolean> startGoogleSignIn(
+    JSString publishableKey,
+    JSString redirectUrl,
+    JSString redirectUrlComplete,
+  );
+  external JSPromise<JSBoolean> handleOAuthRedirect(
+    JSString publishableKey,
+    JSString redirectUrlComplete,
+  );
   external JSPromise<JSBoolean> prepareSessionCookie(JSString publishableKey);
   external JSPromise<JSBoolean> signOut(JSString publishableKey);
 }
@@ -78,6 +87,31 @@ Future<String?> clerkWebBuildSignInUrl(String redirectUrl) async {
   final url =
       (await _bridge.buildSignInUrl(key.toJS, redirectUrl.toJS).toDart).toDart;
   return url.isEmpty ? null : url;
+}
+
+Future<bool> clerkWebStartGoogleSignIn({
+  required String redirectUrl,
+  required String redirectUrlComplete,
+}) async {
+  final key = _publishableKey;
+  if (key == null || key.isEmpty) return false;
+  return (await _bridge
+          .startGoogleSignIn(
+            key.toJS,
+            redirectUrl.toJS,
+            redirectUrlComplete.toJS,
+          )
+          .toDart)
+      .toDart;
+}
+
+Future<bool> clerkWebHandleOAuthRedirect(String redirectUrlComplete) async {
+  final key = _publishableKey;
+  if (key == null || key.isEmpty) return false;
+  return (await _bridge
+          .handleOAuthRedirect(key.toJS, redirectUrlComplete.toJS)
+          .toDart)
+      .toDart;
 }
 
 Future<bool> clerkWebPrepareSessionCookie() async {

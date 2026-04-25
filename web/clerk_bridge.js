@@ -294,6 +294,27 @@
       });
     },
 
+    async startGoogleSignIn(publishableKey, redirectUrl, redirectUrlComplete) {
+      const clerk = await ensureLoaded(publishableKey);
+      await clerk.signIn.authenticateWithRedirect({
+        strategy: 'oauth_google',
+        redirectUrl,
+        redirectUrlComplete,
+      });
+      return true;
+    },
+
+    async handleOAuthRedirect(publishableKey, redirectUrlComplete) {
+      const clerk = await ensureLoaded(publishableKey);
+      await clerk.handleRedirectCallback({
+        signInForceRedirectUrl: redirectUrlComplete,
+        signUpForceRedirectUrl: redirectUrlComplete,
+        signInFallbackRedirectUrl: redirectUrlComplete,
+        signUpFallbackRedirectUrl: redirectUrlComplete,
+      });
+      return true;
+    },
+
     async prepareSessionCookie(publishableKey) {
       const clerk = await ensureLoaded(publishableKey);
       const session = getActiveSession(clerk);
