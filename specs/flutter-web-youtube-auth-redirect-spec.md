@@ -22,7 +22,7 @@ The result is a web YouTube auth path that is harder to reason about, harder to 
 
 Replace the Flutter web popup YouTube OAuth path with a full-page redirect flow aligned with the working `tubeflow` web app:
 
-- the Flutter web client prepares the `clerk_session_id` cookie and redirects the current tab to `/api/auth/youtube`
+- the Flutter web client prepares the `tubeflow_youtube_clerk_session_id` transport cookie and redirects the current tab to `/api/auth/youtube`
 - the Vercel serverless OAuth handlers continue to own the Google code exchange, Clerk-to-Convex token mint, `users:ensureUser`, and `youtube:saveYoutubeTokens`
 - the callback returns to the Flutter app via a normal redirect carrying `youtube_connected` or `youtube_error` in the hash route
 - after the app reloads and bootstrap completes, Flutter re-reads YouTube connection state from Convex, then runs the refresh pipeline for playlists and videos
@@ -55,7 +55,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 - The Clerk Flutter beta limitation remains real; web still needs the JS bridge and `clerkWebPrepareSessionCookie()`.
 - The Flutter web app uses hash routing, so OAuth return URLs must remain compatible with `/#/...`.
 - Convex writes must continue to go through the established mutation/action helpers on the Flutter side.
-- The serverless callback must remain able to recover the Clerk session from `clerk_session_id`.
+- The serverless callback must remain able to recover the Clerk session from `tubeflow_youtube_clerk_session_id` without clearing Clerk's own browser session state.
 - The implementation must preserve the existing auth bootstrap order in `main.dart` and `ClerkService`.
 
 # Dependencies
@@ -102,7 +102,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 # Edge Cases
 
 - The browser returns from Google with `youtube_error` and the app lands on `/#/preferences`.
-- The `clerk_session_id` cookie is missing or expired before `/api/auth/youtube` or the callback runs.
+- The `tubeflow_youtube_clerk_session_id` cookie is missing or expired before `/api/auth/youtube` or the callback runs.
 - Google returns success but Convex status is not yet visible on the first query after redirect.
 - `return_to` is absent, malformed, absolute, or points to `/`.
 - The user starts connect from a route with its own query string, for example `/#/videos?sortOrder=newest`.
@@ -164,13 +164,13 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 # Acceptance Criteria
 
-- [ ] CA 1: Given a signed-in Flutter web user on `/#/preferences`, when they press “Connect YouTube”, then the current tab redirects to `/api/auth/youtube?return_to=%2F%23%2Fpreferences` after preparing `clerk_session_id`.
+- [ ] CA 1: Given a signed-in Flutter web user on `/#/preferences`, when they press “Connect YouTube”, then the current tab redirects to `/api/auth/youtube?return_to=%2F%23%2Fpreferences` after preparing `tubeflow_youtube_clerk_session_id`.
 - [ ] CA 2: Given a successful Google OAuth flow, when the callback finishes server-side persistence, then the browser returns to the original in-app hash route with `youtube_connected=true` and no popup is involved.
 - [ ] CA 3: Given a failed Google OAuth flow or a missing Clerk session during callback, when the browser returns to the app, then the route contains `youtube_error=...` and the Flutter UI displays a visible error state without crashing.
 - [ ] CA 4: Given a redirect return with `youtube_connected=true`, when the app bootstrap completes, then Flutter invalidates YouTube state, confirms connection via Convex with bounded retries, and starts playlist refresh.
 - [ ] CA 5: Given that Convex status is still delayed on the first post-return read, when retries exhaust, then the user sees a recoverable “connected but setup needs attention” state and can retry sync manually.
 - [ ] CA 6: Given the user starts connect from `/#/videos` or `/#/play`, when OAuth succeeds, then the app returns to the same logical route rather than always forcing `/#/playlists`.
-- [ ] CA 7: Given the server callback succeeds, when temporary OAuth cookies are cleaned up, then `youtube_oauth_state`, `youtube_oauth_return_to`, and `clerk_session_id` are removed from the browser, and Flutter web session restoration still succeeds from the Clerk JS session after redirect.
+- [ ] CA 7: Given the server callback succeeds, when temporary OAuth cookies are cleaned up, then `youtube_oauth_state`, `youtube_oauth_return_to`, and `tubeflow_youtube_clerk_session_id` are removed from the browser, and Flutter web session restoration still succeeds from the Clerk JS session after redirect.
 - [ ] CA 8: Given the user opens the preferences diagnostics after this change, when they read the help text, then no copy incorrectly states that Google opened in a popup on web.
 - [ ] CA 9: Given connect is initiated from any existing CTA surface, when the implementation is complete, then all surfaces use the same redirect-based path and none relies on popup completion payloads.
 - [ ] CA 10: Given the app is already connected to YouTube, when the user manually triggers sync, then the refresh pipeline still fetches playlists first and playlist items second using the current Convex action names.
@@ -185,7 +185,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
   - retry after an intentional OAuth denial
   - retry after disconnect
 - Serverless callback verification:
-  - success path with valid `clerk_session_id`
+  - success path with valid `tubeflow_youtube_clerk_session_id`
   - missing session path
   - invalid state path
   - missing env var path
@@ -207,7 +207,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 - If redirect-return route cleanup is mishandled, users may get stuck with stale `youtube_connected` or `youtube_error` params in the hash.
 - If `return_to` sanitization regresses, users may always land on playlists or lose screen-specific context.
-- If the callback clears `clerk_session_id` too early or fails before persistence completes, the user may return without a saved connection and with weak diagnostics.
+- If the callback clears the temporary session transport cookie too early or fails before persistence completes, the user may return without a saved connection and with weak diagnostics.
 - If the feedback banner becomes the only place that runs refresh, route/shell changes could unintentionally suppress the initial sync.
 - Removing popup support changes UX expectations; copy and diagnostics must be updated together to avoid confusion during rollout.
 - Because the current `youtubeConnectionProvider` is still a one-shot query, excessively aggressive invalidation could still produce transient loading states; retries and copy must make that recoverable rather than fatal.
@@ -238,7 +238,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
   - run static checks available in the environment after implementation
 - Implementation verification checklist:
   - confirm the final flow still matches the working `tubeflow` pattern: set Clerk session cookie, redirect to server auth route, let server callback persist tokens, return with URL flag, then refresh from Convex
-  - confirm `clerk_session_id` is treated as a temporary transport cookie only and not as the source of truth for the restored session after redirect
+  - confirm `tubeflow_youtube_clerk_session_id` is treated as a temporary transport cookie only and not as the source of truth for the restored session after redirect
 - Stop conditions / reroute:
   - if `return_to` reconstruction fails for hash routes, pause and validate `buildReturnUrl(...)` behavior before changing more UI code
   - if server callback persistence succeeds but Convex status never reflects tokens after redirect, reroute investigation to backend `youtube:getYoutubeConnectionStatus` and Convex auth propagation before changing Flutter UI further

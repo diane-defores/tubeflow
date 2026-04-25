@@ -302,7 +302,7 @@
       }
 
       const parts = [
-        `clerk_session_id=${encodeURIComponent(session.id)}`,
+        `tubeflow_youtube_clerk_session_id=${encodeURIComponent(session.id)}`,
         'Path=/',
         'Max-Age=600',
         'SameSite=Lax',

@@ -40,6 +40,15 @@ abstract final class Routes {
   static const stats = '/stats';
 }
 
+String _redirectTarget(GoRouterState state) {
+  final uri = state.uri;
+  final path = uri.path.isEmpty || uri.path == '/' ? Routes.videos : uri.path;
+  return Uri(
+    path: path,
+    queryParameters: uri.queryParameters.isEmpty ? null : uri.queryParameters,
+  ).toString();
+}
+
 // ---------------------------------------------------------------------------
 // Router provider
 // ---------------------------------------------------------------------------
@@ -64,7 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return Routes.videos;
       }
       if (!isAuthenticated && !goingToSignIn && !goingToPublicFeedback) {
-        return Routes.signIn;
+        return Uri(
+          path: Routes.signIn,
+          queryParameters: {'tf_redirect': _redirectTarget(state)},
+        ).toString();
       }
       return null;
     },
@@ -117,9 +129,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: ':id',
-                builder: (context, state) => PlaylistDetailScreen(
-                  id: state.pathParameters['id']!,
-                ),
+                builder: (context, state) =>
+                    PlaylistDetailScreen(id: state.pathParameters['id']!),
               ),
             ],
           ),
@@ -132,9 +143,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: ':slug',
-                builder: (context, state) => NoteDetailScreen(
-                  slug: state.pathParameters['slug']!,
-                ),
+                builder: (context, state) =>
+                    NoteDetailScreen(slug: state.pathParameters['slug']!),
               ),
             ],
           ),

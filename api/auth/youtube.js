@@ -25,7 +25,8 @@ module.exports = async function handler(req, res) {
   const requestUrl = new URL(req.url, origin);
   const returnTo = sanitizeReturnTo(requestUrl.searchParams.get('return_to'));
   const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.clerk_session_id;
+  const sessionId =
+    cookies.tubeflow_youtube_clerk_session_id || cookies.clerk_session_id;
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
     'NEXT_PUBLIC_GOOGLE_CLIENT_ID',

@@ -430,6 +430,14 @@ class _YoutubeOAuthFeedbackBannerState
     final params = _youtubeFlowParams(Uri.base);
     if (params[_youtubeConnectedParam] != 'true') {
       _started = true;
+      final error = params[_youtubeErrorParam];
+      if (error != null && error.isNotEmpty) {
+        AppLogger.instance.log(
+          'Handling failed YouTube OAuth redirect return: $error',
+          source: 'YoutubeConnect',
+          level: LogLevel.warning,
+        );
+      }
       return;
     }
 
