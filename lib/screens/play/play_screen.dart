@@ -6,7 +6,6 @@ import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
-import 'package:tubeflow_app/utils/duration_utils.dart';
 import 'package:tubeflow_app/widgets/common_app_bar_actions.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 import 'package:tubeflow_app/widgets/youtube_connect.dart';
@@ -98,10 +97,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
             icon: const Icon(Icons.playlist_play),
             onPressed: () {
               if (!youtubeConnected) {
-                startYoutubeConnectFlow(
-                  context,
-                  returnTo: Routes.play,
-                );
+                startYoutubeConnectFlow(context, returnTo: Routes.play);
                 return;
               }
               // TODO: show playlist queue drawer
@@ -144,17 +140,16 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                       const SizedBox(height: 16),
                       Text(
                         'Choose a video to start playback',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Open Videos or Playlists, then select a synced YouTube video to unlock playback, transcript, and notes.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                          color: Colors.grey[600],
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -257,7 +252,10 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                     icon: const Icon(Icons.replay_10),
                     onPressed: () {
                       setState(() {
-                        _currentTimestamp = (_currentTimestamp - 10).clamp(0, 300);
+                        _currentTimestamp = (_currentTimestamp - 10).clamp(
+                          0,
+                          300,
+                        );
                       });
                     },
                   ),
@@ -272,7 +270,10 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                     icon: const Icon(Icons.forward_10),
                     onPressed: () {
                       setState(() {
-                        _currentTimestamp = (_currentTimestamp + 10).clamp(0, 300);
+                        _currentTimestamp = (_currentTimestamp + 10).clamp(
+                          0,
+                          300,
+                        );
                       });
                     },
                   ),
@@ -298,7 +299,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                 child: TextField(
                   controller: _noteController,
                   decoration: InputDecoration(
-                    hintText: 'Add a note at ${_formatTime(_currentTimestamp)}...',
+                    hintText:
+                        'Add a note at ${_formatTime(_currentTimestamp)}...',
                     border: const OutlineInputBorder(),
                     isDense: true,
                   ),
@@ -313,7 +315,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                   final content = _noteController.text.trim();
                   if (content.isEmpty) return;
                   try {
-                    await createNote(ref,
+                    await createNote(
+                      ref,
                       videoId: widget.videoId,
                       content: content,
                       timestamp: _currentTimestamp,
@@ -323,13 +326,12 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                     );
                     _noteController.clear();
                   } catch (e) {
-                    if (context.mounted) {
-                      showErrorSnackBar(
-                        context,
-                        error: e,
-                        prefix: 'Failed to save note',
-                      );
-                    }
+                    if (!mounted) return;
+                    showErrorSnackBar(
+                      context,
+                      error: e,
+                      prefix: 'Failed to save note',
+                    );
                   }
                 },
               ),
@@ -361,7 +363,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                           ? TextButton(
                               onPressed: () {
                                 setState(
-                                    () => _currentTimestamp = note.timestamp!);
+                                  () => _currentTimestamp = note.timestamp!,
+                                );
                                 // TODO: seek player to timestamp
                               },
                               child: Text(
@@ -469,10 +472,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
         children: [
           Icon(Icons.comment_outlined, size: 48, color: Colors.grey),
           SizedBox(height: 16),
-          Text(
-            'Comments coming soon',
-            style: TextStyle(color: Colors.grey),
-          ),
+          Text('Comments coming soon', style: TextStyle(color: Colors.grey)),
           SizedBox(height: 8),
           Text(
             'YouTube comments will be displayed here',

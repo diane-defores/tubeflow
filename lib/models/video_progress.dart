@@ -108,5 +108,5 @@ class VideoProgress {
   @override
   String toString() =>
       'VideoProgress(id: $id, youtubeVideoId: $youtubeVideoId, '
-      'progress: ${formattedProgress})';
+      'progress: $formattedProgress)';
 }

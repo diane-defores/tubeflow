@@ -72,6 +72,7 @@ function appendCookies(res, cookies) {
 
 function sanitizeReturnTo(value) {
   if (!value) return DEFAULT_RETURN_TO;
+  if (value === '/') return DEFAULT_RETURN_TO;
 
   if (value.startsWith('/#/')) {
     return value;

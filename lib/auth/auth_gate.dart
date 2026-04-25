@@ -40,7 +40,9 @@ String _currentPostAuthRoute() {
 
   return Uri(
     path: path,
-    queryParameters: parsed.queryParameters.isEmpty ? null : parsed.queryParameters,
+    queryParameters: parsed.queryParameters.isEmpty
+        ? null
+        : parsed.queryParameters,
   ).toString();
 }
 
@@ -70,9 +72,7 @@ class ClerkSignInPage extends ConsumerWidget {
     final authState = ref.watch(clerkServiceProvider).authState;
 
     if (appAuthState is AuthLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (appAuthState is AuthAuthenticated) {
@@ -81,16 +81,14 @@ class ClerkSignInPage extends ConsumerWidget {
           context.go(_resolvedPostAuthRoute());
         }
       });
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (authState == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: InlineErrorCard(
               error:
                   'Clerk is not configured for this build. '
@@ -106,7 +104,7 @@ class ClerkSignInPage extends ConsumerWidget {
       authState: authState,
       child: ClerkErrorListener(
         handler: _handleClerkError,
-        child: AuthGate(child: SizedBox.shrink()),
+        child: const AuthGate(child: SizedBox.shrink()),
       ),
     );
   }
@@ -534,7 +532,8 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         TextInput.finishAutofillContext();
       }
 
-      if (mounted && authState.signUp?.unverified(clerk.Field.emailAddress) != true) {
+      if (mounted &&
+          authState.signUp?.unverified(clerk.Field.emailAddress) != true) {
         setState(() {
           _awaitingEmailCodeVerification = false;
           _verificationEmail = null;
@@ -721,7 +720,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   }
 
   Future<void> _maybeAutoTriggerHostedSync() async {
-    if (!kIsWeb || _autoHostedSyncAttempted || _hostedResumeStarted || !mounted) {
+    if (!kIsWeb ||
+        _autoHostedSyncAttempted ||
+        _hostedResumeStarted ||
+        !mounted) {
       return;
     }
 
@@ -730,9 +732,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     final prefs = await SharedPreferences.getInstance();
     final hadKnownSession = prefs.getBool(_knownClerkWebSessionKey) ?? false;
-    final hasPersistedClerkState = prefs
-        .getKeys()
-        .any((key) => key.startsWith(_clerkPersistPrefix));
+    final hasPersistedClerkState = prefs.getKeys().any(
+      (key) => key.startsWith(_clerkPersistPrefix),
+    );
     if (!hadKnownSession && !hasPersistedClerkState) {
       return;
     }
@@ -906,10 +908,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              description,
-              style: theme.textTheme.bodySmall,
-            ),
+            Text(description, style: theme.textTheme.bodySmall),
             const SizedBox(height: 16),
             if (loading) ...[
               const Center(child: CircularProgressIndicator()),
@@ -1003,7 +1002,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                       ? _signUpWithEmailPassword
                       : _signInWithEmailPassword,
                   child: Text(
-                    isSignUpMode ? 'Create account with email' : 'Sign in with email',
+                    isSignUpMode
+                        ? 'Create account with email'
+                        : 'Sign in with email',
                   ),
                 ),
               ),
@@ -1069,10 +1070,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'or',
-                        style: theme.textTheme.labelSmall,
-                      ),
+                      child: Text('or', style: theme.textTheme.labelSmall),
                     ),
                     Expanded(
                       child: Divider(
@@ -1091,10 +1089,8 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 child: OutlinedButton.icon(
                   onPressed: loading ? null : _continueWithGoogleFallback,
                   icon: const Icon(Icons.login),
-                  label: Text(
-                    kIsWeb
-                        ? 'Continue with Google'
-                        : 'Continue with Google',
+                  label: const Text(
+                    kIsWeb ? 'Continue with Google' : 'Continue with Google',
                   ),
                 ),
               ),
@@ -1103,8 +1099,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.45),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.45,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1333,10 +1330,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             ),
           ),
           SizedBox(height: compact ? 20 : 28),
-          Wrap(
+          const Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: const [
+            children: [
               _AuthFeaturePill(
                 icon: Icons.schedule,
                 label: 'Timestamped notes',
@@ -1355,7 +1352,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.38),
+              color: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.38,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -1368,10 +1367,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildHeroPoint(
-                  theme,
-                  'Resume your workspace across devices.',
-                ),
+                _buildHeroPoint(theme, 'Resume your workspace across devices.'),
                 const SizedBox(height: 10),
                 _buildHeroPoint(
                   theme,
@@ -1433,14 +1429,8 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             label: const Text('Send feedback without signing in'),
           ),
         ),
-        if (noticeCard != null) ...[
-          const SizedBox(height: 16),
-          noticeCard,
-        ],
-        if (errorCard != null) ...[
-          const SizedBox(height: 16),
-          errorCard,
-        ],
+        if (noticeCard != null) ...[const SizedBox(height: 16), noticeCard],
+        if (errorCard != null) ...[const SizedBox(height: 16), errorCard],
         const SizedBox(height: 16),
         _buildDiagnosticsCard(theme, authState, clerkService),
       ],
@@ -1516,10 +1506,7 @@ class _AuthGlow extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [
-              color,
-              color.withValues(alpha: 0.0),
-            ],
+            colors: [color, color.withValues(alpha: 0.0)],
           ),
         ),
       ),
@@ -1539,7 +1526,9 @@ class _AuthFeaturePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.42,
+        ),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(

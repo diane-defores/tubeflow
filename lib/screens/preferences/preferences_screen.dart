@@ -104,14 +104,14 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   }
 
   Widget _buildShimmerLoading() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return const Padding(
+      padding: EdgeInsets.all(16),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Row(
                 children: [
                   SizedBox(
@@ -137,10 +137,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     );
   }
 
-  Widget _buildSettingsBody(
-    BuildContext context,
-    PreferencesData data,
-  ) {
+  Widget _buildSettingsBody(BuildContext context, PreferencesData data) {
     final settings = data.settings;
     final subscription = data.subscription;
     final user = data.user;
@@ -279,14 +276,18 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           value: notifications.newVideos,
           onChanged: (value) {
             _persistSettings({
-              'notifications': notifications.copyWith(newVideos: value).toJson(),
+              'notifications': notifications
+                  .copyWith(newVideos: value)
+                  .toJson(),
             });
           },
         ),
         ListTile(
           leading: const Icon(Icons.schedule),
           title: const Text('Feed check interval'),
-          subtitle: Text(_intervalLabel(notifications.feedRefreshIntervalMinutes)),
+          subtitle: Text(
+            _intervalLabel(notifications.feedRefreshIntervalMinutes),
+          ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showChoiceDialog(
             title: 'Feed check interval',
@@ -298,8 +299,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               'Every 6 hours',
               'Daily',
             ],
-            currentValue:
-                _intervalLabel(notifications.feedRefreshIntervalMinutes),
+            currentValue: _intervalLabel(
+              notifications.feedRefreshIntervalMinutes,
+            ),
             onSelected: (value) {
               _persistSettings({
                 'notifications': notifications
@@ -349,7 +351,10 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           onTap: () => _showChoiceDialog(
             title: 'Default speed',
             options: const ['0.5', '0.75', '1', '1.25', '1.5', '1.75', '2'],
-            currentValue: '${playback.defaultSpeed ?? 1.0}'.replaceAll('.0', ''),
+            currentValue: '${playback.defaultSpeed ?? 1.0}'.replaceAll(
+              '.0',
+              '',
+            ),
             onSelected: (value) {
               _persistSettings({
                 'playback': playback
@@ -418,8 +423,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               _persistSettings({
                 'transcripts': {
                   ...settings.transcripts.toJson(),
-                  'defaultLanguage':
-                      value == 'Auto-detect' ? null : value.toLowerCase(),
+                  'defaultLanguage': value == 'Auto-detect'
+                      ? null
+                      : value.toLowerCase(),
                 },
               });
             },
@@ -440,7 +446,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               ? ListTile(
                   leading: const Icon(Icons.admin_panel_settings_outlined),
                   title: const Text('Feedback admin'),
-                  subtitle: const Text('Review incoming text and audio feedback'),
+                  subtitle: const Text(
+                    'Review incoming text and audio feedback',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.go(Routes.feedbackAdmin),
                 )
@@ -532,7 +540,10 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           return RadioListTile<String>(
             title: Text(option),
             value: option,
+            // TODO: Migrate to RadioGroup after the app updates its selection dialogs.
+            // ignore: deprecated_member_use
             groupValue: currentValue,
+            // ignore: deprecated_member_use
             onChanged: (value) {
               if (value != null) {
                 onSelected(value);
@@ -595,9 +606,9 @@ class _AccountTile extends ConsumerWidget {
       case AuthUnauthenticated(:final error):
         return Column(
           children: [
-            ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-              title: const Text('Not signed in'),
+            const ListTile(
+              leading: CircleAvatar(child: Icon(Icons.person_outline)),
+              title: Text('Not signed in'),
             ),
             if (error != null)
               Padding(

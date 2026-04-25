@@ -219,7 +219,7 @@ abstract final class AppTheme {
         fontWeight: FontWeight.w600,
         color: AppColors.primary,
       ),
-      unselectedLabelTextStyle: TextStyle(
+      unselectedLabelTextStyle: const TextStyle(
         fontFamily: _fontBody,
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -253,9 +253,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.primaryForeground,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: const TextStyle(
           fontFamily: _fontBody,
           fontWeight: FontWeight.w600,
@@ -268,9 +266,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.lightForeground,
         side: const BorderSide(color: AppColors.lightBorder),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: const TextStyle(
           fontFamily: _fontBody,
           fontWeight: FontWeight.w600,
@@ -280,16 +276,14 @@ abstract final class AppTheme {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.lightSecondary,
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
         fontFamily: _fontBody,
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: AppColors.lightSecondaryForeground,
       ),
       side: const BorderSide(color: AppColors.lightBorder),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.lightForeground,
@@ -297,9 +291,7 @@ abstract final class AppTheme {
         fontFamily: _fontBody,
         color: AppColors.lightCard,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       behavior: SnackBarBehavior.floating,
     ),
   );
@@ -363,7 +355,7 @@ abstract final class AppTheme {
         fontWeight: FontWeight.w600,
         color: AppColors.primary,
       ),
-      unselectedLabelTextStyle: TextStyle(
+      unselectedLabelTextStyle: const TextStyle(
         fontFamily: _fontBody,
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -397,9 +389,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.primaryForeground,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: const TextStyle(
           fontFamily: _fontBody,
           fontWeight: FontWeight.w600,
@@ -412,9 +402,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.darkForeground,
         side: const BorderSide(color: AppColors.darkBorder),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         textStyle: const TextStyle(
           fontFamily: _fontBody,
           fontWeight: FontWeight.w600,
@@ -424,16 +412,14 @@ abstract final class AppTheme {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.darkSecondary,
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
         fontFamily: _fontBody,
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: AppColors.darkSecondaryForeground,
       ),
       side: const BorderSide(color: AppColors.darkBorder),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.darkForeground,
@@ -441,9 +427,7 @@ abstract final class AppTheme {
         fontFamily: _fontBody,
         color: AppColors.darkCard,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       behavior: SnackBarBehavior.floating,
     ),
   );

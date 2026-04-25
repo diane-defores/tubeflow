@@ -11,8 +11,6 @@ import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
-import 'package:tubeflow_app/widgets/youtube_oauth_popup_bridge.dart';
-import 'package:tubeflow_app/widgets/youtube_oauth_popup_result.dart';
 
 /// Legacy build-time origin fallback kept for compatibility with older
 /// deployments. On the web we prefer the current browser origin, because the
@@ -30,6 +28,9 @@ const _youtubeConnectOrigin = String.fromEnvironment(
 const _youtubeConnectPath = '/api/auth/youtube';
 const _youtubeConnectedParam = 'youtube_connected';
 const _youtubeErrorParam = 'youtube_error';
+const _youtubeStatusCheckAttempts = 5;
+const _youtubeStatusCheckTimeout = Duration(seconds: 3);
+const _youtubeStatusCheckDelay = Duration(milliseconds: 700);
 
 /// True when [youtubeConnectionProvider] reports `connected: true`.
 bool _isYoutubeConnected(AsyncValue<Map<String, dynamic>?> async) {
@@ -45,8 +46,7 @@ String _formatYoutubeDiagnostics(Map<String, dynamic>? status) {
   final logs = AppLogger.instance.entries
       .where(
         (entry) =>
-            entry.source == 'YoutubeConnect' ||
-            entry.source == 'ConvexService',
+            entry.source == 'YoutubeConnect' || entry.source == 'ConvexService',
       )
       .toList();
 
@@ -64,8 +64,10 @@ String _formatYoutubeDiagnostics(Map<String, dynamic>? status) {
     'YouTube lastSyncAt: ${status?['lastSyncAt'] ?? 'unknown'}',
     '',
     'Recent YouTube logs:',
-    if (logs.isEmpty) '(no YoutubeConnect / ConvexService logs)'
-    else ...logs.map((entry) => entry.format()),
+    if (logs.isEmpty)
+      '(no YoutubeConnect / ConvexService logs)'
+    else
+      ...logs.map((entry) => entry.format()),
   ];
 
   return lines.join('\n');
@@ -147,13 +149,15 @@ void _invalidateYoutubeData(ProviderContainer container) {
   container.invalidate(videosProvider(const VideosArgs()));
 }
 
-Future<bool> _waitForYoutubeConnection(ProviderContainer container) async {
-  for (var attempt = 0; attempt < 5; attempt++) {
+Future<bool> _waitForYoutubeConnectionStatus(
+  ProviderContainer container,
+) async {
+  for (var attempt = 0; attempt < _youtubeStatusCheckAttempts; attempt++) {
     _invalidateYoutubeData(container);
     try {
       final status = await container
           .read(youtubeConnectionProvider.future)
-          .timeout(const Duration(seconds: 3));
+          .timeout(_youtubeStatusCheckTimeout);
       if (_hasYoutubeAccess(status)) {
         return true;
       }
@@ -161,81 +165,11 @@ Future<bool> _waitForYoutubeConnection(ProviderContainer container) async {
       // Retry below.
     }
 
-    if (attempt < 4) {
-      await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (attempt < _youtubeStatusCheckAttempts - 1) {
+      await Future<void>.delayed(_youtubeStatusCheckDelay);
     }
   }
   return false;
-}
-
-Future<void> _handleYoutubePopupResult(
-  BuildContext context,
-  ProviderContainer container,
-  YoutubeOAuthPopupResult result,
-) async {
-  if (result.closed) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('YouTube connect was closed before TubeFlow received a result.'),
-        ),
-      );
-    }
-    return;
-  }
-
-  if (result.hasError || !result.connected) {
-    if (context.mounted) {
-      showErrorSnackBar(
-        context,
-        error: result.error ?? 'TubeFlow could not complete the YouTube OAuth flow.',
-        prefix: 'YouTube connect failed',
-      );
-    }
-    return;
-  }
-
-  final connected = await _waitForYoutubeConnection(container);
-  if (!connected) {
-    AppLogger.instance.log(
-      'YouTube OAuth popup returned success before Convex status reflected the saved tokens',
-      source: 'YoutubeConnect',
-      level: LogLevel.warning,
-    );
-  }
-
-  var syncStarted = false;
-  try {
-    await syncAllPlaylistsWithContainer(container);
-    syncStarted = true;
-  } catch (e, st) {
-    AppLogger.instance.log(
-      'Initial popup-based YouTube sync failed',
-      source: 'YoutubeConnect',
-      level: LogLevel.warning,
-      error: e,
-      stackTrace: st,
-    );
-  } finally {
-    _invalidateYoutubeData(container);
-  }
-
-  if (!context.mounted) return;
-  if (connected || syncStarted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('YouTube connected. TubeFlow is syncing your playlists.'),
-      ),
-    );
-    return;
-  }
-
-  showErrorSnackBar(
-    context,
-    error:
-        'Google authorised YouTube, but TubeFlow could not confirm the saved connection yet.',
-    prefix: 'YouTube connect incomplete',
-  );
 }
 
 Future<void> _launchYoutubeConnect(
@@ -252,8 +186,6 @@ Future<void> _launchYoutubeConnect(
     );
     return;
   }
-
-  final container = _providerContainer(context);
 
   try {
     if (kIsWeb) {
@@ -272,21 +204,16 @@ Future<void> _launchYoutubeConnect(
 
     final target = Uri.parse(origin)
         .resolve(_youtubeConnectPath)
-        .replace(queryParameters: {
-      'return_to': _currentYoutubeReturnTo(preferredRoute: returnTo),
-      if (kIsWeb) 'popup': '1',
-    });
+        .replace(
+          queryParameters: {
+            'return_to': _currentYoutubeReturnTo(preferredRoute: returnTo),
+          },
+        );
 
     AppLogger.instance.log(
-      'Launching YouTube OAuth: $target',
+      'Redirecting to YouTube OAuth: $target',
       source: 'YoutubeConnect',
     );
-
-    if (kIsWeb) {
-      final result = await openYoutubeOauthPopup(target);
-      await _handleYoutubePopupResult(context, container, result);
-      return;
-    }
 
     final launched = await launchUrl(target, webOnlyWindowName: '_self');
     if (!launched && context.mounted) {
@@ -305,18 +232,11 @@ Future<void> _launchYoutubeConnect(
       stackTrace: st,
     );
     if (!context.mounted) return;
-    showErrorSnackBar(
-      context,
-      error: e,
-      prefix: 'YouTube connect failed',
-    );
+    showErrorSnackBar(context, error: e, prefix: 'YouTube connect failed');
   }
 }
 
-Future<void> startYoutubeConnectFlow(
-  BuildContext context, {
-  String? returnTo,
-}) {
+Future<void> startYoutubeConnectFlow(BuildContext context, {String? returnTo}) {
   return _launchYoutubeConnect(context, returnTo: returnTo);
 }
 
@@ -361,8 +281,9 @@ class YoutubeConnectionLoadingState extends StatelessWidget {
                   Text(
                     description,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.textTheme.bodySmall?.color
-                          ?.withValues(alpha: 0.82),
+                      color: theme.textTheme.bodySmall?.color?.withValues(
+                        alpha: 0.82,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -438,10 +359,8 @@ class YoutubeConnectRequiredState extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => startYoutubeConnectFlow(
-                        context,
-                        returnTo: returnTo,
-                      ),
+                      onPressed: () =>
+                          startYoutubeConnectFlow(context, returnTo: returnTo),
                       icon: const Icon(Icons.open_in_new_rounded, size: 18),
                       label: Text(ctaLabel),
                       style: FilledButton.styleFrom(
@@ -454,11 +373,12 @@ class YoutubeConnectRequiredState extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Text(
                     kIsWeb
-                        ? 'Google opens in a secure popup so TubeFlow stays open while you connect your account.'
+                        ? 'TubeFlow redirects this tab to Google, then brings you back automatically after YouTube authorisation.'
                         : 'Google opens in this tab, then returns to TubeFlow automatically.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color
-                          ?.withValues(alpha: 0.74),
+                      color: theme.textTheme.bodySmall?.color?.withValues(
+                        alpha: 0.74,
+                      ),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -495,6 +415,7 @@ class _YoutubeOAuthFeedbackBannerState
   bool _dismissed = false;
   bool _syncing = false;
   bool _syncComplete = false;
+  bool _connectionConfirmed = false;
   Object? _syncError;
 
   @override
@@ -518,28 +439,6 @@ class _YoutubeOAuthFeedbackBannerState
     });
   }
 
-  Future<bool> _waitForConnectionStatus() async {
-    final container = _providerContainer(context);
-    for (var attempt = 0; attempt < 5; attempt++) {
-      _invalidateYoutubeData(container);
-      try {
-        final status = await container
-            .read(youtubeConnectionProvider.future)
-            .timeout(const Duration(seconds: 3));
-        if (_hasYoutubeAccess(status)) {
-          return true;
-        }
-      } catch (_) {
-        // Retry below.
-      }
-
-      if (attempt < 4) {
-        await Future<void>.delayed(const Duration(milliseconds: 700));
-      }
-    }
-    return false;
-  }
-
   Future<void> _runPostConnectSync() async {
     if (!mounted) return;
     final container = _providerContainer(context);
@@ -547,19 +446,20 @@ class _YoutubeOAuthFeedbackBannerState
     setState(() {
       _syncing = true;
       _syncComplete = false;
+      _connectionConfirmed = false;
       _syncError = null;
     });
 
     AppLogger.instance.log(
-      'Handling successful YouTube OAuth return',
+      'Handling successful YouTube OAuth redirect return',
       source: 'YoutubeConnect',
     );
 
     try {
-      final connected = await _waitForConnectionStatus();
+      final connected = await _waitForYoutubeConnectionStatus(container);
       if (!connected) {
         AppLogger.instance.log(
-          'YouTube OAuth return is waiting on Convex status propagation; continuing with playlist sync',
+          'YouTube OAuth redirect returned success, but Convex status is still propagating after retries',
           source: 'YoutubeConnect',
           level: LogLevel.warning,
         );
@@ -571,6 +471,7 @@ class _YoutubeOAuthFeedbackBannerState
       if (!mounted) return;
       setState(() {
         _syncComplete = true;
+        _connectionConfirmed = connected;
       });
     } catch (e, st) {
       AppLogger.instance.log(
@@ -620,34 +521,41 @@ class _YoutubeOAuthFeedbackBannerState
     final colorScheme = theme.colorScheme;
 
     final isError = oauthError != null && oauthError.isNotEmpty;
-    final hasSyncIssue = !isError && _syncError != null;
+    final hasConnectionDelay =
+        !isError &&
+        _syncError == null &&
+        _syncComplete &&
+        !_connectionConfirmed;
+    final hasSyncIssue = !isError && (_syncError != null || hasConnectionDelay);
 
     final title = isError
         ? 'YouTube connection failed'
         : hasSyncIssue
-            ? 'YouTube connected, but setup needs attention'
-            : 'YouTube connected';
+        ? 'YouTube connected, but setup needs attention'
+        : 'YouTube connected';
 
     final description = isError
         ? oauthError
-        : hasSyncIssue
-            ? 'TubeFlow saved the Google authorisation, but the first refresh did not complete. You can retry from here or from Playlists.'
-            : _syncing
-                ? 'TubeFlow is confirming the connection and starting your first playlist sync.'
-                : _syncComplete
-                    ? 'Your YouTube account is linked. TubeFlow has started refreshing your playlists.'
-                    : 'Your YouTube account is linked. TubeFlow is ready to import your playlists.';
+        : _syncError != null
+        ? 'TubeFlow finished server-side authorisation, but the first refresh did not complete. You can retry from here or from Playlists.'
+        : hasConnectionDelay
+        ? 'Google authorisation completed, but TubeFlow still cannot confirm the saved connection in Convex. Retry sync in a moment or from Preferences.'
+        : _syncing
+        ? 'TubeFlow is confirming the server-completed YouTube connection and starting your first playlist sync.'
+        : _syncComplete
+        ? 'Your YouTube account is linked. TubeFlow has started refreshing your playlists.'
+        : 'Your YouTube account is linked. TubeFlow is ready to import your playlists.';
 
     final surfaceColor = isError
         ? colorScheme.errorContainer
         : hasSyncIssue
-            ? colorScheme.tertiaryContainer
-            : colorScheme.primaryContainer;
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
     final foregroundColor = isError
         ? colorScheme.onErrorContainer
         : hasSyncIssue
-            ? colorScheme.onTertiaryContainer
-            : colorScheme.onPrimaryContainer;
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
 
     return Material(
       color: surfaceColor,
@@ -666,8 +574,8 @@ class _YoutubeOAuthFeedbackBannerState
                     isError
                         ? Icons.error_outline_rounded
                         : hasSyncIssue
-                            ? Icons.sync_problem_rounded
-                            : Icons.check_circle_outline_rounded,
+                        ? Icons.sync_problem_rounded
+                        : Icons.check_circle_outline_rounded,
                     color: foregroundColor,
                   ),
                   const SizedBox(width: 12),
@@ -802,8 +710,9 @@ class YoutubeConnectBanner extends ConsumerWidget {
                     Text(
                       'TubeFlow will import your playlists and refresh them after you return from Google.',
                       style: TextStyle(
-                        color: colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.82),
+                        color: colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.82,
+                        ),
                         fontSize: 12,
                       ),
                     ),
@@ -900,9 +809,9 @@ class _YoutubeConnectionSettingsCardState
     await _runAction(() async {
       await disconnectYoutube(ref);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('YouTube disconnected.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('YouTube disconnected.')));
     });
   }
 
@@ -972,8 +881,9 @@ class _YoutubeConnectionSettingsCardState
                         Text(
                           description,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.82),
+                            color: theme.textTheme.bodySmall?.color?.withValues(
+                              alpha: 0.82,
+                            ),
                           ),
                         ),
                       ],
@@ -1028,7 +938,9 @@ class _YoutubeConnectionSettingsCardState
                         label: const Text('Sync now'),
                       ),
                       OutlinedButton.icon(
-                        onPressed: _busy ? null : () => context.go(Routes.playlists),
+                        onPressed: _busy
+                            ? null
+                            : () => context.go(Routes.playlists),
                         icon: const Icon(Icons.queue_music_rounded),
                         label: const Text('Open playlists'),
                       ),
@@ -1067,7 +979,9 @@ class _YoutubeConnectionSettingsCardState
               const SizedBox(height: 12),
               Card(
                 margin: EdgeInsets.zero,
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.45,
+                ),
                 child: ExpansionTile(
                   tilePadding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1196,8 +1110,9 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
               const SizedBox(height: 20),
               Text(
                 'Connect YouTube before you start',
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
@@ -1212,10 +1127,9 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed:
-                      loading
-                          ? null
-                          : () => _launchYoutubeConnect(context),
+                  onPressed: loading
+                      ? null
+                      : () => _launchYoutubeConnect(context),
                   icon: loading
                       ? const SizedBox(
                           width: 16,
@@ -1236,11 +1150,12 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(
                 kIsWeb
-                    ? 'Google opens in a secure popup so TubeFlow stays open while you connect your account.'
+                    ? 'TubeFlow redirects this tab to Google, then returns you to the same screen after YouTube authorisation.'
                     : 'Google opens in this tab, then returns to TubeFlow automatically.',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.textTheme.bodySmall?.color
-                      ?.withValues(alpha: 0.74),
+                  color: theme.textTheme.bodySmall?.color?.withValues(
+                    alpha: 0.74,
+                  ),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -1287,10 +1202,7 @@ class _SimpleEmptyState extends StatelessWidget {
               style: theme.textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[
-              const SizedBox(height: 16),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 16), action!],
           ],
         ),
       ),

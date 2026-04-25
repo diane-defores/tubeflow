@@ -104,17 +104,13 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
             SwitchListTile(
               title: const Text('Public'),
               subtitle: Text(
-                _isPublic
-                    ? 'Visible to everyone'
-                    : 'Only visible to you',
+                _isPublic ? 'Visible to everyone' : 'Only visible to you',
               ),
               value: _isPublic,
               onChanged: (value) {
                 setState(() => _isPublic = value);
               },
-              secondary: Icon(
-                _isPublic ? Icons.public : Icons.lock,
-              ),
+              secondary: Icon(_isPublic ? Icons.public : Icons.lock),
             ),
             const SizedBox(height: 24),
 
@@ -154,20 +150,13 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
             const SizedBox(height: 32),
 
             // Preview card
-            Text(
-              'Preview',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text('Preview', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Card(
               clipBehavior: Clip.antiAlias,
               child: Row(
                 children: [
-                  Container(
-                    width: 4,
-                    height: 60,
-                    color: _selectedColor,
-                  ),
+                  Container(width: 4, height: 60, color: _selectedColor),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Padding(
@@ -204,26 +193,24 @@ class _CreatePlaylistScreenState extends ConsumerState<CreatePlaylistScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await createPlaylist(ref,
+      await createPlaylist(
+        ref,
         title: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         privacyStatus: _isPublic ? 'public' : 'private',
-        color: '#${_selectedColor.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+        color:
+            '#${_selectedColor.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Playlist created!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Playlist created!')));
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(
-          context,
-          error: e,
-          prefix: 'Error creating playlist',
-        );
+        showErrorSnackBar(context, error: e, prefix: 'Error creating playlist');
       }
     } finally {
       if (mounted) {
