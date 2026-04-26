@@ -37,3 +37,5 @@ Future<bool> clerkWebPrepareSessionCookie() async => false;
 Future<void> clerkWebSignOut() async {}
 
 Future<bool> clerkWebResetState() async => false;
+
+Future<String> clerkWebDebugLog() async => '';

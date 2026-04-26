@@ -32,6 +32,7 @@ extension type _TubeFlowClerkBridge(JSObject _) implements JSObject {
   external JSPromise<JSBoolean> prepareSessionCookie(JSString publishableKey);
   external JSPromise<JSBoolean> signOut(JSString publishableKey);
   external JSPromise<JSBoolean> resetState(JSString publishableKey);
+  external JSPromise<JSString> getDebugLog();
 }
 
 class ClerkWebUser {
@@ -141,4 +142,8 @@ Future<bool> clerkWebResetState() async {
   final key = _publishableKey;
   if (key == null || key.isEmpty) return false;
   return (await _bridge.resetState(key.toJS).toDart).toDart;
+}
+
+Future<String> clerkWebDebugLog() async {
+  return (await _bridge.getDebugLog().toDart).toDart;
 }

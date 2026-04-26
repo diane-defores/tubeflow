@@ -267,11 +267,17 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     required ClerkAuthState authState,
     required ClerkService clerkService,
   }) async {
+    final clerkBridgeDebug = kIsWeb ? await clerkWebDebugLog() : '';
     final lines = [
       ..._diagnosticLines(authState: authState, clerkService: clerkService),
       '',
       'Recent logs:',
       AppLogger.instance.formatAll(),
+      if (clerkBridgeDebug.isNotEmpty) ...[
+        '',
+        'Clerk bridge redirect log:',
+        clerkBridgeDebug,
+      ],
     ];
 
     await Clipboard.setData(ClipboardData(text: lines.join('\n')));

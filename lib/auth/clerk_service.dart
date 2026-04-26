@@ -99,9 +99,7 @@ class ClerkService {
     try {
       if (kIsWeb) {
         await initClerkWebBridge(_publishableKey);
-        if (await _handleWebOAuthRedirectIfNeeded()) {
-          return;
-        }
+        await _handleWebOAuthRedirectIfNeeded();
         _webStartupRestorePending = true;
       }
       _authState = await ClerkAuthState.create(config: config);

@@ -2,6 +2,24 @@
   let loadPromise = null;
   const CLERK_JS_SCRIPT_ID = 'tubeflow-clerk-js';
   const CLERK_UI_SCRIPT_ID = 'tubeflow-clerk-ui';
+  const DEBUG_LOG_KEY = 'tubeflow_clerk_bridge_debug';
+
+  function debug(message, data) {
+    try {
+      const entries = JSON.parse(window.localStorage.getItem(DEBUG_LOG_KEY) || '[]');
+      entries.push({
+        timestamp: new Date().toISOString(),
+        message,
+        data: data || null,
+      });
+      window.localStorage.setItem(
+        DEBUG_LOG_KEY,
+        JSON.stringify(entries.slice(-80)),
+      );
+    } catch (_) {
+      // Debug logging must never break auth.
+    }
+  }
 
   function deriveFrontendApi(publishableKey) {
     const encoded = publishableKey.split('_')[2];
@@ -327,6 +345,13 @@
     async startGoogleSignIn(publishableKey, redirectUrl, redirectUrlComplete) {
       const clerk = await ensureLoaded(publishableKey);
       const signIn = clerk.signIn || clerk.client?.signIn;
+      debug('startGoogleSignIn', {
+        redirectUrl,
+        redirectUrlComplete,
+        hasAuthenticateWithRedirect: !!signIn?.authenticateWithRedirect,
+        hasOpenSignIn: !!clerk.openSignIn,
+        sessionId: clerk.session?.id || null,
+      });
       if (signIn?.authenticateWithRedirect) {
         await signIn.authenticateWithRedirect({
           strategy: 'oauth_google',
@@ -352,11 +377,20 @@
 
     async handleOAuthRedirect(publishableKey, redirectUrlComplete) {
       const clerk = await ensureLoaded(publishableKey);
+      debug('handleOAuthRedirect:start', {
+        href: window.location.href,
+        redirectUrlComplete,
+      });
       await clerk.handleRedirectCallback({
         signInForceRedirectUrl: redirectUrlComplete,
         signUpForceRedirectUrl: redirectUrlComplete,
         signInFallbackRedirectUrl: redirectUrlComplete,
         signUpFallbackRedirectUrl: redirectUrlComplete,
+      });
+      debug('handleOAuthRedirect:complete', {
+        href: window.location.href,
+        sessionId: clerk.session?.id || null,
+        signedIn: !!getActiveSession(clerk),
       });
       return true;
     },
@@ -406,6 +440,10 @@
       clerk.client?.clearCache?.();
       clearClerkStorage();
       return true;
+    },
+
+    async getDebugLog() {
+      return window.localStorage.getItem(DEBUG_LOG_KEY) || '';
     },
   };
 })();
