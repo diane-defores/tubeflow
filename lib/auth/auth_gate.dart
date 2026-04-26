@@ -1013,17 +1013,19 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 980;
+                  final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+                  final isKeyboardOpen = keyboardInset > 0;
                   final isCompactMobile =
-                      constraints.maxWidth < 640 &&
-                      constraints.maxHeight < 920 &&
-                      noticeCard == null &&
-                      errorCard == null;
+                      constraints.maxWidth < 768 ||
+                      (constraints.maxWidth < 980 && isKeyboardOpen);
 
                   return Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: isWide ? 40 : 20,
-                        vertical: isCompactMobile ? 12 : (isWide ? 32 : 20),
+                        vertical: isCompactMobile
+                            ? (isKeyboardOpen ? 8 : 12)
+                            : (isWide ? 32 : 20),
                       ),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1180),
@@ -1032,6 +1034,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                                 theme,
                                 authState,
                                 clerkService,
+                                noticeCard: noticeCard,
+                                errorCard: errorCard,
+                                isKeyboardOpen: isKeyboardOpen,
+                                keyboardInset: keyboardInset,
                               )
                             : SingleChildScrollView(
                                 child: isWide
@@ -1096,19 +1102,41 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   Widget _buildCompactMobileLayout(
     ThemeData theme,
     ClerkAuthState authState,
-    ClerkService clerkService,
-  ) {
+    ClerkService clerkService, {
+    Widget? noticeCard,
+    Widget? errorCard,
+    bool isKeyboardOpen = false,
+    double keyboardInset = 0,
+  }) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildHeroPanel(theme, compact: true, mobileFit: true),
+        const SizedBox(height: 12),
+        _buildSignInCard(theme, authState, loading: _loading, compact: true),
+        const SizedBox(height: 10),
+        _buildCompactSupportRow(
+          theme,
+          authState,
+          clerkService,
+          noticeCard: noticeCard,
+          errorCard: errorCard,
+        ),
+      ],
+    );
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 460),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildHeroPanel(theme, compact: true, mobileFit: true),
-          const SizedBox(height: 12),
-          _buildSignInCard(theme, authState, loading: _loading, compact: true),
-          const SizedBox(height: 10),
-          _buildCompactSupportRow(theme, authState, clerkService),
-        ],
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: isKeyboardOpen ? keyboardInset : 0),
+        child: isKeyboardOpen
+            ? SingleChildScrollView(child: content)
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [content],
+              ),
       ),
     );
   }
@@ -1399,10 +1427,24 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   Widget _buildCompactSupportRow(
     ThemeData theme,
     ClerkAuthState authState,
-    ClerkService clerkService,
-  ) {
+    ClerkService clerkService, {
+    Widget? noticeCard,
+    Widget? errorCard,
+  }) {
+    final hasMessages = noticeCard != null || errorCard != null;
     return Row(
       children: [
+        if (hasMessages) ...[
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  _showMessagesSheet(theme, noticeCard, errorCard),
+              icon: const Icon(Icons.info_outline, size: 18),
+              label: const Text('Status'),
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => context.go(Routes.feedback),
@@ -1423,6 +1465,42 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showMessagesSheet(
+    ThemeData theme,
+    Widget? noticeCard,
+    Widget? errorCard,
+  ) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sign-in status',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (noticeCard != null) noticeCard,
+                if (noticeCard != null && errorCard != null)
+                  const SizedBox(height: 12),
+                if (errorCard != null) errorCard,
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
