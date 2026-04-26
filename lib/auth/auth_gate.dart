@@ -563,6 +563,11 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   }
 
   Future<void> _continueWithGoogleFallback() async {
+    if (kIsWeb) {
+      await _continueWithGoogleWeb();
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -590,6 +595,64 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           _notice = null;
         });
       }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _continueWithGoogleWeb() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _notice = null;
+    });
+
+    final postAuthRoute = _currentPostAuthRoute();
+    final redirectUrl = Uri.parse(Uri.base.origin)
+        .replace(
+          path: '/sso-callback',
+          queryParameters: {_postAuthRouteParam: postAuthRoute},
+        )
+        .toString();
+    final redirectUrlComplete = Uri.parse(Uri.base.origin)
+        .replace(fragment: postAuthRoute)
+        .toString();
+
+    try {
+      await _setPendingHostedSignIn(true);
+      AppLogger.instance.log(
+        'Starting Google sign-in via Clerk web bridge',
+        source: 'SignInScreen',
+      );
+
+      final started = await clerkWebStartGoogleSignIn(
+        redirectUrl: redirectUrl,
+        redirectUrlComplete: redirectUrlComplete,
+      );
+
+      if (!started && mounted) {
+        setState(() {
+          _error = 'Clerk web Google sign-in failed to start.';
+          _notice = null;
+        });
+        await _setPendingHostedSignIn(false);
+      }
+    } catch (e) {
+      AppLogger.instance.log(
+        'Google web sign-in failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (mounted) {
+        setState(() {
+          _error = '$e';
+          _notice = null;
+        });
+      }
+      await _setPendingHostedSignIn(false);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
