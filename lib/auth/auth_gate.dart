@@ -209,8 +209,6 @@ enum _EmailAuthMode { signIn, signUp }
 class _SignInScreenState extends ConsumerState<_SignInScreen>
     with WidgetsBindingObserver {
   static const _pendingHostedSignInKey = 'pending_hosted_sign_in';
-  static const _knownClerkWebSessionKey = 'known_clerk_web_session';
-  static const _clerkPersistPrefix = 'clerk_sdk:';
   static const _hostedSignInPollAttempts = 6;
   static const _clerkSyncedParam = '__clerk_synced';
 
@@ -218,7 +216,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   String? _error;
   String? _notice;
   bool _hostedResumeStarted = false;
-  bool _autoHostedSyncAttempted = false;
   Timer? _hostedRefreshTimer;
   _EmailAuthMode _emailAuthMode = _EmailAuthMode.signIn;
   bool _awaitingEmailCodeVerification = false;
@@ -300,7 +297,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     _logEnvState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _resumeHostedSignInIfNeeded();
-      await _maybeAutoTriggerHostedSync();
     });
   }
 
@@ -567,15 +563,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
   }
 
   Future<void> _continueWithGoogleFallback() async {
-    if (kIsWeb) {
-      AppLogger.instance.log(
-        'Google fallback on web is routed to hosted Clerk sign-in because clerk_flutter uses the native sign-in endpoint for OAuth.',
-        source: 'SignInScreen',
-      );
-      await _openHostedSignIn();
-      return;
-    }
-
     setState(() {
       _loading = true;
       _error = null;
@@ -584,7 +571,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     try {
       AppLogger.instance.log(
-        'Starting Google fallback via fixed oauth strategy',
+        'Starting Google sign-in via Clerk SDK oauth strategy',
         source: 'SignInScreen',
       );
       await ClerkAuth.of(
@@ -769,44 +756,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         );
       }
     });
-  }
-
-  Future<void> _maybeAutoTriggerHostedSync() async {
-    if (!kIsWeb ||
-        _autoHostedSyncAttempted ||
-        _hostedResumeStarted ||
-        !mounted) {
-      return;
-    }
-
-    final pending = await _isPendingHostedSignIn();
-    if (pending) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final hadKnownSession = prefs.getBool(_knownClerkWebSessionKey) ?? false;
-    final hasPersistedClerkState = prefs.getKeys().any(
-      (key) => key.startsWith(_clerkPersistPrefix),
-    );
-    if (!hadKnownSession && !hasPersistedClerkState) {
-      return;
-    }
-
-    _autoHostedSyncAttempted = true;
-    AppLogger.instance.log(
-      'Detected previous Clerk web session state; triggering hosted sync handshake (known=$hadKnownSession persisted=$hasPersistedClerkState)',
-      source: 'SignInScreen',
-      level: LogLevel.warning,
-    );
-
-    if (mounted) {
-      setState(() {
-        _loading = true;
-        _error = null;
-        _notice = 'Restoring your secure session...';
-      });
-    }
-
-    await _openHostedSignIn();
   }
 
   Future<bool> _attemptHostedSignInResume() async {
