@@ -2622,3 +2622,17 @@
 [ 4851434ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
 [ 4861135ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/sso-callback?code=testcode&state=abc&tf_redirect=%2Fvideos:0
 [ 4861136ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[ 4863897ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4863897ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4863898ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4863898ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4863898ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4870838ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/sso-callback?code=testcode&state=abc&tf_redirect=%2Fvideos:0
+[ 4870838ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[ 4878897ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4878897ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4878898ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4878898ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4878898ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[ 4880525ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/sso-callback?code=testcode&state=abc&tf_redirect=%2Fvideos:0
+[ 4880525ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
