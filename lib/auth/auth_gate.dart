@@ -642,6 +642,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     ThemeData theme,
     ClerkAuthState authState, {
     required bool loading,
+    bool compact = false,
   }) {
     final envEmpty = authState.env.isEmpty;
     final hasPassword = envEmpty || authState.env.hasPasswordStrategy;
@@ -661,7 +662,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(compact ? 16 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -679,7 +680,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: compact ? 12 : 16),
             if (hasPassword) ...[
               SegmentedButton<_EmailAuthMode>(
                 segments: const [
@@ -702,7 +703,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                         }
                       },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: compact ? 12 : 16),
             ],
             Text(
               envEmpty
@@ -712,12 +713,17 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(description, style: theme.textTheme.bodySmall),
-            const SizedBox(height: 16),
+            SizedBox(height: compact ? 6 : 8),
+            Text(
+              description,
+              style: theme.textTheme.bodySmall,
+              maxLines: compact ? 3 : null,
+              overflow: compact ? TextOverflow.ellipsis : null,
+            ),
+            SizedBox(height: compact ? 12 : 16),
             if (loading) ...[
               const Center(child: CircularProgressIndicator()),
-              const SizedBox(height: 16),
+              SizedBox(height: compact ? 12 : 16),
             ],
             if (hasPassword) ...[
               AutofillGroup(
@@ -745,7 +751,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                         _passwordFocusNode.requestFocus();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: compact ? 10 : 12),
                     TextField(
                       controller: _passwordController,
                       focusNode: _passwordFocusNode,
@@ -775,7 +781,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                       },
                     ),
                     if (isSignUpMode) ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: compact ? 10 : 12),
                       TextField(
                         controller: _confirmPasswordController,
                         focusNode: _confirmPasswordFocusNode,
@@ -797,7 +803,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: compact ? 12 : 16),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -814,7 +820,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 ),
               ),
               if (isSignUpMode && _awaitingEmailCodeVerification) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: compact ? 10 : 12),
                 Card(
                   margin: EdgeInsets.zero,
                   color: theme.colorScheme.primary.withValues(alpha: 0.06),
@@ -836,7 +842,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                               : 'Enter the code sent to $_verificationEmail to finish creating your account.',
                           style: theme.textTheme.bodySmall,
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: compact ? 10 : 12),
                         TextField(
                           controller: _verificationCodeController,
                           focusNode: _verificationCodeFocusNode,
@@ -851,7 +857,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                           ),
                           onSubmitted: (_) => _verifyEmailSignUpCode(),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: compact ? 10 : 12),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
@@ -865,7 +871,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 ),
               ],
               if (hasGoogle) ...[
-                const SizedBox(height: 18),
+                SizedBox(height: compact ? 14 : 18),
                 Row(
                   children: [
                     Expanded(
@@ -884,9 +890,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                SizedBox(height: compact ? 14 : 18),
               ] else
-                const SizedBox(height: 12),
+                SizedBox(height: compact ? 10 : 12),
             ],
             if (hasGoogle)
               SizedBox(
@@ -899,7 +905,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   ),
                 ),
               ),
-            if (hasGoogle && kIsWeb) ...[
+            if (hasGoogle && kIsWeb && !compact) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -1007,57 +1013,73 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 980;
+                  final isCompactMobile =
+                      constraints.maxWidth < 640 &&
+                      constraints.maxHeight < 920 &&
+                      noticeCard == null &&
+                      errorCard == null;
 
                   return Center(
-                    child: SingleChildScrollView(
+                    child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: isWide ? 40 : 20,
-                        vertical: isWide ? 32 : 20,
+                        vertical: isCompactMobile ? 12 : (isWide ? 32 : 20),
                       ),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1180),
-                        child: isWide
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 28),
-                                      child: _buildHeroPanel(theme),
-                                    ),
-                                  ),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 460,
-                                    ),
-                                    child: _buildAuthColumn(
-                                      theme,
-                                      authState,
-                                      clerkService,
-                                      noticeCard,
-                                      errorCard,
-                                    ),
-                                  ),
-                                ],
+                        child: isCompactMobile
+                            ? _buildCompactMobileLayout(
+                                theme,
+                                authState,
+                                clerkService,
                               )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _buildHeroPanel(theme, compact: true),
-                                  const SizedBox(height: 24),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 460,
-                                    ),
-                                    child: _buildAuthColumn(
-                                      theme,
-                                      authState,
-                                      clerkService,
-                                      noticeCard,
-                                      errorCard,
-                                    ),
-                                  ),
-                                ],
+                            : SingleChildScrollView(
+                                child: isWide
+                                    ? Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 28,
+                                              ),
+                                              child: _buildHeroPanel(theme),
+                                            ),
+                                          ),
+                                          ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 460,
+                                            ),
+                                            child: _buildAuthColumn(
+                                              theme,
+                                              authState,
+                                              clerkService,
+                                              noticeCard,
+                                              errorCard,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          _buildHeroPanel(theme, compact: true),
+                                          const SizedBox(height: 24),
+                                          ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 460,
+                                            ),
+                                            child: _buildAuthColumn(
+                                              theme,
+                                              authState,
+                                              clerkService,
+                                              noticeCard,
+                                              errorCard,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                               ),
                       ),
                     ),
@@ -1071,8 +1093,140 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     );
   }
 
-  Widget _buildHeroPanel(ThemeData theme, {bool compact = false}) {
+  Widget _buildCompactMobileLayout(
+    ThemeData theme,
+    ClerkAuthState authState,
+    ClerkService clerkService,
+  ) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 460),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildHeroPanel(theme, compact: true, mobileFit: true),
+          const SizedBox(height: 12),
+          _buildSignInCard(theme, authState, loading: _loading, compact: true),
+          const SizedBox(height: 10),
+          _buildCompactSupportRow(theme, authState, clerkService),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroPanel(
+    ThemeData theme, {
+    bool compact = false,
+    bool mobileFit = false,
+  }) {
     final colorScheme = theme.colorScheme;
+    if (mobileFit) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.82),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.primary.withValues(alpha: 0.16),
+                        colorScheme.primary.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Icon(
+                    Icons.play_circle_filled_rounded,
+                    size: 38,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'Built for focused video study',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'TubeFlow',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 0.95,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Watch videos, capture key moments, and keep every note attached to the exact second that matters.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.45,
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.86,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _AuthFeaturePill(
+                  icon: Icons.schedule,
+                  label: 'Timestamped notes',
+                  compact: true,
+                ),
+                _AuthFeaturePill(
+                  icon: Icons.sync_rounded,
+                  label: 'Resume anywhere',
+                  compact: true,
+                ),
+                _AuthFeaturePill(
+                  icon: Icons.lock_outline_rounded,
+                  label: 'Secure Google sign-in',
+                  compact: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.all(compact ? 24 : 36),
       decoration: BoxDecoration(
@@ -1242,6 +1396,36 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     );
   }
 
+  Widget _buildCompactSupportRow(
+    ThemeData theme,
+    ClerkAuthState authState,
+    ClerkService clerkService,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => context.go(Routes.feedback),
+            icon: const Icon(Icons.feedback_outlined, size: 18),
+            label: const Text('Feedback'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => _showDiagnosticsSheet(
+              theme,
+              authState,
+              clerkService,
+            ),
+            icon: const Icon(Icons.health_and_safety_outlined, size: 18),
+            label: const Text('Diagnostics'),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDiagnosticsCard(
     ThemeData theme,
     ClerkAuthState authState,
@@ -1294,6 +1478,72 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       ),
     );
   }
+
+  Future<void> _showDiagnosticsSheet(
+    ThemeData theme,
+    ClerkAuthState authState,
+    ClerkService clerkService,
+  ) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Technical diagnostics',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _copyDiagnostics(
+                        authState: authState,
+                        clerkService: clerkService,
+                      ),
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Build, env vars, and recent auth logs',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      _diagnosticLines(
+                        authState: authState,
+                        clerkService: clerkService,
+                      ).join('\n'),
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _AuthGlow extends StatelessWidget {
@@ -1320,16 +1570,24 @@ class _AuthGlow extends StatelessWidget {
 }
 
 class _AuthFeaturePill extends StatelessWidget {
-  const _AuthFeaturePill({required this.icon, required this.label});
+  const _AuthFeaturePill({
+    required this.icon,
+    required this.label,
+    this.compact = false,
+  });
 
   final IconData icon;
   final String label;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 12,
+        vertical: compact ? 8 : 10,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.42,
@@ -1339,8 +1597,8 @@ class _AuthFeaturePill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
+          Icon(icon, size: compact ? 15 : 16, color: theme.colorScheme.primary),
+          SizedBox(width: compact ? 6 : 8),
           Text(
             label,
             style: theme.textTheme.labelLarge?.copyWith(
