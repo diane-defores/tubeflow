@@ -25,8 +25,7 @@ module.exports = async function handler(req, res) {
   const requestUrl = new URL(req.url, origin);
   const returnTo = sanitizeReturnTo(requestUrl.searchParams.get('return_to'));
   const cookies = parseCookies(req.headers.cookie);
-  const sessionId =
-    cookies.tubeflow_youtube_clerk_session_id || cookies.clerk_session_id;
+  const sessionId = cookies.tubeflow_youtube_clerk_session_id;
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
     'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
@@ -47,7 +46,7 @@ module.exports = async function handler(req, res) {
       res,
       buildReturnUrl(origin, returnTo, {
         youtube_error:
-          'TubeFlow could not find an active Clerk session. Sign in again, then retry YouTube.',
+          'TubeFlow could not find the YouTube auth session cookie. Start YouTube connect again from the app.',
       }),
     );
     return;

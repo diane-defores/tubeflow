@@ -182,8 +182,7 @@ module.exports = async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const storedState = cookies.youtube_oauth_state;
   const returnTo = cookies.youtube_oauth_return_to;
-  const sessionId =
-    cookies.tubeflow_youtube_clerk_session_id || cookies.clerk_session_id;
+  const sessionId = cookies.tubeflow_youtube_clerk_session_id;
 
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
@@ -244,7 +243,9 @@ module.exports = async function handler(req, res) {
   }
 
   if (!sessionId) {
-    redirectWithError('TubeFlow lost the Clerk session needed to finish YouTube setup.');
+    redirectWithError(
+      'TubeFlow lost the YouTube auth session cookie before callback. Start YouTube connect again from the app.',
+    );
     return;
   }
 
