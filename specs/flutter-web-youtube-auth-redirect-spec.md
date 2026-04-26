@@ -1,24 +1,28 @@
 ---
 artifact: spec
 metadata_schema_version: "1.0"
-artifact_version: "0.1.0"
+artifact_version: "1.0.0"
 project: tubeflow-app
 created: "2026-04-25"
-updated: "2026-04-25"
-status: draft
+updated: "2026-04-26"
+status: ready
 source_skill: sf-docs
 scope: feature
-owner: unknown
-confidence: low
+owner: Diane
+confidence: high
 risk_level: medium
-security_impact: unknown
+security_impact: yes
 docs_impact: yes
-user_story: "unknown (legacy spec migrated to ShipFlow metadata)"
-linked_systems: []
+user_story: "As a TubeFlow user, I can connect YouTube through a full-page OAuth redirect that works reliably on Flutter web and returns clear success or error feedback."
+linked_systems: ["Flutter Web", "Google OAuth", "Vercel Serverless Functions", "Clerk"]
 depends_on: []
 supersedes: []
-evidence: []
-next_step: "/sf-docs audit specs/flutter-web-youtube-auth-redirect-spec.md"
+evidence:
+  - "/home/claude/tubeflow-app/api/auth/youtube.js"
+  - "/home/claude/tubeflow-app/api/auth/youtube/callback.js"
+  - "/home/claude/tubeflow-app/api/auth/_youtube.js"
+  - "/home/claude/tubeflow-app/lib/widgets/youtube_connect.dart"
+next_step: "Keep redirect parameters and callback behavior aligned when OAuth routes change."
 ---
 # Title
 

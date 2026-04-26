@@ -50,13 +50,15 @@ class ConvexService {
   /// Must be called once before any queries, mutations or subscriptions.
   /// Typically called in `main()` before `runApp()`.
   static Future<ConvexService> initialize(String deploymentUrl) async {
-    await ConvexClient.initialize(
-      ConvexConfig(
-        deploymentUrl: deploymentUrl,
-        clientId: 'tubeflow-flutter-1.0',
-        operationTimeout: const Duration(seconds: 30),
-      ),
-    );
+    if (!kIsWeb) {
+      await ConvexClient.initialize(
+        ConvexConfig(
+          deploymentUrl: deploymentUrl,
+          clientId: 'tubeflow-flutter-1.0',
+          operationTimeout: const Duration(seconds: 30),
+        ),
+      );
+    }
     _instance = ConvexService._(deploymentUrl);
     return _instance!;
   }
@@ -80,6 +82,10 @@ class ConvexService {
   /// Typically wired to `ClerkService.getConvexToken`.
   Future<void> setAuth(Future<String?> Function() getToken) async {
     _tokenProvider = getToken;
+    if (kIsWeb) {
+      return;
+    }
+
     _authHandle = await ConvexClient.instance.setAuthWithRefresh(
       fetchToken: () async {
         final token = await getToken();
@@ -93,6 +99,11 @@ class ConvexService {
 
   /// Sets a one-shot auth token (useful for testing or manual token management).
   Future<void> setAuthToken(String token) async {
+    if (kIsWeb) {
+      _tokenProvider = () async => token;
+      return;
+    }
+
     await ConvexClient.instance.setAuth(token: token);
   }
 
@@ -206,6 +217,10 @@ class ConvexService {
   Stream<T> subscribe<T>(String path, Map<String, dynamic> args) {
     _assertNotDisposed();
 
+    if (kIsWeb) {
+      return _subscribeViaHttpPolling<T>(path, args);
+    }
+
     final controller = StreamController<T>.broadcast();
     SubscriptionHandle? handle;
 
@@ -273,7 +288,9 @@ class ConvexService {
   void dispose() {
     _disposed = true;
     clearAuth();
-    ConvexClient.instance.dispose();
+    if (!kIsWeb) {
+      ConvexClient.instance.dispose();
+    }
     _instance = null;
   }
 
@@ -284,6 +301,8 @@ class ConvexService {
   }
 
   Future<void> _waitForConnection() async {
+    if (kIsWeb) return;
+
     if (ConvexClient.instance.isConnected) return;
 
     await ConvexClient.instance.connectionState
@@ -372,6 +391,50 @@ class ConvexService {
       }
       return null;
     }
+  }
+
+  Stream<T> _subscribeViaHttpPolling<T>(
+    String path,
+    Map<String, dynamic> args,
+  ) {
+    late StreamController<T> controller;
+    Timer? timer;
+    var running = false;
+    String? lastEncoded;
+
+    Future<void> tick() async {
+      if (running || controller.isClosed) {
+        return;
+      }
+      running = true;
+      try {
+        final value = await _queryViaHttpBridge<T>(path, args);
+        final encoded = jsonEncode(value);
+        if (encoded != lastEncoded && !controller.isClosed) {
+          lastEncoded = encoded;
+          controller.add(value);
+        }
+      } catch (e, st) {
+        if (!controller.isClosed) {
+          controller.addError(e, st);
+        }
+      } finally {
+        running = false;
+      }
+    }
+
+    controller = StreamController<T>.broadcast(
+      onListen: () {
+        tick();
+        timer ??= Timer.periodic(const Duration(seconds: 10), (_) => tick());
+      },
+      onCancel: () {
+        timer?.cancel();
+        timer = null;
+      },
+    );
+
+    return controller.stream;
   }
 
   // ---------------------------------------------------------------------------

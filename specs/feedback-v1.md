@@ -1,24 +1,29 @@
 ---
 artifact: spec
 metadata_schema_version: "1.0"
-artifact_version: "0.1.0"
+artifact_version: "1.0.0"
 project: tubeflow-app
 created: "2026-04-25"
-updated: "2026-04-25"
-status: draft
+updated: "2026-04-26"
+status: ready
 source_skill: sf-docs
 scope: feature
-owner: unknown
-confidence: low
+owner: Diane
+confidence: high
 risk_level: medium
-security_impact: unknown
+security_impact: yes
 docs_impact: yes
-user_story: "unknown (legacy spec migrated to ShipFlow metadata)"
-linked_systems: []
+user_story: "As a TubeFlow user or evaluator, I can submit text or audio feedback, and authorized admins can review it from the app."
+linked_systems: ["Flutter Web", "Convex", "Clerk", "Vercel"]
 depends_on: []
 supersedes: []
-evidence: []
-next_step: "/sf-docs audit specs/feedback-v1.md"
+evidence:
+  - "/home/claude/tubeflow-app/lib/screens/feedback/feedback_screen.dart"
+  - "/home/claude/tubeflow-app/lib/screens/feedback/feedback_admin_screen.dart"
+  - "/home/claude/tubeflow-app/lib/providers/mutations.dart"
+  - "/home/claude/tubeflow-app/lib/providers/providers.dart"
+  - "/home/claude/tubeflow-app/vercel.json"
+next_step: "Keep aligned with the Convex backend feedback contract before implementation changes."
 ---
 # Spec Technique — Feedback App + Admin v1 pour TubeFlow
 

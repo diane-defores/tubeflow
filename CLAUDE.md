@@ -1,132 +1,144 @@
+---
+artifact: agent_guidance
+metadata_schema_version: "1.0"
+artifact_version: "1.0.0"
+project: "tubeflow-app"
+created: "2026-04-26"
+updated: "2026-04-26"
+status: "reviewed"
+source_skill: "sf-init"
+scope: "agent-guidance"
+owner: "Diane"
+confidence: "high"
+risk_level: "medium"
+docs_impact: "yes"
+security_impact: "medium"
+linked_systems:
+  - "Flutter"
+  - "Dart"
+  - "Riverpod"
+  - "go_router"
+  - "Clerk"
+  - "Convex"
+  - "Vercel"
+  - "YouTube OAuth"
+evidence:
+  - "README.md"
+  - ".env.example"
+  - "pubspec.yaml"
+  - "build.sh"
+  - "vercel.json"
+  - "api/auth/youtube.js"
+  - "api/auth/youtube/callback.js"
+  - "lib/main.dart"
+  - "lib/app/router.dart"
+  - "lib/auth/clerk_service.dart"
+  - "lib/auth/auth_state.dart"
+  - "lib/convex/convex_client.dart"
+  - "lib/providers/providers.dart"
+  - "lib/providers/mutations.dart"
+depends_on: []
+supersedes:
+  - artifact_version: "0.1.0"
+next_review: "2026-07-25"
+next_step: "Keep this file aligned with AGENT.md and ARCHITECTURE.md when bootstrap, auth, routing, or deployment changes."
+---
+
 # CLAUDE.md
 
-Guidance for Claude Code when working in `tubeflow-app` (the Flutter web client).
+Guidance for coding agents working in `tubeflow-app`, the Flutter web client for TubeFlow.
 
----
+## Project overview
 
-## Project Overview
+TubeFlow App is a Flutter web application for watching YouTube videos, taking timestamped notes, organizing playlists, tracking viewing history, managing preferences, and submitting feedback.
 
-Flutter web app for watching YouTube videos with timestamped notes, playlists, and viewing history. Authenticated via **Clerk**, backed by **Convex** (WebSocket + JWT). Deployed on Vercel as a static bundle.
+This repository is the client plus Vercel OAuth helper endpoints. The shared Convex backend lives outside this repo at `/home/claude/tubeflow/packages/backend/convex/` by default. Code under `lib/convex/` is client integration, not server code.
 
-The **Convex backend itself** (`packages/backend/convex/`) lives in a **different repository** at `/home/claude/tubeflow/` — not in this one. When a task mentions Convex schema or server functions, it's in that other repo.
+## Stack
 
-This Flutter app is a client of that shared backend. Files under `lib/convex/` are client/runtime integration only; they are not Convex server functions.
+- Flutter web, Dart SDK `>=3.8.0 <4.0.0`
+- Riverpod 3 with `riverpod_generator`
+- `go_router` 17 for auth-aware routing
+- Clerk via `clerk_flutter` and `clerk_auth`
+- Convex via `convex_flutter`
+- Material 3, `youtube_player_flutter`, `record`, `just_audio`, `shared_preferences`, `http`
+- Vercel static hosting plus Node serverless functions under `api/auth/`
 
----
+## Architecture invariants
 
-## Architecture
+1. `ClerkService` owns the long-lived `ClerkAuthState`; feature widgets must not create competing Clerk auth owners.
+2. `getConvexToken()` uses Clerk session token template `convex` and must fail soft by returning `null` when token minting is unavailable.
+3. Convex writes should go through `lib/providers/mutations.dart`.
+4. Feature reads should prefer typed providers in `lib/providers/providers.dart`.
+5. Client and backend function names are a shared contract; verify them before relying on new or renamed Convex functions.
+6. Build-time Flutter config is injected through `--dart-define`; server-only secrets stay in Vercel/backend env.
 
-### Bootstrap
+## Bootstrap flow
 
-`main.dart` → `_AppBootstrap` widget runs `_bootstrap()` once after the first frame:
+1. `main()` initializes Flutter bindings and error handlers.
+2. `main()` logs config/build metadata from `lib/app/build_info.dart`.
+3. `ConvexService.initialize(convexUrl)` runs only when `CONVEX_URL` is non-empty.
+4. `_AppBootstrap` waits for `clerkServiceProvider.ready` when Convex and Clerk config are present.
+5. `_AppBootstrap` wires `convex.setAuth(() => clerk.getConvexToken())`.
+6. If a Clerk session already exists, bootstrap waits for `clerk.waitForConvexTokenReady()` before auth-required flows depend on Convex auth.
+7. The app then renders either loading UI, configuration fallback UI, or `TubeFlowApp`.
 
-1. `ConvexService.initialize(convexUrl)` — opens the WebSocket (done earlier in `main()`).
-2. `ref.read(clerkServiceProvider)` creates `ClerkService`, which kicks off `ClerkAuthState.create(...)` in its constructor.
-3. `await clerk.ready` — waits for the Clerk state to be ready.
-4. `convex.setAuth(() => clerk.getConvexToken())` — wires the token callback.
-5. If a Clerk session is already present, bootstrap waits for a mintable Convex JWT before auth-required startup providers run.
+## Routing model
 
-**Critical**: the `ClerkAuthState` is owned by `ClerkService` (long-lived), not by the `ClerkAuth` widget in the sign-in page. The sign-in page mounts `ClerkAuth(authState: service.authState)` using the shared state, so the session survives navigation out of `/sign-in`.
+`lib/app/router.dart` defines public and protected routes. `/feedback` and `/feedback/admin` are public. All feature routes under the `ShellRoute` are protected and redirect unauthenticated users to `/sign-in?tf_redirect=...`.
 
-### Auth
+Protected feature routes include `/videos`, `/play`, `/playlists`, playlist detail/create routes, `/notes`, note detail routes, `/notifications`, `/preferences`, `/hidden`, and `/stats`.
 
-- `ClerkService` (`lib/auth/clerk_service.dart`) — the auth entry point for the rest of the app.
-  - `ready: Future<void>` — completes when `ClerkAuthState` is constructed (or when init failed / key missing).
-  - `authState: ClerkAuthState?` — the live state, non-null after `ready` if `CLERK_PUBLISHABLE_KEY` is set.
-  - `getConvexToken()` — calls `authState.sessionToken(templateName: 'convex')`, returns `.jwt` or `null`.
-  - `signOut()` — terminates Clerk session + updates `AuthNotifier`.
-- `AuthNotifier` (`lib/auth/auth_state.dart`) — Riverpod notifier the router watches to decide redirects.
-- `ClerkWebPersistor` (`lib/auth/clerk_web_persistor.dart`) — web-only session persistence (imports a `lib/src/` file from `clerk_auth`; this is expected, ignore the lint).
+## Auth and OAuth model
 
-### Convex
-
-- `ConvexService` (`lib/convex/convex_client.dart`) — wraps `convex_flutter`'s singleton client.
-  - `query<T>(path, args)`, `mutate<T>(path, args)`, `action<T>(path, args)` — all await `_waitForConnection()` first.
-  - `subscribe(path, args, onData, onError)` — WebSocket subscription.
-  - `setAuth(tokenFn)` — installs the token provider. Called once from bootstrap.
-- Production backend contract is shared with `/home/claude/tubeflow`. If Flutter starts calling a new Convex function, the backend deploy must land first or at the same time.
-- **All mutations go through `lib/providers/mutations.dart`** — screens must never call `convexServiceProvider` directly for writes. Reads (queries/subs) can go through providers or the service.
-- `_waitForConnection()` waits up to 30s for the WebSocket to reach `connected` state. Throws `TimeoutException` otherwise.
-
-### Routing
-
-- `lib/app/router.dart` — `go_router` config. Watches `authStateProvider` to redirect unauthenticated users to `/sign-in` and authenticated users away from it.
-- Screens are split by feature under `lib/screens/<feature>/`. Shell (bottom nav) lives in `lib/widgets/app_shell.dart`.
-
-### State management
-
-- **Riverpod 3** with code generation (`riverpod_annotation` + `riverpod_generator`).
-- Providers live in `lib/providers/providers.dart` and feature-adjacent `*_provider.dart` files.
-- Never call `ref.read(convexServiceProvider).mutate(...)` from a screen — use the helpers in `mutations.dart`.
-
----
+- `lib/auth/clerk_service.dart` initializes Clerk, handles web OAuth redirects, restores web sessions, mirrors state into `AuthNotifier`, and mints Convex JWTs.
+- `lib/auth/auth_gate.dart` renders sign-in using the shared Clerk state.
+- `api/auth/youtube.js` starts Google YouTube OAuth, stores state/return cookies, and redirects to Google.
+- `api/auth/youtube/callback.js` validates state, exchanges the Google code, mints a Clerk `convex` JWT using `CLERK_SECRET_KEY`, ensures the Convex user, and saves YouTube tokens through Convex mutations.
 
 ## Environment variables
 
-Both passed at **build time** via `--dart-define` (Flutter web bakes them into `main.dart.js`):
+Flutter build-time variables:
 
-- `CONVEX_URL` — **required**. App fails explicitly when missing (bootstrap throws, config-fallback screen renders).
-- `CLERK_PUBLISHABLE_KEY` — **optional**. When missing, the app runs in an unauth "guest mode" and `ClerkService` logs a warning.
+- `CONVEX_URL`
+- `CLERK_PUBLISHABLE_KEY`
+- `TUBEFLOW_APP_URL`
+- `CLERK_HOSTED_SIGN_IN_URL`
+- `BUILD_COMMIT_SHA`
+- `BUILD_ENVIRONMENT`
+- `BUILD_TIMESTAMP`
 
-No `NEXT_PUBLIC_` / `EXPO_` prefixes. These were removed in commit `0a09d3e`.
+Serverless/OAuth variables:
 
-For the Convex side:
+- `CLERK_SECRET_KEY`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
 
-- `CLERK_JWT_ISSUER_DOMAIN` must be set on the **Convex deployment** (not in this repo). Current value: `https://clerk.tubeflow.winflowz.com`.
-- A JWT template named `convex` (RS256 preset) must exist in the Clerk dashboard.
+Backend-only variables documented in `README.md`, such as `FEEDBACK_ADMIN_EMAILS`, belong on the Convex deployment, not in Flutter `--dart-define`.
 
----
-
-## Common tasks
+## Common commands
 
 ```bash
-# Install deps
 flutter pub get
-
-# Run dev (web)
-flutter run -d chrome \
-  --dart-define=CONVEX_URL=... \
-  --dart-define=CLERK_PUBLISHABLE_KEY=...
-
-# Static analyse (no network)
+flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=CLERK_PUBLISHABLE_KEY=... --dart-define=TUBEFLOW_APP_URL=...
 dart analyze lib/
-
-# Build web production
 bash build.sh
-
-# Check that Flutter's critical Convex functions still exist
 dart run tool/check_shared_backend_contract.dart
-
-# Regenerate Riverpod-annotated providers
 dart run build_runner build --delete-conflicting-outputs
 ```
 
----
+## Working rules
 
-## Critical rules
+- Do not hardcode secrets, live API keys, or production-only config in source.
+- Do not treat generated or committed files as disposable without checking project convention.
+- Keep public setup docs separate from product/business docs.
+- When changing providers or mutations, update the shared backend first or coordinate a same-window deployment.
+- When changing auth, verify both Flutter Clerk state ownership and Convex token readiness assumptions.
+- When changing deployment or OAuth, inspect `build.sh`, `vercel.json`, `.env.example`, and `api/auth/**` together.
 
-1. **Never hardcode env vars.** Always read via `String.fromEnvironment(...)` with the exact names `CONVEX_URL` / `CLERK_PUBLISHABLE_KEY`.
-2. **Never mount a second `ClerkAuth` widget that constructs its own `ClerkAuthState`.** If you need Clerk in a widget, use `ClerkAuth.of(context)` below the existing `ClerkAuth(authState: ...)` in the sign-in page, or (preferred) read the shared `clerkServiceProvider`.
-3. **All Convex writes go through `lib/providers/mutations.dart`.** Screens calling `convexServiceProvider.mutate(...)` directly are a regression — this was cleaned up in commit `c554790`.
-4. **`getConvexToken()` must never throw.** Return `null` on any error — Convex will fall back to unauthenticated access rather than failing the whole request.
-5. **Don't commit generated files** unless already tracked (`*.g.dart` from Riverpod — check `.gitignore`).
-6. **`pubspec.lock` IS committed** (removed from `.gitignore` in commit `4606d66`).
+## Known gotchas
 
----
-
-## Gotchas
-
-- `clerk_flutter 0.0.14-beta` exposes `ClerkAuthState` only via an InheritedWidget (`ClerkAuth.of(context)`). We work around this by owning the state in `ClerkService` and passing it to `ClerkAuth(authState: ...)`.
-- Flutter web session persistence isn't supported out-of-the-box by `clerk_flutter` — `ClerkWebPersistor` fills the gap.
-- `ConvexClient.instance` is a global singleton provided by `convex_flutter`. `ConvexService` is just a wrapper; don't instantiate multiple `ConvexService`s against different URLs in the same process.
-- The JWT template name `convex` must match `applicationID: "convex"` in `packages/backend/convex/auth.config.ts`. Changing one requires changing the other.
-
----
-
-## Related files
-
-- `README.md` — public-facing quick start + stack overview
-- `TASKS.md` — current audit / backlog items
-- `CHANGELOG.md` — user-facing changes
-- `AUDIT_LOG.md` — code audit history
-- `.env.example` — required build-time variables
+- Flutter web bakes `--dart-define` values into the built JS bundle.
+- Missing Convex/Clerk config leads to skipped wiring and configuration fallback behavior, not runtime env recovery.
+- Some providers intentionally use local defaults/fallbacks when auth or backend functions are unavailable; this can hide backend drift during development.
+- The YouTube OAuth callback depends on Vercel cookies, Clerk server API access, Google token exchange, and Convex mutation auth all succeeding in sequence.

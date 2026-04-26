@@ -27,6 +27,16 @@ class ClerkHttpService implements clerk.HttpService {
 
   @override
   Future<bool> ping(Uri uri, {required Duration timeout}) async {
+    if (kIsWeb) {
+      try {
+        final probe = uri.replace(path: '/v1/environment');
+        final result = await _client.get(probe).timeout(timeout);
+        return result.statusCode >= 200 && result.statusCode < 500;
+      } on Exception {
+        return false;
+      }
+    }
+
     try {
       final result = await _client.head(uri).timeout(timeout);
       return result.statusCode == 200;

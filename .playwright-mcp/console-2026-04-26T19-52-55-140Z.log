@@ -1,0 +1,14 @@
+[    5698ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[    5699ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[    5699ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[    5700ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[    5700ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[    6046ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[    6046ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   15750ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   15750ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   20700ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[   20701ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[   20701ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[   20701ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
+[   20702ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37499
