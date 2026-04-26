@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
@@ -626,6 +627,91 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
     }
   }
 
+  Future<void> _openSecureSignInPortal() async {
+    if (!kIsWeb) return;
+
+    final postAuthRoute = _currentPostAuthRoute();
+    final redirectUrlComplete = Uri.parse(
+      Uri.base.origin,
+    ).replace(fragment: postAuthRoute).toString();
+
+    try {
+      final opened = await clerkWebOpenSignIn(redirectUrlComplete);
+      if (opened) {
+        return;
+      }
+    } catch (e) {
+      AppLogger.instance.log(
+        'Direct Clerk sign-in portal redirect failed',
+        source: 'SignInScreen',
+        level: LogLevel.warning,
+        error: e,
+      );
+    }
+
+    final fallbackUrl = await clerkWebBuildSignInUrl(redirectUrlComplete);
+    if (fallbackUrl == null || fallbackUrl.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Clerk did not provide a sign-in URL.';
+        _notice = null;
+      });
+      return;
+    }
+
+    final launched = await launchUrl(
+      Uri.parse(fallbackUrl),
+      webOnlyWindowName: '_self',
+    );
+    if (!launched && mounted) {
+      setState(() {
+        _error = 'Could not open the secure sign-in page.';
+        _notice = null;
+      });
+    }
+  }
+
+  Future<void> _resetWebSignInState() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _notice = null;
+    });
+
+    try {
+      await ref.read(clerkServiceProvider).signOut();
+      if (kIsWeb) {
+        await clerkWebResetState();
+      }
+      await _clearLegacyHostedSignInState();
+      if (!mounted) return;
+      setState(() {
+        _notice =
+            'Clerk web session state was reset. You can try Google sign-in again now.';
+      });
+      AppLogger.instance.log(
+        'Reset Clerk web sign-in state',
+        source: 'SignInScreen',
+      );
+    } catch (e) {
+      AppLogger.instance.log(
+        'Reset Clerk web sign-in state failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+      );
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _notice = null;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
   Future<void> _clearLegacyHostedSignInState() async {
     if (!kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
@@ -657,7 +743,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         : isSignUpMode
         ? 'Create your account with email here. Google and any other account recovery paths still open in the secure account portal.'
         : kIsWeb
-        ? 'Email sign-in happens directly in TubeFlow. Google, sign-up, and recovery open in the secure account portal.'
+        ? 'Email sign-in happens directly in TubeFlow. Google uses Clerk redirect sign-in in this tab, and the diagnostics section lets you reset web auth state if the browser gets stuck.'
         : 'TubeFlow uses direct email sign-in in the app and native Google sign-in when available.';
     final cardCrossAxisAlignment = compact
         ? CrossAxisAlignment.center
@@ -673,7 +759,10 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             Align(
               alignment: compact ? Alignment.center : Alignment.centerLeft,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
@@ -941,7 +1030,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Google opens the secure TubeFlow account portal in this tab. Use it for Google sign-in, password recovery, or any extra sign-in methods.',
+                        'Google sign-in should redirect through Clerk in this tab. If your browser gets stuck on a stale session, use Reset web sign-in state below.',
                         style: theme.textTheme.bodySmall,
                       ),
                     ),
@@ -1426,6 +1515,28 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         ),
         if (noticeCard != null) ...[const SizedBox(height: 16), noticeCard],
         if (errorCard != null) ...[const SizedBox(height: 16), errorCard],
+        if (kIsWeb) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _loading ? null : _openSecureSignInPortal,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: const Text('Open secure sign-in'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _loading ? null : _resetWebSignInState,
+                  icon: const Icon(Icons.restart_alt, size: 18),
+                  label: const Text('Reset web sign-in'),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 16),
         _buildDiagnosticsCard(theme, authState, clerkService),
       ],
@@ -1445,8 +1556,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         if (hasMessages) ...[
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () =>
-                  _showMessagesSheet(theme, noticeCard, errorCard),
+              onPressed: () => _showMessagesSheet(theme, noticeCard, errorCard),
               icon: const Icon(Icons.info_outline, size: 18),
               label: const Text('Status'),
             ),
@@ -1463,15 +1573,22 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         const SizedBox(width: 10),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () => _showDiagnosticsSheet(
-              theme,
-              authState,
-              clerkService,
-            ),
+            onPressed: () =>
+                _showDiagnosticsSheet(theme, authState, clerkService),
             icon: const Icon(Icons.health_and_safety_outlined, size: 18),
             label: const Text('Diagnostics'),
           ),
         ),
+        if (kIsWeb) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _loading ? null : _resetWebSignInState,
+              icon: const Icon(Icons.restart_alt, size: 18),
+              label: const Text('Reset'),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1548,6 +1665,25 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             label: const Text('Copy'),
           ),
           children: [
+            if (kIsWeb) ...[
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _loading ? null : _openSecureSignInPortal,
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Open secure sign-in'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _loading ? null : _resetWebSignInState,
+                    icon: const Icon(Icons.restart_alt, size: 18),
+                    label: const Text('Reset web sign-in state'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
             SelectableText(
               _diagnosticLines(
                 authState: authState,
@@ -1608,6 +1744,25 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                   style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 12),
+                if (kIsWeb) ...[
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _loading ? null : _openSecureSignInPortal,
+                        icon: const Icon(Icons.open_in_new, size: 18),
+                        label: const Text('Open secure sign-in'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _loading ? null : _resetWebSignInState,
+                        icon: const Icon(Icons.restart_alt, size: 18),
+                        label: const Text('Reset web sign-in state'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Flexible(
                   child: SingleChildScrollView(
                     child: SelectableText(

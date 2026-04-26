@@ -230,6 +230,27 @@
     );
   }
 
+  function clearClerkStorage() {
+    const storages = [window.localStorage, window.sessionStorage];
+    for (const storage of storages) {
+      if (!storage) continue;
+      const keys = [];
+      for (let i = 0; i < storage.length; i += 1) {
+        const key = storage.key(i);
+        if (!key) continue;
+        const normalized = key.toLowerCase();
+        if (
+          normalized.startsWith('__clerk') ||
+          normalized.startsWith('clerk') ||
+          normalized.includes('clerk')
+        ) {
+          keys.push(key);
+        }
+      }
+      keys.forEach((key) => storage.removeItem(key));
+    }
+  }
+
   window.tubeFlowClerkBridge = {
     async init(publishableKey) {
       await ensureLoaded(publishableKey);
@@ -294,6 +315,15 @@
       });
     },
 
+    async openSignIn(publishableKey, redirectUrl) {
+      const url = await this.buildSignInUrl(publishableKey, redirectUrl);
+      if (!url) {
+        throw new Error('Clerk did not return a sign-in URL.');
+      }
+      window.location.assign(url);
+      return true;
+    },
+
     async startGoogleSignIn(publishableKey, redirectUrl, redirectUrlComplete) {
       const clerk = await ensureLoaded(publishableKey);
       const signIn = clerk.signIn || clerk.client?.signIn;
@@ -355,7 +385,26 @@
 
     async signOut(publishableKey) {
       const clerk = await ensureLoaded(publishableKey);
-      await clerk.signOut();
+      try {
+        await clerk.signOut();
+      } finally {
+        clerk.session?.clearCache?.();
+        clerk.client?.clearCache?.();
+        clearClerkStorage();
+      }
+      return true;
+    },
+
+    async resetState(publishableKey) {
+      const clerk = await ensureLoaded(publishableKey);
+      try {
+        await clerk.signOut();
+      } catch (_) {
+        // Ignore sign-out failures; we still want to clear local Clerk state.
+      }
+      clerk.session?.clearCache?.();
+      clerk.client?.clearCache?.();
+      clearClerkStorage();
       return true;
     },
   };

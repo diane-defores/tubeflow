@@ -16,6 +16,10 @@ extension type _TubeFlowClerkBridge(JSObject _) implements JSObject {
     JSString publishableKey,
     JSString redirectUrl,
   );
+  external JSPromise<JSBoolean> openSignIn(
+    JSString publishableKey,
+    JSString redirectUrl,
+  );
   external JSPromise<JSBoolean> startGoogleSignIn(
     JSString publishableKey,
     JSString redirectUrl,
@@ -27,6 +31,7 @@ extension type _TubeFlowClerkBridge(JSObject _) implements JSObject {
   );
   external JSPromise<JSBoolean> prepareSessionCookie(JSString publishableKey);
   external JSPromise<JSBoolean> signOut(JSString publishableKey);
+  external JSPromise<JSBoolean> resetState(JSString publishableKey);
 }
 
 class ClerkWebUser {
@@ -120,8 +125,20 @@ Future<bool> clerkWebPrepareSessionCookie() async {
   return (await _bridge.prepareSessionCookie(key.toJS).toDart).toDart;
 }
 
+Future<bool> clerkWebOpenSignIn(String redirectUrl) async {
+  final key = _publishableKey;
+  if (key == null || key.isEmpty) return false;
+  return (await _bridge.openSignIn(key.toJS, redirectUrl.toJS).toDart).toDart;
+}
+
 Future<void> clerkWebSignOut() async {
   final key = _publishableKey;
   if (key == null || key.isEmpty) return;
   await _bridge.signOut(key.toJS).toDart;
+}
+
+Future<bool> clerkWebResetState() async {
+  final key = _publishableKey;
+  if (key == null || key.isEmpty) return false;
+  return (await _bridge.resetState(key.toJS).toDart).toDart;
 }

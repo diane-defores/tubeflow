@@ -22,6 +22,8 @@ Future<String?> clerkWebGetToken({String? template}) async => null;
 
 Future<String?> clerkWebBuildSignInUrl(String redirectUrl) async => null;
 
+Future<bool> clerkWebOpenSignIn(String redirectUrl) async => false;
+
 Future<bool> clerkWebStartGoogleSignIn({
   required String redirectUrl,
   required String redirectUrlComplete,
@@ -33,3 +35,5 @@ Future<bool> clerkWebHandleOAuthRedirect(String redirectUrlComplete) async =>
 Future<bool> clerkWebPrepareSessionCookie() async => false;
 
 Future<void> clerkWebSignOut() async {}
+
+Future<bool> clerkWebResetState() async => false;
