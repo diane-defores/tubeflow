@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
+import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
+import 'package:tubeflow_app/convex/convex_errors.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
@@ -36,9 +38,7 @@ List<Map<String, dynamic>> _decodeList(dynamic raw) {
   } else {
     return [];
   }
-  return list
-      .whereType<Map<String, dynamic>>()
-      .toList(growable: false);
+  return list.whereType<Map<String, dynamic>>().toList(growable: false);
 }
 
 /// Decodes a raw Convex response into a single [Map<String, dynamic>], or
@@ -149,9 +149,7 @@ Future<dynamic> _queryWithTimeout(
   String path,
   Map<String, dynamic> args,
 ) async {
-  return service
-      .query<dynamic>(path, args)
-      .timeout(const Duration(seconds: 8));
+  return service.query<dynamic>(path, args).timeout(const Duration(seconds: 8));
 }
 
 Future<dynamic> _mutateWithTimeout(
@@ -164,16 +162,75 @@ Future<dynamic> _mutateWithTimeout(
       .timeout(const Duration(seconds: 8));
 }
 
+PreferencesData _localPreferencesData(AuthUser user) {
+  return PreferencesData(
+    settings: UserSettings.fromJson(_normalizeSettingsMap(null, user)),
+    subscription: UserSubscription.fromJson(
+      _normalizeSubscriptionMap(null, user),
+    ),
+    user: _fallbackUserFromAuth(user),
+  );
+}
+
+Future<bool> _waitForConvexAuthReady(
+  Ref ref, {
+  required String consumer,
+}) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return false;
+  }
+
+  final clerk = ref.read(clerkServiceProvider);
+  final ready = await clerk.waitForConvexTokenReady();
+  if (!ready) {
+    AppLogger.instance.log(
+      '[convex_auth_not_ready] $consumer is using local fallbacks until '
+      'Convex auth is ready for ${authState.user.id}',
+      source: 'ConvexAuth',
+      level: LogLevel.warning,
+    );
+  }
+  return ready;
+}
+
+void _logFunctionMissing(
+  String path, {
+  required String consumer,
+  String? fallback,
+}) {
+  final suffix = fallback == null ? '' : '; $fallback';
+  AppLogger.instance.log(
+    "[function_missing] $consumer could not call '$path'$suffix",
+    source: 'ConvexContract',
+    level: LogLevel.warning,
+  );
+}
+
+void _logUnauthorizedFallback(
+  String consumer, {
+  required Object error,
+  StackTrace? stackTrace,
+  String? fallback,
+}) {
+  final suffix = fallback == null ? '' : '; $fallback';
+  AppLogger.instance.log(
+    '[convex_unauthorized] $consumer received an unauthenticated Convex '
+    'response$suffix',
+    source: 'ConvexAuth',
+    level: LogLevel.warning,
+    error: error,
+    stackTrace: stackTrace,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // 1. videosProvider
 // ---------------------------------------------------------------------------
 
 /// Arguments for [videosProvider].
 class VideosArgs {
-  const VideosArgs({
-    this.sortOrder = 'newest',
-    this.includeWatched = true,
-  });
+  const VideosArgs({this.sortOrder = 'newest', this.includeWatched = true});
 
   final String sortOrder;
   final bool includeWatched;
@@ -191,17 +248,21 @@ class VideosArgs {
 
 /// Subscribes to `youtube:getAllVideos` and emits a typed
 /// `List<YouTubeVideo>` on every server-side change.
-final videosProvider =
-    StreamProvider.family<List<YouTubeVideo>, VideosArgs>((ref, args) {
+final videosProvider = StreamProvider.family<List<YouTubeVideo>, VideosArgs>((
+  ref,
+  args,
+) {
   final service = ref.watch(convexServiceProvider);
   return service
       .subscribe<dynamic>('youtube:getAllVideos', {
         'sortOrder': args.sortOrder,
         'includeWatched': args.includeWatched,
       })
-      .map((raw) => _decodeList(raw)
-          .map((json) => YouTubeVideo.fromJson(json))
-          .toList(growable: false));
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => YouTubeVideo.fromJson(json)).toList(growable: false),
+      );
 });
 
 // ---------------------------------------------------------------------------
@@ -213,9 +274,11 @@ final playlistsProvider = StreamProvider<List<YouTubePlaylist>>((ref) {
   final service = ref.watch(convexServiceProvider);
   return service
       .subscribe<dynamic>('youtube:getYoutubePlaylists', {})
-      .map((raw) => _decodeList(raw)
-          .map((json) => YouTubePlaylist.fromJson(json))
-          .toList(growable: false));
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => YouTubePlaylist.fromJson(json)).toList(growable: false),
+      );
 });
 
 // ---------------------------------------------------------------------------
@@ -227,9 +290,11 @@ final notesProvider = StreamProvider<List<Note>>((ref) {
   final service = ref.watch(convexServiceProvider);
   return service
       .subscribe<dynamic>('notes:getNotes', {})
-      .map((raw) => _decodeList(raw)
-          .map((json) => Note.fromJson(json))
-          .toList(growable: false));
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => Note.fromJson(json)).toList(growable: false),
+      );
 });
 
 // ---------------------------------------------------------------------------
@@ -241,9 +306,7 @@ final notesProvider = StreamProvider<List<Note>>((ref) {
 /// Emits `null` when no settings document exists yet (new user).
 final settingsProvider = StreamProvider<UserSettings?>((ref) {
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('settings:getSettings', {})
-      .map((raw) {
+  return service.subscribe<dynamic>('settings:getSettings', {}).map((raw) {
     final json = _decodeMap(raw);
     return json != null ? UserSettings.fromJson(json) : null;
   });
@@ -258,9 +321,9 @@ final settingsProvider = StreamProvider<UserSettings?>((ref) {
 /// Emits `null` when no subscription document exists (defaults to free).
 final subscriptionProvider = StreamProvider<UserSubscription?>((ref) {
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('subscriptions:getSubscription', {})
-      .map((raw) {
+  return service.subscribe<dynamic>('subscriptions:getSubscription', {}).map((
+    raw,
+  ) {
     final json = _decodeMap(raw);
     return json != null ? UserSubscription.fromJson(json) : null;
   });
@@ -275,9 +338,7 @@ final subscriptionProvider = StreamProvider<UserSubscription?>((ref) {
 /// Emits `null` when the user is not authenticated.
 final currentUserProvider = StreamProvider<TubeFlowUser?>((ref) {
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('users:getCurrentUser', {})
-      .map((raw) {
+  return service.subscribe<dynamic>('users:getCurrentUser', {}).map((raw) {
     final json = _decodeMap(raw);
     return json != null ? TubeFlowUser.fromJson(json) : null;
   });
@@ -292,8 +353,9 @@ final currentUserProvider = StreamProvider<TubeFlowUser?>((ref) {
 /// This intentionally uses [ConvexService.query] instead of a websocket
 /// subscription because the web app already has a more reliable HTTP path for
 /// one-shot reads than for auth-sensitive realtime subscriptions.
-final youtubeConnectionProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+final youtubeConnectionProvider = FutureProvider<Map<String, dynamic>?>((
+  ref,
+) async {
   final service = ref.watch(convexServiceProvider);
   final raw = await service.query<dynamic>(
     'youtube:getYoutubeConnectionStatus',
@@ -336,6 +398,13 @@ final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
     'preferencesDataProvider start for ${authUser.id}',
     source: 'PreferencesData',
   );
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'preferencesDataProvider',
+  )) {
+    return _localPreferencesData(authUser);
+  }
 
   try {
     await _mutateWithTimeout(service, 'users:ensureUser', {
@@ -398,7 +467,11 @@ final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
   }
 
   try {
-    currentUserRaw = await _queryWithTimeout(service, 'users:getCurrentUser', {});
+    currentUserRaw = await _queryWithTimeout(
+      service,
+      'users:getCurrentUser',
+      {},
+    );
     AppLogger.instance.log(
       'users:getCurrentUser succeeded',
       source: 'PreferencesData',
@@ -432,10 +505,7 @@ final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
 });
 
 class FeedbackAdminListArgs {
-  const FeedbackAdminListArgs({
-    this.status,
-    this.type,
-  });
+  const FeedbackAdminListArgs({this.status, this.type});
 
   final FeedbackEntryStatus? status;
   final FeedbackEntryType? type;
@@ -453,9 +523,42 @@ class FeedbackAdminListArgs {
 
 /// One-shot query for `feedback:isAdmin`.
 final feedbackIsAdminProvider = FutureProvider<bool>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return false;
+  }
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'feedbackIsAdminProvider',
+  )) {
+    return false;
+  }
+
   final service = ref.watch(convexServiceProvider);
-  final raw = await service.query<dynamic>('feedback:isAdmin', {});
-  return raw == true;
+  try {
+    final raw = await service.query<dynamic>('feedback:isAdmin', {});
+    return raw == true;
+  } catch (e, st) {
+    if (isMissingPublicConvexFunctionError(e, path: 'feedback:isAdmin')) {
+      _logFunctionMissing(
+        'feedback:isAdmin',
+        consumer: 'feedbackIsAdminProvider',
+        fallback: 'returning false',
+      );
+      return false;
+    }
+    if (isConvexUnauthorizedError(e)) {
+      _logUnauthorizedFallback(
+        'feedbackIsAdminProvider',
+        error: e,
+        stackTrace: st,
+        fallback: 'returning false',
+      );
+      return false;
+    }
+    rethrow;
+  }
 });
 
 /// One-shot query for `feedback:listAdmin`.
@@ -464,14 +567,34 @@ final feedbackAdminEntriesProvider =
       ref,
       args,
     ) async {
+      if (!await _waitForConvexAuthReady(
+        ref,
+        consumer: 'feedbackAdminEntriesProvider',
+      )) {
+        throw StateError('Feedback admin is not ready yet.');
+      }
+
       final service = ref.watch(convexServiceProvider);
-      final raw = await service.query<dynamic>('feedback:listAdmin', {
-        if (args.status != null) 'status': args.status!.jsonValue,
-        if (args.type != null) 'type': args.type!.name,
-      });
-      return _decodeList(raw)
-          .map((json) => FeedbackEntry.fromJson(json))
-          .toList(growable: false);
+      try {
+        final raw = await service.query<dynamic>('feedback:listAdmin', {
+          if (args.status != null) 'status': args.status!.jsonValue,
+          if (args.type != null) 'type': args.type!.name,
+        });
+        return _decodeList(
+          raw,
+        ).map((json) => FeedbackEntry.fromJson(json)).toList(growable: false);
+      } catch (e) {
+        if (isMissingPublicConvexFunctionError(e, path: 'feedback:listAdmin')) {
+          _logFunctionMissing(
+            'feedback:listAdmin',
+            consumer: 'feedbackAdminEntriesProvider',
+          );
+          throw StateError(
+            'Feedback admin is unavailable on the current backend deployment.',
+          );
+        }
+        rethrow;
+      }
     });
 
 // ---------------------------------------------------------------------------
@@ -482,9 +605,9 @@ final feedbackAdminEntriesProvider =
 final hiddenItemsProvider = FutureProvider<List<HiddenItem>>((ref) async {
   final service = ref.watch(convexServiceProvider);
   final raw = await service.query<dynamic>('hidden:getHiddenItems', {});
-  return _decodeList(raw)
-      .map((json) => HiddenItem.fromJson(json))
-      .toList(growable: false);
+  return _decodeList(
+    raw,
+  ).map((json) => HiddenItem.fromJson(json)).toList(growable: false);
 });
 
 // ---------------------------------------------------------------------------
@@ -492,13 +615,12 @@ final hiddenItemsProvider = FutureProvider<List<HiddenItem>>((ref) async {
 // ---------------------------------------------------------------------------
 
 /// One-shot query for `watched:getWatchedVideos`.
-final watchedVideosProvider =
-    FutureProvider<List<WatchedVideo>>((ref) async {
+final watchedVideosProvider = FutureProvider<List<WatchedVideo>>((ref) async {
   final service = ref.watch(convexServiceProvider);
   final raw = await service.query<dynamic>('watched:getWatchedVideos', {});
-  return _decodeList(raw)
-      .map((json) => WatchedVideo.fromJson(json))
-      .toList(growable: false);
+  return _decodeList(
+    raw,
+  ).map((json) => WatchedVideo.fromJson(json)).toList(growable: false);
 });
 
 // ---------------------------------------------------------------------------
@@ -508,8 +630,10 @@ final watchedVideosProvider =
 /// One-shot query for `progress:getProgress` for a single video.
 ///
 /// Returns `null` when no progress has been saved for this video.
-final videoProgressProvider =
-    FutureProvider.family<VideoProgress?, String>((ref, videoId) async {
+final videoProgressProvider = FutureProvider.family<VideoProgress?, String>((
+  ref,
+  videoId,
+) async {
   final service = ref.watch(convexServiceProvider);
   final raw = await service.query<dynamic>('progress:getProgress', {
     'youtubeVideoId': videoId,
@@ -525,11 +649,9 @@ final videoProgressProvider =
 /// One-shot query for `metrics:getTodayQuotaUsage`.
 ///
 /// Returns the raw map which typically includes `{ used: int, limit: int }`.
-final quotaUsageProvider =
-    FutureProvider<Map<String, dynamic>?>((ref) async {
+final quotaUsageProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final service = ref.watch(convexServiceProvider);
-  final raw =
-      await service.query<dynamic>('metrics:getTodayQuotaUsage', {});
+  final raw = await service.query<dynamic>('metrics:getTodayQuotaUsage', {});
   return _decodeMap(raw);
 });
 
@@ -540,15 +662,17 @@ final quotaUsageProvider =
 /// Subscribes to `youtube:getPlaylistVideos` for a specific playlist.
 final playlistVideosProvider =
     StreamProvider.family<List<YouTubeVideo>, String>((ref, playlistId) {
-  final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('youtube:getPlaylistVideos', {
-        'playlistId': playlistId,
-      })
-      .map((raw) => _decodeList(raw)
-          .map((json) => YouTubeVideo.fromJson(json))
-          .toList(growable: false));
-});
+      final service = ref.watch(convexServiceProvider);
+      return service
+          .subscribe<dynamic>('youtube:getPlaylistVideos', {
+            'playlistId': playlistId,
+          })
+          .map(
+            (raw) => _decodeList(raw)
+                .map((json) => YouTubeVideo.fromJson(json))
+                .toList(growable: false),
+          );
+    });
 
 // ---------------------------------------------------------------------------
 // 13. notificationsProvider
@@ -556,12 +680,55 @@ final playlistVideosProvider =
 
 /// Subscribes to `notifications:getNotifications` — current user's notifications.
 final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return Stream.value(const <AppNotification>[]);
+  }
+
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('notifications:getNotifications', {})
-      .map((raw) => _decodeList(raw)
-          .map((json) => AppNotification.fromJson(json))
-          .toList(growable: false));
+  return () async* {
+    if (!await _waitForConvexAuthReady(
+      ref,
+      consumer: 'notificationsProvider',
+    )) {
+      yield const <AppNotification>[];
+      return;
+    }
+
+    try {
+      yield* service
+          .subscribe<dynamic>('notifications:getNotifications', {})
+          .map(
+            (raw) => _decodeList(raw)
+                .map((json) => AppNotification.fromJson(json))
+                .toList(growable: false),
+          );
+    } catch (e, st) {
+      if (isMissingPublicConvexFunctionError(
+        e,
+        path: 'notifications:getNotifications',
+      )) {
+        _logFunctionMissing(
+          'notifications:getNotifications',
+          consumer: 'notificationsProvider',
+          fallback: 'returning an empty list',
+        );
+        yield const <AppNotification>[];
+        return;
+      }
+      if (isConvexUnauthorizedError(e)) {
+        _logUnauthorizedFallback(
+          'notificationsProvider',
+          error: e,
+          stackTrace: st,
+          fallback: 'returning an empty list',
+        );
+        yield const <AppNotification>[];
+        return;
+      }
+      rethrow;
+    }
+  }();
 });
 
 // ---------------------------------------------------------------------------
@@ -570,18 +737,59 @@ final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
 
 /// Subscribes to `notifications:getUnreadCount` — unread notification count.
 final unreadNotificationCountProvider = StreamProvider<int>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return Stream.value(0);
+  }
+
   final service = ref.watch(convexServiceProvider);
-  return service
-      .subscribe<dynamic>('notifications:getUnreadCount', {})
-      .map((raw) {
-    if (raw is int) return raw;
-    if (raw is String) {
-      final parsed = int.tryParse(raw);
-      return parsed ?? 0;
+  return () async* {
+    if (!await _waitForConvexAuthReady(
+      ref,
+      consumer: 'unreadNotificationCountProvider',
+    )) {
+      yield 0;
+      return;
     }
-    if (raw is num) return raw.toInt();
-    return 0;
-  });
+
+    try {
+      yield* service.subscribe<dynamic>('notifications:getUnreadCount', {}).map(
+        (raw) {
+          if (raw is int) return raw;
+          if (raw is String) {
+            final parsed = int.tryParse(raw);
+            return parsed ?? 0;
+          }
+          if (raw is num) return raw.toInt();
+          return 0;
+        },
+      );
+    } catch (e, st) {
+      if (isMissingPublicConvexFunctionError(
+        e,
+        path: 'notifications:getUnreadCount',
+      )) {
+        _logFunctionMissing(
+          'notifications:getUnreadCount',
+          consumer: 'unreadNotificationCountProvider',
+          fallback: 'returning 0',
+        );
+        yield 0;
+        return;
+      }
+      if (isConvexUnauthorizedError(e)) {
+        _logUnauthorizedFallback(
+          'unreadNotificationCountProvider',
+          error: e,
+          stackTrace: st,
+          fallback: 'returning 0',
+        );
+        yield 0;
+        return;
+      }
+      rethrow;
+    }
+  }();
 });
 
 // ---------------------------------------------------------------------------
@@ -589,14 +797,18 @@ final unreadNotificationCountProvider = StreamProvider<int>((ref) {
 // ---------------------------------------------------------------------------
 
 /// Subscribes to `notes:getNotesByYoutubeVideo` for a specific video.
-final videoNotesProvider =
-    StreamProvider.family<List<Note>, String>((ref, videoId) {
+final videoNotesProvider = StreamProvider.family<List<Note>, String>((
+  ref,
+  videoId,
+) {
   final service = ref.watch(convexServiceProvider);
   return service
       .subscribe<dynamic>('notes:getNotesByYoutubeVideo', {
         'youtubeVideoId': videoId,
       })
-      .map((raw) => _decodeList(raw)
-          .map((json) => Note.fromJson(json))
-          .toList(growable: false));
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => Note.fromJson(json)).toList(growable: false),
+      );
 });

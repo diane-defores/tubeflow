@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:convex_flutter/convex_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:tubeflow_app/convex/convex_errors.dart';
 import 'package:tubeflow_app/convex/convex_web_bridge.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 
@@ -127,7 +128,8 @@ class ConvexService {
         return await _queryViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          'Convex HTTP query bridge failed; falling back to WebSocket client',
+          '[http_bridge_fallback] Convex HTTP query bridge failed for $path; '
+          'falling back to WebSocket client',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
@@ -152,7 +154,8 @@ class ConvexService {
         return await _mutationViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          'Convex HTTP mutation bridge failed; falling back to WebSocket client',
+          '[http_bridge_fallback] Convex HTTP mutation bridge failed for '
+          '$path; falling back to WebSocket client',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
@@ -161,10 +164,7 @@ class ConvexService {
       }
     }
     await _waitForConnection();
-    final result = await ConvexClient.instance.mutation(
-      name: path,
-      args: args,
-    );
+    final result = await ConvexClient.instance.mutation(name: path, args: args);
     return _decode<T>(result);
   }
 
@@ -180,7 +180,8 @@ class ConvexService {
         return await _actionViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          'Convex HTTP action bridge failed; falling back to WebSocket client',
+          '[http_bridge_fallback] Convex HTTP action bridge failed for $path; '
+          'falling back to WebSocket client',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
@@ -189,10 +190,7 @@ class ConvexService {
       }
     }
     await _waitForConnection();
-    final result = await ConvexClient.instance.action(
-      name: path,
-      args: args,
-    );
+    final result = await ConvexClient.instance.action(name: path, args: args);
     return _decode<T>(result);
   }
 
@@ -303,6 +301,11 @@ class ConvexService {
     Map<String, dynamic> args,
   ) async {
     final token = await _getFreshAuthToken();
+    if (token == null || token.isEmpty) {
+      throw StateError(
+        'Missing Convex auth token for HTTP query bridge ($path).',
+      );
+    }
     final result = await convexWebQuery(
       convexUrl: url,
       authToken: token,
@@ -317,6 +320,11 @@ class ConvexService {
     Map<String, dynamic> args,
   ) async {
     final token = await _getFreshAuthToken();
+    if (token == null || token.isEmpty) {
+      throw StateError(
+        'Missing Convex auth token for HTTP mutation bridge ($path).',
+      );
+    }
     final result = await convexWebMutation(
       convexUrl: url,
       authToken: token,
@@ -331,6 +339,11 @@ class ConvexService {
     Map<String, dynamic> args,
   ) async {
     final token = await _getFreshAuthToken();
+    if (token == null || token.isEmpty) {
+      throw StateError(
+        'Missing Convex auth token for HTTP action bridge ($path).',
+      );
+    }
     final result = await convexWebAction(
       convexUrl: url,
       authToken: token,
@@ -345,7 +358,20 @@ class ConvexService {
     if (getToken == null) {
       return null;
     }
-    return getToken();
+    try {
+      return await getToken();
+    } catch (e, st) {
+      if (!isConvexUnauthorizedError(e)) {
+        AppLogger.instance.log(
+          '[convex_auth_not_ready] Failed to refresh Convex auth token',
+          source: 'ConvexService',
+          level: LogLevel.warning,
+          error: e,
+          stackTrace: st,
+        );
+      }
+      return null;
+    }
   }
 
   // ---------------------------------------------------------------------------

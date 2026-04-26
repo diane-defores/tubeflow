@@ -393,6 +393,55 @@ class ClerkService {
   /// minting the token fails — in both cases Convex will fall back to
   /// unauthenticated access rather than raising.
   Future<String?> getConvexToken() async {
+    return _getConvexToken(logFailures: true);
+  }
+
+  Future<bool> waitForConvexTokenReady({
+    int maxAttempts = 8,
+    Duration delay = const Duration(milliseconds: 350),
+  }) async {
+    await ready;
+    if (!isAuthenticated) {
+      return false;
+    }
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      final token = await _getConvexToken(logFailures: attempt == maxAttempts);
+      if (token != null && token.isNotEmpty) {
+        if (attempt > 1) {
+          AppLogger.instance.log(
+            'Convex JWT became ready after $attempt attempts',
+            source: 'ClerkService',
+          );
+        }
+        return true;
+      }
+
+      if (!isAuthenticated) {
+        return false;
+      }
+
+      if (attempt < maxAttempts) {
+        if (kIsWeb) {
+          await _authState?.refreshClient();
+          if (_authState?.env.isEmpty == true) {
+            await _authState?.refreshEnvironment();
+          }
+        }
+        await Future<void>.delayed(delay);
+      }
+    }
+
+    AppLogger.instance.log(
+      '[convex_auth_not_ready] Clerk session is active but no Convex JWT was '
+      'minted after $maxAttempts attempts',
+      source: 'ClerkService',
+      level: LogLevel.warning,
+    );
+    return false;
+  }
+
+  Future<String?> _getConvexToken({required bool logFailures}) async {
     if (kIsWeb) {
       try {
         final token = await clerkWebGetToken(template: _convexJwtTemplate);
@@ -400,13 +449,15 @@ class ClerkService {
           return token;
         }
       } catch (e, st) {
-        AppLogger.instance.log(
-          'Failed to mint Convex JWT from Clerk JS bridge',
-          source: 'ClerkService',
-          level: LogLevel.error,
-          error: e,
-          stackTrace: st,
-        );
+        if (logFailures) {
+          AppLogger.instance.log(
+            'Failed to mint Convex JWT from Clerk JS bridge',
+            source: 'ClerkService',
+            level: LogLevel.error,
+            error: e,
+            stackTrace: st,
+          );
+        }
       }
     }
 
@@ -419,13 +470,15 @@ class ClerkService {
       final token = await auth.sessionToken(templateName: _convexJwtTemplate);
       return token.jwt;
     } catch (e, st) {
-      AppLogger.instance.log(
-        'Failed to mint Convex JWT from Clerk',
-        source: 'ClerkService',
-        level: LogLevel.error,
-        error: e,
-        stackTrace: st,
-      );
+      if (logFailures) {
+        AppLogger.instance.log(
+          'Failed to mint Convex JWT from Clerk',
+          source: 'ClerkService',
+          level: LogLevel.error,
+          error: e,
+          stackTrace: st,
+        );
+      }
       return null;
     }
   }
@@ -465,4 +518,15 @@ final clerkServiceProvider = Provider<ClerkService>((ref) {
   ref.onDispose(() => service.dispose());
 
   return service;
+});
+
+final convexAuthReadyProvider = FutureProvider<bool>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return false;
+  }
+
+  final clerk = ref.watch(clerkServiceProvider);
+  await clerk.ready;
+  return clerk.waitForConvexTokenReady();
 });

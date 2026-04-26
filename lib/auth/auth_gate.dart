@@ -659,49 +659,62 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         : kIsWeb
         ? 'Email sign-in happens directly in TubeFlow. Google, sign-up, and recovery open in the secure account portal.'
         : 'TubeFlow uses direct email sign-in in the app and native Google sign-in when available.';
+    final cardCrossAxisAlignment = compact
+        ? CrossAxisAlignment.center
+        : CrossAxisAlignment.start;
+    final cardTextAlign = compact ? TextAlign.center : TextAlign.start;
 
     return Card(
       child: Padding(
         padding: EdgeInsets.all(compact ? 16 : 20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: cardCrossAxisAlignment,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                'Secure access',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w700,
+            Align(
+              alignment: compact ? Alignment.center : Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Secure access',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
             SizedBox(height: compact ? 12 : 16),
             if (hasPassword) ...[
-              SegmentedButton<_EmailAuthMode>(
-                segments: const [
-                  ButtonSegment<_EmailAuthMode>(
-                    value: _EmailAuthMode.signIn,
-                    label: Text('Sign in'),
+              Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: SegmentedButton<_EmailAuthMode>(
+                    segments: const [
+                      ButtonSegment<_EmailAuthMode>(
+                        value: _EmailAuthMode.signIn,
+                        label: Text('Sign in'),
+                      ),
+                      ButtonSegment<_EmailAuthMode>(
+                        value: _EmailAuthMode.signUp,
+                        label: Text('Create account'),
+                      ),
+                    ],
+                    selected: {_emailAuthMode},
+                    onSelectionChanged: loading
+                        ? null
+                        : (selection) {
+                            final mode = selection.first;
+                            if (mode != _emailAuthMode) {
+                              _setEmailAuthMode(mode);
+                            }
+                          },
                   ),
-                  ButtonSegment<_EmailAuthMode>(
-                    value: _EmailAuthMode.signUp,
-                    label: Text('Create account'),
-                  ),
-                ],
-                selected: {_emailAuthMode},
-                onSelectionChanged: loading
-                    ? null
-                    : (selection) {
-                        final mode = selection.first;
-                        if (mode != _emailAuthMode) {
-                          _setEmailAuthMode(mode);
-                        }
-                      },
+                ),
               ),
               SizedBox(height: compact ? 12 : 16),
             ],
@@ -712,6 +725,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
+              textAlign: cardTextAlign,
             ),
             SizedBox(height: compact ? 6 : 8),
             Text(
@@ -719,6 +733,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               style: theme.textTheme.bodySmall,
               maxLines: compact ? 3 : null,
               overflow: compact ? TextOverflow.ellipsis : null,
+              textAlign: cardTextAlign,
             ),
             SizedBox(height: compact ? 12 : 16),
             if (loading) ...[
@@ -1158,69 +1173,56 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.primary.withValues(alpha: 0.16),
-                        colorScheme.primary.withValues(alpha: 0.06),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Icon(
-                    Icons.play_circle_filled_rounded,
-                    size: 38,
-                    color: colorScheme.primary,
-                  ),
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.primary.withValues(alpha: 0.16),
+                    colorScheme.primary.withValues(alpha: 0.06),
+                  ],
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Built for focused video study',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'TubeFlow',
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          height: 0.95,
-                        ),
-                      ),
-                    ],
-                  ),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Icon(
+                Icons.play_circle_filled_rounded,
+                size: 38,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'Built for focused video study',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'TubeFlow',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 0.95,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
               'Watch videos, capture key moments, and keep every note attached to the exact second that matters.',
+              textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 height: 1.45,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
@@ -1230,6 +1232,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
             ),
             const SizedBox(height: 12),
             const Wrap(
+              alignment: WrapAlignment.center,
               spacing: 8,
               runSpacing: 8,
               children: [
@@ -1246,6 +1249,11 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                 _AuthFeaturePill(
                   icon: Icons.lock_outline_rounded,
                   label: 'Secure Google sign-in',
+                  compact: true,
+                ),
+                _AuthFeaturePill(
+                  icon: Icons.playlist_play_rounded,
+                  label: 'Playlist management',
                   compact: true,
                 ),
               ],

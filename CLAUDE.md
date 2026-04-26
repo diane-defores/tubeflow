@@ -10,6 +10,8 @@ Flutter web app for watching YouTube videos with timestamped notes, playlists, a
 
 The **Convex backend itself** (`packages/backend/convex/`) lives in a **different repository** at `/home/claude/tubeflow/` — not in this one. When a task mentions Convex schema or server functions, it's in that other repo.
 
+This Flutter app is a client of that shared backend. Files under `lib/convex/` are client/runtime integration only; they are not Convex server functions.
+
 ---
 
 ## Architecture
@@ -22,6 +24,7 @@ The **Convex backend itself** (`packages/backend/convex/`) lives in a **differen
 2. `ref.read(clerkServiceProvider)` creates `ClerkService`, which kicks off `ClerkAuthState.create(...)` in its constructor.
 3. `await clerk.ready` — waits for the Clerk state to be ready.
 4. `convex.setAuth(() => clerk.getConvexToken())` — wires the token callback.
+5. If a Clerk session is already present, bootstrap waits for a mintable Convex JWT before auth-required startup providers run.
 
 **Critical**: the `ClerkAuthState` is owned by `ClerkService` (long-lived), not by the `ClerkAuth` widget in the sign-in page. The sign-in page mounts `ClerkAuth(authState: service.authState)` using the shared state, so the session survives navigation out of `/sign-in`.
 
@@ -41,6 +44,7 @@ The **Convex backend itself** (`packages/backend/convex/`) lives in a **differen
   - `query<T>(path, args)`, `mutate<T>(path, args)`, `action<T>(path, args)` — all await `_waitForConnection()` first.
   - `subscribe(path, args, onData, onError)` — WebSocket subscription.
   - `setAuth(tokenFn)` — installs the token provider. Called once from bootstrap.
+- Production backend contract is shared with `/home/claude/tubeflow`. If Flutter starts calling a new Convex function, the backend deploy must land first or at the same time.
 - **All mutations go through `lib/providers/mutations.dart`** — screens must never call `convexServiceProvider` directly for writes. Reads (queries/subs) can go through providers or the service.
 - `_waitForConnection()` waits up to 30s for the WebSocket to reach `connected` state. Throws `TimeoutException` otherwise.
 
@@ -89,6 +93,9 @@ dart analyze lib/
 
 # Build web production
 bash build.sh
+
+# Check that Flutter's critical Convex functions still exist
+dart run tool/check_shared_backend_contract.dart
 
 # Regenerate Riverpod-annotated providers
 dart run build_runner build --delete-conflicting-outputs

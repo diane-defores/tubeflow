@@ -122,6 +122,17 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
         final convex = ref.read(convexServiceProvider);
         await convex.setAuth(() => clerk.getConvexToken());
         AppLogger.instance.log('Convex auth wired', source: 'bootstrap');
+        if (clerk.isAuthenticated) {
+          final convexAuthReady = await clerk.waitForConvexTokenReady();
+          AppLogger.instance.log(
+            convexAuthReady
+                ? 'Convex auth ready for ${clerk.currentUser?.id ?? 'signed-in user'}'
+                : 'Convex auth not fully ready yet; guarded providers will use '
+                      'local fallbacks until Clerk token minting catches up',
+            source: 'bootstrap',
+            level: convexAuthReady ? LogLevel.info : LogLevel.warning,
+          );
+        }
       } else {
         AppLogger.instance.log(
           'Skipping Clerk/Convex wiring — missing env vars',

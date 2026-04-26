@@ -51,7 +51,7 @@ Convex deployment variables used by backend features:
 - **Material 3** — theming (light / dark / system)
 - **record + just_audio** — feedback audio capture and playback
 
-Convex backend lives in a **separate repository** at `/home/claude/tubeflow/packages/backend/convex/` — not in this project.
+Convex backend lives in a **separate repository** at `/home/claude/tubeflow/packages/backend/convex/` — not in this project. This Flutter app is a client of that shared backend. The code under `lib/convex/` is client transport/state only, not server code.
 
 ## Project Structure
 
@@ -67,8 +67,8 @@ lib/
 │   ├── auth_gate.dart          # Sign-in page (ClerkAuth widget)
 │   └── auth_state.dart         # AuthNotifier + current-user state
 ├── convex/
-│   ├── convex_client.dart      # ConvexService wrapper (query/mutate/subscribe)
-│   └── convex_provider.dart    # Riverpod providers for Convex
+│   ├── convex_client.dart      # Convex client wrapper (query/mutate/subscribe)
+│   └── convex_provider.dart    # Riverpod providers for the shared backend
 ├── providers/
 │   ├── providers.dart          # Shared Riverpod providers
 │   └── mutations.dart          # Centralised Convex mutation helpers
@@ -88,6 +88,8 @@ lib/
 
 Because `ClerkAuthState` is owned by the service — not the sign-in widget — the Clerk session survives navigation away from `/sign-in`.
 
+Important: a restored Clerk session is not enough on its own. Flutter now waits for a mintable Convex JWT before sending auth-required bootstrap mutations such as `users:ensureUser`.
+
 ## Convex Authentication
 
 `ClerkService.getConvexToken()` calls `authState.sessionToken(templateName: 'convex')` and returns the `.jwt`. This requires:
@@ -106,9 +108,19 @@ No shared secret — verification is RS256 + JWKS.
 - **Security headers**: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - **SPA routing**: all routes rewritten to `/index.html`
 
+If a Flutter change depends on a new Convex function or schema change, deploy the shared backend from `/home/claude/tubeflow/packages/backend` before rolling out the Flutter build. Flutter and the legacy Next app both consume that same production backend contract.
+
 ## Tests
 
 Currently no test coverage. Listed as an open task in `TASKS.md`.
+
+Before shipping a Flutter change that depends on backend functions, you can run:
+
+```bash
+dart run tool/check_shared_backend_contract.dart
+```
+
+This verifies that the critical Convex functions used by Flutter still exist in the shared backend source checkout next to this repo. Use `TUBEFLOW_BACKEND_ROOT=/path/to/packages/backend/convex` if your local layout differs.
 
 ## Files
 
