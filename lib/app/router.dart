@@ -71,15 +71,25 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (BuildContext context, GoRouterState state) {
       final goingToSignIn = state.matchedLocation == Routes.signIn;
       final goingToPublicFeedback = state.matchedLocation == Routes.feedback;
+      final goingToProtectedRoute = !goingToSignIn && !goingToPublicFeedback;
 
       if (isLoading) {
+        // On web the app can cold-start on a protected route before Clerk has
+        // restored its session. Keep that bootstrap on /sign-in so users do
+        // not interact with a "dead" dashboard while auth is still unknown.
+        if (goingToProtectedRoute) {
+          return Uri(
+            path: Routes.signIn,
+            queryParameters: {'tf_redirect': _redirectTarget(state)},
+          ).toString();
+        }
         return null;
       }
 
       if (isAuthenticated && goingToSignIn) {
         return _resolvedRedirectTarget(state);
       }
-      if (!isAuthenticated && !goingToSignIn && !goingToPublicFeedback) {
+      if (!isAuthenticated && goingToProtectedRoute) {
         return Uri(
           path: Routes.signIn,
           queryParameters: {'tf_redirect': _redirectTarget(state)},
