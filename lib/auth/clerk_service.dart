@@ -192,15 +192,17 @@ class ClerkService {
       final authUser = user != null
           ? _toAuthUser(user)
           : const AuthUser(id: 'clerk-user', email: '');
-      if (authNotifier.currentUser?.id != authUser.id) {
-        AppLogger.instance.log(
-          'Clerk session synced: ${authUser.id}',
-          source: 'ClerkService',
+      if (kIsWeb) {
+        authNotifier.setLoading();
+        unawaited(
+          _confirmAuthenticatedUser(
+            authUser,
+            source: 'ClerkAuthState',
+          ),
         );
+        return;
       }
-      authNotifier.setAuthenticated(authUser);
-      unawaited(_persistKnownWebSession(true));
-      unawaited(_persistLastKnownWebUser(authUser));
+      _setAuthenticatedUser(authUser, source: 'ClerkAuthState');
     } else {
       if (kIsWeb) {
         if (_webStartupRestorePending) {
@@ -224,7 +226,13 @@ class ClerkService {
       final auth = _authState;
       if (auth?.isSignedIn == true) {
         _webStartupRestorePending = false;
-        _syncAuthNotifier();
+        final user = auth?.user;
+        await _confirmAuthenticatedUser(
+          user != null
+              ? _toAuthUser(user)
+              : const AuthUser(id: 'clerk-user', email: ''),
+          source: 'ClerkAuthState startup restore',
+        );
         AppLogger.instance.log(
           'Clerk web startup restore resolved via ClerkAuthState on attempt $attempt',
           source: 'ClerkService',
@@ -252,9 +260,10 @@ class ClerkService {
           'Clerk JS web session restored during startup: ${authUser.id}',
           source: 'ClerkService',
         );
-        authNotifier.setAuthenticated(authUser);
-        await _persistKnownWebSession(true);
-        await _persistLastKnownWebUser(authUser);
+        await _confirmAuthenticatedUser(
+          authUser,
+          source: 'Clerk JS startup restore',
+        );
         return;
       }
 
@@ -306,21 +315,65 @@ class ClerkService {
       imageUrl: user.imageUrl.isEmpty ? null : user.imageUrl,
     );
 
-    if (authNotifier.currentUser?.id != authUser.id) {
+    await _confirmAuthenticatedUser(authUser, source: 'Clerk JS sync');
+  }
+
+  Future<bool> markAuthenticatedUser(AuthUser user) async {
+    return _confirmAuthenticatedUser(user, source: 'AuthGate');
+  }
+
+  void _setAuthenticatedUser(AuthUser user, {required String source}) {
+    if (authNotifier.currentUser?.id != user.id) {
       AppLogger.instance.log(
-        'Clerk JS web session synced: ${authUser.id}',
+        'Clerk session synced via $source: ${user.id}',
         source: 'ClerkService',
       );
     }
-    authNotifier.setAuthenticated(authUser);
+    authNotifier.setAuthenticated(user);
     unawaited(_persistKnownWebSession(true));
-    unawaited(_persistLastKnownWebUser(authUser));
+    unawaited(_persistLastKnownWebUser(user));
   }
 
-  Future<void> markAuthenticatedUser(AuthUser user) async {
-    authNotifier.setAuthenticated(user);
-    await _persistKnownWebSession(true);
-    await _persistLastKnownWebUser(user);
+  Future<bool> _confirmAuthenticatedUser(
+    AuthUser user, {
+    required String source,
+  }) async {
+    if (!kIsWeb) {
+      _setAuthenticatedUser(user, source: source);
+      return true;
+    }
+
+    authNotifier.setLoading();
+    final tokenReady = await _waitForConvexTokenFromActiveSession();
+    if (tokenReady) {
+      _setAuthenticatedUser(user, source: source);
+      return true;
+    }
+
+    AppLogger.instance.log(
+      '[convex_auth_not_ready] Refusing app auth for ${user.id} from $source '
+      'because Clerk did not mint a Convex JWT',
+      source: 'ClerkService',
+      level: LogLevel.warning,
+    );
+    try {
+      await clerkWebSignOut();
+      await _authState?.signOut();
+    } catch (e, st) {
+      AppLogger.instance.log(
+        'Failed to clear unusable Clerk web session',
+        source: 'ClerkService',
+        level: LogLevel.warning,
+        error: e,
+        stackTrace: st,
+      );
+    }
+    await _persistKnownWebSession(false);
+    await _persistLastKnownWebUser(null);
+    authNotifier.setUnauthenticated(
+      error: 'Clerk session is not ready for TubeFlow yet.',
+    );
+    return false;
   }
 
   AuthUser _toAuthUser(clerk.User user) {
@@ -438,6 +491,34 @@ class ClerkService {
       source: 'ClerkService',
       level: LogLevel.warning,
     );
+    return false;
+  }
+
+  Future<bool> _waitForConvexTokenFromActiveSession({
+    int maxAttempts = 8,
+    Duration delay = const Duration(milliseconds: 350),
+  }) async {
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      final token = await _getConvexToken(logFailures: attempt == maxAttempts);
+      if (token != null && token.isNotEmpty) {
+        if (attempt > 1) {
+          AppLogger.instance.log(
+            'Convex JWT became ready before app auth after $attempt attempts',
+            source: 'ClerkService',
+          );
+        }
+        return true;
+      }
+
+      if (attempt < maxAttempts) {
+        await _authState?.refreshClient();
+        if (_authState?.env.isEmpty == true) {
+          await _authState?.refreshEnvironment();
+        }
+        await Future<void>.delayed(delay);
+      }
+    }
+
     return false;
   }
 

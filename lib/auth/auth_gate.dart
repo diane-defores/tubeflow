@@ -165,8 +165,8 @@ class AuthGate extends ConsumerWidget {
                 .trim(),
             imageUrl: user.imageUrl,
           );
-          clerkService.markAuthenticatedUser(authUser).then((_) {
-            if (context.mounted) {
+          clerkService.markAuthenticatedUser(authUser).then((confirmed) {
+            if (confirmed && context.mounted) {
               context.go(_resolvedPostAuthRoute());
             }
           });
@@ -183,8 +183,8 @@ class AuthGate extends ConsumerWidget {
 
       clerkService
           .markAuthenticatedUser(const AuthUser(id: 'clerk-user', email: ''))
-          .then((_) {
-            if (context.mounted) {
+          .then((confirmed) {
+            if (confirmed && context.mounted) {
               context.go(_resolvedPostAuthRoute());
             }
           });
