@@ -1,0 +1,160 @@
+---
+import '../styles/global.css'
+import { SITE_URL, siteUrl } from '../config/site'
+
+interface Props {
+  title?: string
+  description?: string
+  path?: string
+  image?: string
+  noIndex?: boolean
+  jsonLd?: Record<string, unknown>[]
+  lang?: string
+}
+
+const {
+  title = 'TubeFlow - The Smart Way to Learn from Online Videos',
+  description = 'Watch videos, take timestamped notes, and organize your learning with TubeFlow. Never lose an insight again.',
+  path = '',
+  image = '/og-image.png',
+  noIndex = false,
+  jsonLd = [],
+  lang = 'en',
+} = Astro.props
+
+const canonicalUrl = siteUrl(path)
+const ogImageUrl = image.startsWith('http') ? image : siteUrl(image)
+
+const defaultSchemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "TubeFlow",
+    url: SITE_URL,
+    description: "The smart way to learn from online videos",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TubeFlow",
+    url: SITE_URL,
+    logo: siteUrl('/icon-512.png'),
+    sameAs: [],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "TubeFlow",
+    url: SITE_URL,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    description: "Watch videos, take timestamped notes, and organize your learning with TubeFlow.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  },
+]
+
+const allSchemas = [...defaultSchemas, ...jsonLd]
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title="TubeFlow Blog" href="/blog/feed.xml" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalUrl} />
+    {(() => {
+      const enPath = path.startsWith('/fr') ? path.replace(/^\/fr/, '') || '/' : path || '/'
+      const frPath = path.startsWith('/fr') ? path : `/fr${path || ''}`
+      return <>
+        <link rel="alternate" hreflang="en" href={siteUrl(enPath)} />
+        <link rel="alternate" hreflang="fr" href={siteUrl(frPath)} />
+        <link rel="alternate" hreflang="x-default" href={siteUrl(enPath)} />
+      </>
+    })()}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="TubeFlow" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data -->
+    {allSchemas.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))}
+
+    <title>{title}</title>
+  </head>
+  <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:bg-foreground focus:text-background focus:rounded-lg focus:text-sm focus:font-medium">
+      Skip to content
+    </a>
+    <div class="noise-overlay" aria-hidden="true"></div>
+    <slot />
+    <script>
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      // Lenis smooth scroll (skip if reduced motion)
+      if (!prefersReducedMotion) {
+        import('lenis').then(({ default: Lenis }) => {
+          const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smoothWheel: true,
+          })
+          function raf(time: number) {
+            lenis.raf(time)
+            requestAnimationFrame(raf)
+          }
+          requestAnimationFrame(raf)
+        })
+      }
+
+      // IntersectionObserver for scroll-triggered animations
+      // If reduced motion, reveal everything immediately
+      if (prefersReducedMotion) {
+        document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('revealed'))
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('revealed')
+                observer.unobserve(entry.target)
+              }
+            })
+          },
+          { threshold: 0.1, rootMargin: '-50px' }
+        )
+        document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el))
+      }
+    </script>
+  </body>
+</html>

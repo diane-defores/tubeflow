@@ -1,0 +1,54 @@
+---
+const problems = [
+  {
+    icon: '🏇',
+    title: 'Algorithmic Tyranny',
+    description: "You subscribe to creators you love, but YouTube decides what you see. Your homepage is full of clickbait and rabbit holes instead of your actual subscriptions.",
+    wide: true,
+  },
+  {
+    icon: '📋',
+    title: 'Playlist Chaos',
+    description: "YouTube's playlists are buried, hard to organize, and impossible to use as your primary navigation. They feel like an afterthought.",
+  },
+  {
+    icon: '📺',
+    title: 'Subscription Overload',
+    description: "You're subscribed to 100+ channels, but have no way to group them, prioritize them, or see what matters most to you.",
+  },
+  {
+    icon: '🌊',
+    title: 'Lost in the Feed',
+    description: 'Every video leads to 10 more suggestions. You came to watch one thing and left 2 hours later wondering what happened.',
+  },
+]
+---
+
+<section class="py-16 sm:py-24 bg-card">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="text-center mb-12 sm:mb-16" data-reveal>
+      <h2
+        class="animate-fade-up text-3xl sm:text-4xl font-bold text-foreground mb-4"
+        style="font-family: var(--font-instrument-sans);"
+      >
+        YouTube Wasn't Built for You
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-reveal>
+      {problems.map((problem, index) => (
+        <div
+          class={`animate-fade-up delay-${(index + 1) * 100} group relative p-6 rounded-2xl bg-background border border-border hover:border-foreground/25 hover:scale-[1.02] transition-all duration-300 ${
+            problem.wide ? 'md:col-span-2' : ''
+          }`}
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl sm:text-4xl">{problem.icon}</span>
+            <h3 class="text-xl sm:text-2xl font-semibold text-foreground">{problem.title}</h3>
+          </div>
+          <p class="text-base text-muted-foreground leading-relaxed">{problem.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
