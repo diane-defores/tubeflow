@@ -1,0 +1,33 @@
+[     616ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[     764ms] [WARNING] Error while trying to use the following icon from the Manifest: https://app.tubeflow.winflowz.com/icons/Icon-192.png (Download error or resource isn't a valid image) @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[    1624ms] [LOG] === [WebConvexClient] Creating web client === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1625ms] [LOG] === [WebConvexClient] Connecting to Convex === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1625ms] [LOG] === [WebConvexClient] WebSocket URL: wss://joyous-chipmunk-990.convex.cloud/api/sync === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1627ms] [LOG] === [WebConvexClient] WebSocket connection initiated === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1633ms] [LOG] === [WebConvexClient] Lifecycle event: resumed (no action on web) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1634ms] [LOG] === [WebConvexClient] Client created successfully === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    2221ms] [LOG] === [WebConvexClient] WebSocket opened === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    2221ms] [LOG] === [WebConvexClient] State transition: connecting → connected === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    2222ms] [LOG] === [WebConvexClient] SENDING: {"type":"Connect","sessionId":"4113e473-bc63-4286-86b2-0adeec0fa7e1","maxObservedTimestamp":null,"connectionCount":1,"lastCloseReason":null,"clientTs":1777238658591} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    2223ms] [LOG] === [WebConvexClient] Sent message: Connect (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    2223ms] [LOG] === [WebConvexClient] Sent Connect handshake === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7253ms] [LOG] === [WebConvexClient] SENDING: {"type":"Authenticate","token":""} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7253ms] [LOG] === [WebConvexClient] Sent message: Authenticate (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7254ms] [LOG] === [WebConvexClient] Auth token sent === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8497ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"FatalError","error":"Received Invalid JSON on websocket: missing field `baseVersion`"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8497ms] [LOG] === [WebConvexClient] Received message type: FatalError, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8498ms] [LOG] FATAL ERROR: [WebConvexClient] Received Invalid JSON on websocket: missing field `baseVersion` @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8532ms] [LOG] === [WebConvexClient] WebSocket closed === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8532ms] [LOG] === [WebConvexClient] Close code: 1005, reason: "", wasClean: true === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8532ms] [LOG] === [WebConvexClient] State transition: connected → connecting === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8533ms] [LOG] === [WebConvexClient] Scheduling reconnect attempt 1 in 1s === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9533ms] [LOG] === [WebConvexClient] Executing reconnect attempt 1 === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9534ms] [LOG] === [WebConvexClient] Connecting to Convex === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9534ms] [LOG] === [WebConvexClient] WebSocket URL: wss://joyous-chipmunk-990.convex.cloud/api/sync === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9535ms] [LOG] === [WebConvexClient] WebSocket connection initiated === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9904ms] [LOG] === [WebConvexClient] WebSocket opened === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9904ms] [LOG] === [WebConvexClient] State transition: connecting → connected === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9905ms] [LOG] === [WebConvexClient] SENDING: {"type":"Connect","sessionId":"4113e473-bc63-4286-86b2-0adeec0fa7e1","maxObservedTimestamp":null,"connectionCount":1,"lastCloseReason":null,"clientTs":1777238666274} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9905ms] [LOG] === [WebConvexClient] Sent message: Connect (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    9905ms] [LOG] === [WebConvexClient] Sent Connect handshake === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   12202ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://accounts.google.com/v3/signin/identifier?opparams=%253F&dsh=S1664082023%3A1777238668311708&access_type=offline&client_id=157293832212-e4v9dnbj7ftanak3h4f2f07is4sijbj6.apps.googleusercontent.com&o2v=1&redirect_uri=https%3A%2F%2Fclerk.app.tubeflow.winflowz.com%2Fv1%2Foauth_callback&response_type=code&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&service=lso&state=agftij8zyvusdva8pufy7x6dnjzut9b26xwx5k9y&flowName=GeneralOAuthLite&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Flegacy%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hAOAJXN9xXgUHYz4rnVhb_uvw-OUaaW5vO9R3Lf6tT2E1WFvnalhKJgyj4Ha5HzQ24qF_WOeAMc1N91wvGCAW4rto0YymDFGzTJDAvaNYJJ618GLNeVSDjag1gRbzS1DfE2q2R4vkPGLoeTdMY1tYCE4YpEN10j8YaIYJyWd-J9ZwCpwFDP5dOpSY1i06VWnE1fczV9KfXRSR_8iTbqUXXHVoHCrJX4sCbZ2uExUKacbSJENQqdoGXKxfYfS57q7a2_8t7wG6LMmBoNFGXZBluNuq3t1fV_y8MMJxGcXVxs3OAT-ftWTX6h0WC4UY75nbTwJ0wbdNLZnIYahbu9QcpIKKPPH6aWeCyNh0mt2b1zeMz24FzYjUr6HN-EEk9zvGTBOVab0uzuh_DIAscJhkuLgOxuU4D6RLr7OfkJFR9Rp2HijilqUByxNWvo0FrkShqVBCq-dSfiA4DYnCKh6bnEWI6nDGTCN-k9wc87Q4sq9pT3MVkg%26flowName%3DGeneralOAuthFlow%26as%3DS1664082023%253A1777238668311708%26client_id%3D157293832212-e4v9dnbj7ftanak3h4f2f07is4sijbj6.apps.googleusercontent.com%23&app_domain=https%3A%2F%2Fclerk.app.tubeflow.winflowz.com&rart=ANgoxcc4bt4jfP2bczR2pWiHprbln62iqxKFFFm8F9kkcGdw-qmThLz4BLtqoXF9F_NKBJKnK-tZfJWkbo_bbQGNIRSKyV_JWgSSS3H4Wi1gB7Bo99bMeYo:0

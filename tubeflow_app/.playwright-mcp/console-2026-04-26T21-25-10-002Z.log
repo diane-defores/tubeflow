@@ -1,0 +1,57 @@
+[      79ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[     117ms] [WARNING] Error while trying to use the following icon from the Manifest: https://app.tubeflow.winflowz.com/icons/Icon-192.png (Download error or resource isn't a valid image) @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[    1003ms] [LOG] === [WebConvexClient] Creating web client === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1003ms] [LOG] === [WebConvexClient] Connecting to Convex === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1004ms] [LOG] === [WebConvexClient] WebSocket URL: wss://joyous-chipmunk-990.convex.cloud/api/sync === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1005ms] [LOG] === [WebConvexClient] WebSocket connection initiated === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1006ms] [LOG] === [WebConvexClient] Lifecycle event: resumed (no action on web) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1006ms] [LOG] === [WebConvexClient] Client created successfully === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1495ms] [LOG] === [WebConvexClient] WebSocket opened === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1495ms] [LOG] === [WebConvexClient] State transition: connecting → connected === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1496ms] [LOG] === [WebConvexClient] SENDING: {"type":"Connect","sessionId":"7f7a8253-0840-4722-a0a1-8e073475d52c","maxObservedTimestamp":null,"connectionCount":1,"lastCloseReason":null,"clientTs":1777238711497} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1497ms] [LOG] === [WebConvexClient] Sent message: Connect (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    1497ms] [LOG] === [WebConvexClient] Sent Connect handshake === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    6307ms] [LOG] === [WebConvexClient] SENDING: {"type":"Authenticate","token":""} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    6307ms] [LOG] === [WebConvexClient] Sent message: Authenticate (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    6308ms] [LOG] === [WebConvexClient] Auth token sent === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7545ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"FatalError","error":"Received Invalid JSON on websocket: missing field `baseVersion`"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7546ms] [LOG] === [WebConvexClient] Received message type: FatalError, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7546ms] [LOG] FATAL ERROR: [WebConvexClient] Received Invalid JSON on websocket: missing field `baseVersion` @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7585ms] [LOG] === [WebConvexClient] WebSocket closed === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7585ms] [LOG] === [WebConvexClient] Close code: 1005, reason: "", wasClean: true === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7585ms] [LOG] === [WebConvexClient] State transition: connected → connecting === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    7586ms] [LOG] === [WebConvexClient] Scheduling reconnect attempt 1 in 1s === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8586ms] [LOG] === [WebConvexClient] Executing reconnect attempt 1 === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8587ms] [LOG] === [WebConvexClient] Connecting to Convex === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8587ms] [LOG] === [WebConvexClient] WebSocket URL: wss://joyous-chipmunk-990.convex.cloud/api/sync === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8587ms] [LOG] === [WebConvexClient] WebSocket connection initiated === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8936ms] [LOG] === [WebConvexClient] WebSocket opened === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8936ms] [LOG] === [WebConvexClient] State transition: connecting → connected === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8937ms] [LOG] === [WebConvexClient] SENDING: {"type":"Connect","sessionId":"7f7a8253-0840-4722-a0a1-8e073475d52c","maxObservedTimestamp":null,"connectionCount":1,"lastCloseReason":null,"clientTs":1777238718938} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8937ms] [LOG] === [WebConvexClient] Sent message: Connect (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[    8937ms] [LOG] === [WebConvexClient] Sent Connect handshake === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   12159ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   12161ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   21858ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   21858ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   23939ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   23940ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   23940ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   23941ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   23941ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   31552ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   31552ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   38939ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   38939ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   38939ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   38940ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   38940ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   41262ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   41263ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   50968ms] [ERROR] Access to fetch at 'https://clerk.app.tubeflow.winflowz.com/' from origin 'https://app.tubeflow.winflowz.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://app.tubeflow.winflowz.com/#/sign-in?tf_redirect=/videos:0
+[   50968ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://clerk.app.tubeflow.winflowz.com/:0
+[   53941ms] [LOG] === [WebConvexClient] RAW MESSAGE: {"type":"Ping"} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   53941ms] [LOG] === [WebConvexClient] Received message type: Ping, id: null === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   53941ms] [LOG] === [WebConvexClient] SENDING: {"type":"Event","eventType":"Pong","event":null} === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   53941ms] [LOG] === [WebConvexClient] Sent message: Event (id: null) === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
+[   53942ms] [LOG] === [WebConvexClient] Sent Pong === @ https://app.tubeflow.winflowz.com/main.dart.js:37439
