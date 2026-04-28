@@ -1,7 +1,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { sanitizeReturnTo, buildReturnUrl } = require('./_youtube');
+const {
+  sanitizeReturnTo,
+  buildReturnUrl,
+  parseCookies,
+  getRequestOrigin,
+  sendRedirect,
+} = require('./_youtube');
 
 test('sanitizeReturnTo falls back to default for missing and root values', () => {
   const inputs = [undefined, null, '', '/'];
@@ -95,4 +101,45 @@ test('buildReturnUrl accepts hash-only return_to values via sanitization', () =>
   const output = buildReturnUrl('https://app.example.com', '#/studio');
   const url = new URL(output);
   assert.equal(url.hash, '#/studio');
+});
+
+test('parseCookies ignores malformed percent-encoding instead of throwing', () => {
+  const cookies = parseCookies('ok=one; bad=%E0%A4%A; keep=two');
+  assert.deepEqual(cookies, { ok: 'one', keep: 'two' });
+});
+
+test('getRequestOrigin normalizes forwarded host/proto lists', () => {
+  const origin = getRequestOrigin({
+    headers: {
+      'x-forwarded-proto': 'https,http',
+      'x-forwarded-host': 'app.example.com, proxy.internal',
+      host: 'fallback.example.com',
+    },
+  });
+  assert.equal(origin, 'https://app.example.com');
+});
+
+test('sendRedirect sets no-store cache headers', () => {
+  const headers = new Map();
+  const res = {
+    statusCode: 200,
+    setHeader(name, value) {
+      headers.set(name.toLowerCase(), value);
+    },
+    getHeader(name) {
+      return headers.get(name.toLowerCase());
+    },
+    endCalled: false,
+    end() {
+      this.endCalled = true;
+    },
+  };
+
+  sendRedirect(res, 'https://app.example.com/#/playlists');
+
+  assert.equal(res.statusCode, 302);
+  assert.equal(headers.get('cache-control'), 'no-store');
+  assert.equal(headers.get('pragma'), 'no-cache');
+  assert.equal(headers.get('location'), 'https://app.example.com/#/playlists');
+  assert.equal(res.endCalled, true);
 });

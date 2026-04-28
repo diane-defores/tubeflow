@@ -55,6 +55,35 @@ Map<String, dynamic>? _decodeMap(dynamic raw) {
   return null;
 }
 
+Map<String, dynamic>? _normalizeTranscriptMap(Map<String, dynamic>? raw) {
+  if (raw == null) return null;
+
+  final entriesRaw = raw['entries'];
+  final entries = <Map<String, dynamic>>[];
+  if (entriesRaw is List) {
+    for (final item in entriesRaw) {
+      if (item is! Map) continue;
+      final start = (item['start'] as num?)?.toDouble();
+      final duration = (item['duration'] as num?)?.toDouble();
+      final text = item['text']?.toString() ?? '';
+      if (start == null || duration == null || text.trim().isEmpty) {
+        continue;
+      }
+      entries.add(<String, dynamic>{
+        'start': start,
+        'duration': duration,
+        'text': text.trim(),
+        if (item['speaker'] != null) 'speaker': item['speaker'].toString(),
+      });
+    }
+  }
+
+  return <String, dynamic>{
+    ...raw,
+    'entries': entries,
+  };
+}
+
 Map<String, dynamic> _normalizeSettingsMap(
   Map<String, dynamic>? raw,
   AuthUser user,
@@ -521,6 +550,26 @@ class FeedbackAdminListArgs {
   int get hashCode => Object.hash(status, type);
 }
 
+class TranscriptArgs {
+  const TranscriptArgs({
+    required this.youtubeVideoId,
+    this.language = 'en',
+  });
+
+  final String youtubeVideoId;
+  final String language;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TranscriptArgs &&
+          youtubeVideoId == other.youtubeVideoId &&
+          language == other.language;
+
+  @override
+  int get hashCode => Object.hash(youtubeVideoId, language);
+}
+
 /// One-shot query for `feedback:isAdmin`.
 final feedbackIsAdminProvider = FutureProvider<bool>((ref) async {
   final authState = ref.watch(authStateProvider);
@@ -592,6 +641,85 @@ final feedbackAdminEntriesProvider =
           throw StateError(
             'Feedback admin is unavailable on the current backend deployment.',
           );
+        }
+        rethrow;
+      }
+    });
+
+/// One-shot query for the active transcript for a video.
+///
+/// Primary source is `transcripts:getActiveTranscript`. If that function is
+/// missing on the connected backend, this provider falls back to legacy
+/// `youtube:getTranscript`.
+final activeTranscriptProvider =
+    FutureProvider.family<Map<String, dynamic>?, TranscriptArgs>((ref, args) async {
+      if (args.youtubeVideoId.trim().isEmpty) {
+        return null;
+      }
+
+      final service = ref.watch(convexServiceProvider);
+
+      Future<Map<String, dynamic>?> queryTranscript(
+        String path,
+        Map<String, dynamic> queryArgs,
+      ) async {
+        final raw = await service.query<dynamic>(path, queryArgs);
+        return _normalizeTranscriptMap(_decodeMap(raw));
+      }
+
+      try {
+        final active = await queryTranscript('transcripts:getActiveTranscript', {
+          'youtubeVideoId': args.youtubeVideoId,
+          'language': args.language,
+        });
+        if (active != null) {
+          return active;
+        }
+      } catch (e, st) {
+        if (isMissingPublicConvexFunctionError(
+          e,
+          path: 'transcripts:getActiveTranscript',
+        )) {
+          _logFunctionMissing(
+            'transcripts:getActiveTranscript',
+            consumer: 'activeTranscriptProvider',
+            fallback: 'falling back to youtube:getTranscript',
+          );
+        } else if (isConvexUnauthorizedError(e)) {
+          _logUnauthorizedFallback(
+            'activeTranscriptProvider',
+            error: e,
+            stackTrace: st,
+            fallback: 'returning null',
+          );
+          return null;
+        } else {
+          rethrow;
+        }
+      }
+
+      try {
+        return await queryTranscript('youtube:getTranscript', {
+          'youtubeVideoId': args.youtubeVideoId,
+          'language': args.language,
+        });
+      } catch (e, st) {
+        if (isMissingPublicConvexFunctionError(e, path: 'youtube:getTranscript')) {
+          _logFunctionMissing(
+            'youtube:getTranscript',
+            consumer: 'activeTranscriptProvider',
+            fallback: 'returning null',
+          );
+          return null;
+        }
+        if (isConvexUnauthorizedError(e)) {
+          _logUnauthorizedFallback(
+            'activeTranscriptProvider',
+            error: e,
+            stackTrace: st,
+            fallback: 'returning null',
+          );
+          return null;
         }
         rethrow;
       }

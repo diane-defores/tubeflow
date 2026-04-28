@@ -3,19 +3,16 @@
 ### Audit: Code
 
 #### Critical
-- [x] Fail explicitly when CONVEX_URL is not set (was silently using placeholder URL)
-- [x] Implement `ClerkService.getConvexToken()` — Convex calls now use the Clerk `convex` JWT template
+- [x] Harden YouTube OAuth helper parsing/origin handling to avoid malformed-cookie crashes and ambiguous forwarded headers
 
 #### High
-- [x] Wire router to actual screen widgets (was using _Placeholder for all routes)
-- [x] Remove `pubspec.lock` from `.gitignore` (must be committed for reproducible builds)
-- [x] Surface bootstrap failures to user (was silently swallowed)
+- [x] Replace `PlayScreen` placeholders with real player/transcript plumbing and implement queue/options actions
+- [ ] Persist playlist reorder and complete playlist-detail navigation actions
+- [ ] Add automated coverage for auth/bootstrap/OAuth critical paths and run it in CI
 
 #### Medium
-- [x] Extract duplicated `_parseColor()` into shared `color_utils.dart`
-- [x] Add security headers to `vercel.json` (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
-- [x] Use mutation helpers from `mutations.dart` consistently instead of calling `convexServiceProvider` directly in screens
-- [x] Implement feedback collection + admin review flow (text/audio, Convex storage, admin allowlist)
-- [ ] 🔄 Realign Flutter web YouTube auth to a full-redirect OAuth flow (remove popup path)
+- [x] Wire no-op taps in Videos/Playlists/Notes screens to actual routes
+- [x] Mark OAuth redirects as non-cacheable (`Cache-Control: no-store`)
+- [ ] Add CSP/HSTS hardening headers in `vercel.json`
+- [ ] Tighten Dart analyzer settings (`strict-casts`, `strict-inference`, `strict-raw-types`)
 - [ ] Verify Clerk + Convex bootstrap and WebSocket startup end-to-end in a real Flutter environment
-- [ ] Add tests (zero test coverage currently)

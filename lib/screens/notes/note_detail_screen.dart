@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -212,7 +214,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         subtitle: const Text('Tap to view video'),
         trailing: const Icon(Icons.open_in_new, size: 18),
         onTap: () {
-          // TODO: navigate to play screen at this note's timestamp
+          _openNoteVideo(note);
         },
       ),
     );
@@ -223,7 +225,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       children: [
         InkWell(
           onTap: () {
-            // TODO: navigate to video at this timestamp
+            _openNoteVideo(note);
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
@@ -291,7 +293,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   void _handleMenuAction(String action, Note note) {
     switch (action) {
       case 'play':
-        // TODO: navigate to play screen at note timestamp
+        _openNoteVideo(note);
         break;
       case 'share':
         // TODO: share note
@@ -335,6 +337,25 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _openNoteVideo(Note note) {
+    final videoId = note.youtubeVideoId;
+    if (videoId == null || videoId.isEmpty) {
+      showErrorSnackBar(
+        context,
+        error: 'This note is not linked to a YouTube video.',
+        prefix: 'Cannot open video',
+      );
+      return;
+    }
+
+    context.go(
+      Uri(
+        path: Routes.play,
+        queryParameters: {'videoId': videoId},
+      ).toString(),
     );
   }
 }

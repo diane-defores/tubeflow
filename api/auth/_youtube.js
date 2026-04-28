@@ -1,5 +1,6 @@
 const DEFAULT_RETURN_TO = '/#/playlists';
 const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube';
+const _HOST_PATTERN = /^[A-Za-z0-9.-]+(?::\d+)?$/;
 
 function getEnv(...names) {
   for (const name of names) {
@@ -19,8 +20,24 @@ function getRequestOrigin(req) {
 
   const forwardedProto = req.headers['x-forwarded-proto'];
   const forwardedHost = req.headers['x-forwarded-host'];
-  const host = forwardedHost || req.headers.host || 'localhost:3000';
-  const protocol = forwardedProto || 'https';
+
+  const rawProto = Array.isArray(forwardedProto)
+    ? forwardedProto[0]
+    : forwardedProto;
+  const protoCandidate = String(rawProto || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+  const protocol = protoCandidate === 'http' ? 'http' : 'https';
+
+  const rawHost = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : forwardedHost || req.headers.host || 'localhost:3000';
+  const hostCandidate = String(rawHost).split(',')[0].trim().toLowerCase();
+  const host = _HOST_PATTERN.test(hostCandidate)
+    ? hostCandidate
+    : 'localhost:3000';
+
   return `${protocol}://${host}`;
 }
 
@@ -41,7 +58,11 @@ function parseCookies(header) {
 
     const name = trimmed.slice(0, separator).trim();
     const value = trimmed.slice(separator + 1).trim();
-    cookies[name] = decodeURIComponent(value);
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch (_) {
+      // Ignore malformed cookie values instead of crashing OAuth handlers.
+    }
   }
 
   return cookies;
@@ -129,6 +150,8 @@ function sendRedirect(res, location, cookies = []) {
     appendCookies(res, cookies);
   }
   res.statusCode = 302;
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
   res.setHeader('Location', location);
   res.end();
 }

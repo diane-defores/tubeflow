@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
@@ -310,7 +311,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () {
-              // TODO: navigate to play screen with video.id
+              _openVideo(context, video.youtubeVideoId);
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +440,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           ),
           trailing: const Icon(Icons.more_vert),
           onTap: () {
-            // TODO: navigate to play screen with video.id
+            _openVideo(context, video.youtubeVideoId);
           },
         );
       },
@@ -460,7 +461,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           margin: const EdgeInsets.only(bottom: 12),
           child: InkWell(
             onTap: () {
-              // TODO: navigate to play screen with video.id
+              _openVideo(context, video.youtubeVideoId);
             },
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -508,6 +509,23 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     );
   }
 
+  void _openVideo(BuildContext context, String youtubeVideoId) {
+    if (youtubeVideoId.isEmpty) {
+      showErrorSnackBar(
+        context,
+        error: 'This video is missing an identifier.',
+        prefix: 'Cannot open video',
+      );
+      return;
+    }
+
+    context.go(
+      Uri(
+        path: Routes.play,
+        queryParameters: {'videoId': youtubeVideoId},
+      ).toString(),
+    );
+  }
 }
 
 class _ViewModeMenuItem extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
@@ -273,7 +274,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               ),
               trailing: const Icon(Icons.chevron_right, size: 20),
               onTap: () {
-                // TODO: navigate to note detail with note.id
+                context.go(Routes.noteDetail(note.id));
               },
             ),
           );

@@ -1,25 +1,25 @@
 ---
 artifact: brand_context
 metadata_schema_version: "1.0"
-artifact_version: "0.2.0"
+artifact_version: "1.0.0"
 project: "tubeflow-app"
 created: "2026-04-26"
-updated: "2026-04-26"
-status: "draft"
+updated: "2026-04-27"
+status: "reviewed"
 source_skill: "sf-init"
 scope: "branding"
 owner: "Diane"
-confidence: "medium"
+confidence: "high"
 risk_level: "medium"
-target_audience: "Individual YouTube users using video for learning, research, tutorials, or repeat reference"
-value_proposition: "Combine YouTube viewing, timestamped notes, playlists, and viewing continuity in one account-backed workflow"
-market: "English and French web users"
+target_audience: "Solo creators, students, and educators using YouTube for productivity and learning"
+value_proposition: "Turn YouTube watch time into organized, reusable learning and execution flow"
+market: "Bilingual English/French web users"
 docs_impact: "yes"
 security_impact: "none"
 evidence:
   - "PRODUCT.md reviewed product scope and claim boundaries"
-  - "BUSINESS.md draft business context"
-  - "Repository content suggests a productivity and learning product"
+  - "BUSINESS.md reviewed business direction (LTD + subscription, segments confirmed)"
+  - "Owner decisions confirmed in working session on 2026-04-27"
 brand_voice: "Professional, clear, practical, and low-hype"
 trust_posture: "Conservative on claims; only promise workflows the shipped app clearly supports"
 depends_on:
@@ -27,12 +27,12 @@ depends_on:
     artifact_version: "1.0.0"
     required_status: "reviewed"
   - artifact: "BUSINESS.md"
-    artifact_version: "0.2.0"
-    required_status: "draft|reviewed"
+    artifact_version: "1.0.0"
+    required_status: "reviewed"
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-05-26"
-next_step: "Diane to answer Questions ouvertes before promotion"
+next_step: "Use as source of truth for bilingual copy and landing-page messaging."
 ---
 
 # Branding Context
@@ -41,7 +41,7 @@ next_step: "Diane to answer Questions ouvertes before promotion"
 
 TubeFlow's brand should make the product feel like a focused personal workspace for learning from YouTube. The brand should reduce cognitive load, not add hype.
 
-Because the business model and primary segment are not yet confirmed, this file defines safe voice and claim boundaries but should remain draft until Diane validates the preferred positioning.
+The brand direction is confirmed for a productivity and learning positioning aimed first at solo creators, students, and educators.
 
 ## Brand Voice
 
@@ -51,9 +51,9 @@ The product should sound capable and structured without becoming academic, corpo
 
 ## Address Style
 
-Default to direct, plain English.
+Default to direct, plain language in both English and French.
 
-For French copy, mirror the same clarity and directness. Do not make the French voice more formal by default unless Diane chooses a more premium or institutional positioning.
+French and English should carry the same intent, confidence, and level of detail. Avoid treating one language as secondary.
 
 ## Personality
 
@@ -66,21 +66,25 @@ For French copy, mirror the same clarity and directness. Do not make the French 
 
 ## Messaging Pillars
 
-- Watch with context.
-- Capture timestamped notes while the moment is fresh.
-- Organize useful videos into playlists.
+- Turn watch time into productive output.
+- Capture timestamped notes while context is fresh.
+- Organize useful videos into reusable playlists.
 - Return to what mattered without rebuilding the trail.
+- Support ongoing learning and veille with low friction.
 - Keep claims grounded in actual product behavior.
 
-## Tagline Candidates
+## Official Tagline
 
-These are candidates, not approved brand lines:
+English:
+"Turn YouTube watch time into organized learning."
 
-- Capture the moments that matter while you watch.
-- Turn YouTube watching into a reusable learning flow.
-- Watch, note, organize, and return.
+French:
+"Transforme ton temps YouTube en apprentissage organise."
 
-A final tagline depends on Diane's chosen primary segment and level of ambition.
+Short fallback (UI-constrained surfaces):
+
+- EN: "Watch. Note. Learn."
+- FR: "Regarde. Note. Apprends."
 
 ## Values
 
@@ -103,7 +107,8 @@ A final tagline depends on Diane's chosen primary segment and level of ambition.
 
 - Lead with the user's workflow: watch, capture, organize, revisit.
 - Prefer concrete product language over abstract vision statements.
-- Avoid claims about AI, automation, analytics, collaboration, or monetization unless the feature exists.
+- Reflect the confirmed model direction (`LTD + subscription`) without inventing pricing details.
+- Avoid claims about AI, automation, analytics, collaboration, or creator growth unless the feature exists.
 - Keep CTAs short and specific.
 - Treat sign-in and YouTube connection as practical product steps, not as hidden details.
 - When unsure, write narrower copy rather than broader copy.
@@ -115,19 +120,14 @@ Safe claims:
 - TubeFlow helps users capture timestamped notes from YouTube videos.
 - TubeFlow supports playlists and viewing continuity.
 - TubeFlow is built around authenticated persistence.
-- TubeFlow includes feedback routes for product learning.
+- TubeFlow serves solo creators, students, and educators.
+- TubeFlow follows an `LTD + subscription` trajectory.
 
 Unsafe claims until confirmed:
 
 - The best YouTube note-taking app.
 - AI-powered learning workspace.
 - Built for teams.
-- Built for creators to grow channels.
+- Guaranteed creator growth outcomes.
 - Enterprise-ready knowledge management.
-- Free, freemium, paid, or unlimited usage.
-
-## Questions ouvertes
-
-- Diane, quelle tonalité de marque faut-il prioriser: outil sobre de productivité, compagnon d'apprentissage, workspace de recherche, ou marque plus créative ?
-- Diane, quelle tagline doit être considérée comme officielle, ou faut-il garder plusieurs variantes pour test ?
-- Diane, la marque doit-elle s'adresser en priorité à des utilisateurs individuels en anglais, en français, ou aux deux avec le même niveau d'investissement ?
+- Exact pricing promises, offer limits, or "unlimited" language.

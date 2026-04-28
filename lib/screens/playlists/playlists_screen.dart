@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
@@ -159,7 +160,7 @@ class PlaylistsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: youtubeConnected
             ? () {
-                // TODO: navigate to create playlist screen
+                context.go(Routes.playlistCreate);
               }
             : null,
         icon: const Icon(Icons.add),
@@ -179,7 +180,7 @@ class PlaylistsScreen extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          // TODO: navigate to playlist detail screen with playlist.id
+          context.go(Routes.playlistDetail(playlist.id));
         },
         child: Row(
           children: [

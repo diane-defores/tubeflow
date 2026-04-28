@@ -170,6 +170,28 @@ Future<dynamic> upsertProgress(
   });
 }
 
+/// Generates (or reuses) a transcript version and activates it for the user.
+Future<Map<String, dynamic>> generateTranscript(
+  WidgetRef ref, {
+  required String youtubeVideoId,
+  String language = 'en',
+}) async {
+  final service = ref.read(convexServiceProvider);
+  final raw = await service.action<dynamic>('transcriptGeneration:generateTranscript', {
+    'youtubeVideoId': youtubeVideoId,
+    'language': language,
+    'activate': true,
+  });
+
+  if (raw is Map<String, dynamic>) {
+    return raw;
+  }
+
+  throw StateError(
+    'Transcript generation returned an unexpected response: ${raw.runtimeType}',
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Playlists
 // ---------------------------------------------------------------------------

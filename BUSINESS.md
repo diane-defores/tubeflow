@@ -1,26 +1,27 @@
 ---
 artifact: business_context
 metadata_schema_version: "1.0"
-artifact_version: "0.2.0"
+artifact_version: "1.0.0"
 project: "tubeflow-app"
 created: "2026-04-26"
-updated: "2026-04-26"
-status: "draft"
+updated: "2026-04-27"
+status: "reviewed"
 source_skill: "sf-init"
 scope: "business"
 owner: "Diane"
-confidence: "medium"
+confidence: "high"
 risk_level: "medium"
-business_model: "unknown"
-target_audience: "Individual YouTube users who use long-form video for learning, research, tutorials, or repeat reference"
-value_proposition: "Combine YouTube viewing, timestamped notes, playlists, and viewing continuity in one account-backed workflow"
-market: "English and French web users consuming educational or reference-oriented YouTube content"
+business_model: "LTD offer + recurring subscription"
+target_audience: "Solo creators, students, and educators using YouTube for productivity, learning, and ongoing veille"
+value_proposition: "Turn YouTube watch time into an organized personal workflow: capture timestamped notes, structure playlists, and retrieve what matters faster"
+market: "Bilingual English/French web users"
 docs_impact: "yes"
 security_impact: "unknown"
 evidence:
   - "README.md describes timestamped notes, playlists, viewing history, authentication, and deployment"
   - "CLAUDE.md describes authenticated YouTube viewing and note workflows"
   - "PRODUCT.md reviewed product scope and claim boundaries"
+  - "Owner decisions confirmed in working session on 2026-04-27"
 depends_on:
   - artifact: "PRODUCT.md"
     artifact_version: "1.0.0"
@@ -28,95 +29,78 @@ depends_on:
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-05-26"
-next_step: "Diane to answer Questions ouvertes before promotion"
+next_step: "Align pricing and entitlement implementation details with this business direction."
 ---
 
 # Business Context
 
 ## Mission
 
-TubeFlow App helps individual users get more value from YouTube by keeping watching, timestamped note-taking, playlists, and later retrieval in one authenticated workflow.
+TubeFlow App helps users turn YouTube watch time into structured productivity and learning outcomes.
 
-This mission is supported by the repository. It should not be expanded into team collaboration, creator monetization, AI learning automation, or enterprise knowledge management without new product evidence.
+The core mission is to keep watching, timestamped note-taking, playlist organization, and retrieval in one authenticated workflow, with a clear emphasis on individual execution quality and repeatable learning.
 
 ## Value Proposition
 
-YouTube is strong for discovery and playback, but weak as a structured personal workspace for notes, timestamps, organization, and retrieval. TubeFlow's evidenced value proposition is to reduce that fragmentation.
+YouTube is strong for discovery and playback, but weak as a structured personal workspace for notes, timestamps, organization, and retrieval.
 
-Defensible business-facing phrasing:
+TubeFlow's value proposition is to reduce that fragmentation and make learning and reference work more reusable:
 
-"TubeFlow helps YouTube-heavy learners and researchers capture important moments, organize videos, and return to useful context without stitching together separate tools."
+"TubeFlow helps you capture what matters while watching, organize it, and come back to it without rebuilding context every time."
 
 ## Target Audience
 
-Current evidence supports a self-serve individual audience:
+Priority segments (confirmed):
 
-- Students and independent learners using YouTube as study material.
-- Knowledge workers and researchers who review long-form video sources.
-- Creators or operators who personally collect references, without assuming creator publishing tools.
-- Bilingual English/French users, based on translation assets, without assuming a formal geographic market.
+- Solo creators using YouTube as an execution and reference surface.
+- Students using long-form video for study and revision.
+- Educators curating and revisiting instructional content.
 
-The repository does not prove a paid buyer persona, team buyer, institutional buyer, or creator-economy ICP.
+Secondary overlap:
+
+- Independent learners and knowledge workers with similar watch-note-organize workflows.
+
+Language strategy:
+
+- Bilingual by design (English and French) with equivalent product and brand clarity in both languages.
+
+## Positioning
+
+TubeFlow positions itself as a productivity and learning companion for YouTube-heavy workflows:
+
+- Productivity: reduce friction between watching and execution.
+- Learning and veille: keep useful moments, insights, and references retrievable over time.
+
+It is not positioned as a team collaboration suite, creator growth platform, or enterprise knowledge system unless those workflows are explicitly built and documented.
 
 ## Business Model
 
-Unknown from repository signals alone.
+Confirmed monetization direction:
 
-The app has authenticated persistence and product feedback surfaces, which are compatible with future monetization, but the repo does not evidence pricing, checkout, subscriptions, usage limits, paid tiers, billing copy, or entitlement logic.
+- `LTD` offer for early adopters (activation and early revenue).
+- Recurring subscription for ongoing product sustainability.
 
-Do not publish claims about freemium, paid plans, storage limits, team pricing, or creator tiers until Diane confirms the business model and the app implements or documents the relevant paths.
+Pricing, packaging, and entitlement constraints are implementation details to finalize in product/monetization docs and code. Until then, external copy should mention the model direction without fabricated plan specifics.
 
 ## Distribution
 
-Evidence supports only product access and product-learning loops, not a validated acquisition strategy.
+Current and near-term distribution surfaces:
 
-Observed or adjacent distribution surfaces:
-
-- Direct web app access through deployment configuration.
-- Repository README for developer/operator onboarding.
-- In-product sign-in as the main activation gate.
-- YouTube connection as a secondary activation step.
-- Feedback routes as a learning loop.
-
-Unproven channels:
-
-- SEO content program.
-- Public landing pages.
-- Paid acquisition.
-- Lifecycle email.
-- Creator partnerships.
-- School, team, or enterprise sales.
-
-## Competitor Frame
-
-A full competitor list requires market research outside this repo. The repo only supports a category-level frame:
-
-- YouTube plus a separate notes app.
-- Bookmarking or read-later tools.
-- Note-taking tools with video support.
-- Browser extensions focused on timestamped YouTube notes.
-
-## Commercial Claim Boundaries
+- Direct app access (web app).
+- Activation through sign-in and YouTube connection.
+- Product feedback loop (`/feedback`) to inform iteration.
+- Bilingual messaging for both English and French audiences.
 
 Safe claims:
 
-- Personal YouTube learning and curation workflow.
-- Timestamped note capture and retrieval.
-- Playlist and history-oriented organization.
-- Account-backed continuity.
+- TubeFlow is a personal productivity and learning workflow for YouTube.
+- TubeFlow supports timestamped notes, playlist organization, and retrieval.
+- TubeFlow targets solo creators, students, and educators.
+- TubeFlow follows an `LTD + subscription` business direction.
 
-Unsafe claims until confirmed:
+Unsafe claims until implemented and documented:
 
-- Revenue model.
-- Pricing or plan packaging.
-- Formal ICP or buyer persona.
-- Team collaboration.
-- Enterprise readiness.
-- Creator growth outcomes.
-- AI or automation differentiation.
-
-## Questions ouvertes
-
-- Diane, quel est le modèle économique voulu pour TubeFlow: gratuit de validation, freemium, abonnement individuel, offre créateur, offre équipe, ou autre chose ?
-- Diane, quel segment doit être prioritaire pour les décisions produit et marketing: étudiants, knowledge workers, chercheurs, créateurs, ou un autre profil ?
-- Diane, TubeFlow doit-il rester un outil individuel ou préparer une trajectoire vers des usages d'équipe ?
+- Exact pricing tables, quota limits, and paywall behavior.
+- Advanced creator outcomes claims (channel growth, revenue lift) without direct evidence.
+- Team and enterprise positioning.
+- AI-first claims unless backed by shipped features.
