@@ -1,111 +1,97 @@
 ---
 artifact: brand_context
 metadata_schema_version: "1.0"
-artifact_version: "0.1.0"
-project: tubeflow-site
+artifact_version: "1.0.0"
+project: "tubeflow-site"
 created: "2026-04-25"
-updated: "2026-04-25"
-status: draft
-source_skill: sf-docs
-scope: brand
-owner: unknown
-confidence: low
-risk_level: medium
-security_impact: unknown
-docs_impact: yes
-brand_voice: unknown
-trust_posture: unknown
-depends_on: []
-supersedes: []
-evidence: []
-next_review: "unknown"
-next_step: /sf-docs audit BRANDING.md
+updated: "2026-04-27"
+status: "reviewed"
+source_skill: "sf-docs"
+scope: "brand"
+owner: "Diane"
+confidence: "high"
+risk_level: "medium"
+security_impact: "none"
+docs_impact: "yes"
+brand_voice: "Professional, clear, practical, and low-hype in both English and French"
+trust_posture: "Conservative claims only; marketing copy must stay compatible with canonical app truth"
+depends_on:
+  - artifact: "/home/claude/tubeflow-app/BRANDING.md"
+    artifact_version: "1.0.0"
+    required_status: "reviewed"
+  - artifact: "/home/claude/tubeflow-app/BUSINESS.md"
+    artifact_version: "1.0.0"
+    required_status: "reviewed"
+supersedes:
+  - artifact_version: "0.1.1"
+evidence:
+  - "README.md (site role is marketing and conversion)"
+  - "src/pages/index.astro (hero and CTA framing)"
+  - "src/pages/features.astro (benefit language and workflow framing)"
+  - "src/pages/fr/index.astro (active French marketing surface)"
+  - "/home/claude/tubeflow-app/BRANDING.md (canonical brand contract)"
+next_review: "2026-05-26"
+next_step: "Apply these voice rules to homepage, features, compare, pricing, and bilingual surfaces."
 ---
-# Branding - TubeFlow
+# Branding Context
 
-## Nom
+## Brand Idea
 
-**TubeFlow** : Tube + Flow
+TubeFlow should feel like a focused learning workspace layered on top of video usage. The brand should emphasize practical control, retrieval speed, and low-distraction execution.
 
-- **Tube** : reference directe a la video (YouTube, le "tube" numerique)
-- **Flow** : flux d'apprentissage continu, etat de flow pendant l'etude
+## Name
 
-## Tagline
+TubeFlow combines:
 
-> Apprends activement, note intelligemment
+- `Tube`: a direct reference to online video
+- `Flow`: continuity, focus, and forward motion while learning
 
-## Identite visuelle
+## Official Tagline
 
-### Interface split
+English:
+"Turn YouTube watch time into organized learning."
 
-Le pattern fondamental de TubeFlow est l'interface divisee :
+French:
+"Transforme ton temps YouTube en apprentissage organise."
 
-- **Gauche** : lecteur video (zone de visionnage)
-- **Droite** : panneau de notes (zone de travail)
-- **Mobile** : bascule entre les deux vues
+## Voice and Tone
 
-### Couleurs
+- Clear over clever
+- Specific over hype
+- Practical over academic
+- Calm over aggressive
 
-- **Tons neutres** : fond sombre ou clair, pas de distraction pendant le visionnage
-- **Accent principal** : couleur vive pour les timestamps et les highlights
-- **Accent secondaire** : couleur complementaire pour les actions (sauvegarder, exporter)
-- **Dark mode** supporte nativement
+The copy should sound confident and useful. Avoid inflated claims about AI, productivity, or learning outcomes unless the product can prove them.
 
-### Palette indicative
+## Bilingual Policy
 
-| Role | Usage |
-|------|-------|
-| Background | Fond principal, neutre |
-| Surface | Panneaux, cards |
-| Text | Contenu principal |
-| Timestamp | Marqueurs temporels, cliquables (accent) |
-| Highlight | Notes mises en avant, selections |
-| Muted | Texte secondaire, bordures |
+- English and French are both first-class marketing surfaces.
+- Do not treat French as a literal translation fallback.
+- Keep product nouns consistent across locales (notes, timestamps, playlists, review).
 
-## Typographie
+## Messaging Priorities
 
-- **System fonts** : performance maximale, pas de chargement de polices
-- **Monospace pour les timestamps** : distinction visuelle claire (`font-mono`)
-- **Hierarchie** : titres des videos en `font-semibold`, notes en `font-normal`
-- Echelle Tailwind standard
+1. Timestamped notes keep context attached to the source.
+2. Review is faster because users can jump back to exact moments.
+3. The workflow supports focused learning, productivity, and veille.
+4. The product is simple enough to adopt immediately.
 
-## Iconographie
+## Visual Direction
 
-- **Librairie** : Lucide
-- **Style** : Outline, coherent avec l'ecosysteme Flowz
-- **Icons cles** :
-  - Play/Pause : controle video
-  - Clock : timestamps
-  - Pen : edition de notes
-  - Bookmark : favoris / playlists
-  - Download : export
+- Clean layouts with strong separation between watching and working
+- A restrained base palette with one sharper accent for timestamps, CTAs, and highlights
+- High legibility over decorative density
+- Motion that supports flow, not novelty
 
-## Valeurs de marque
+## UX Motifs
 
-| Valeur | Manifestation |
-|--------|---------------|
-| Apprentissage actif | Chaque interaction encourage la prise de notes |
-| Organisation | Notes structurees, playlists, recherche |
-| Efficacite | Retrouver n'importe quel passage en 1 clic |
-| Simplicite | Interface minimale, focus sur le contenu |
+- Split-screen or paired-surface compositions
+- Timeline and note relationships shown clearly
+- Timestamp elements treated as actionable anchors
+- Study-oriented framing rather than entertainment-oriented framing
 
-## Experience utilisateur
+## Trust Guidelines
 
-### Modes d'utilisation
-
-- **Mode standard** : video a gauche, notes a droite (desktop)
-- **Focus mode** : video plein ecran avec overlay de notes semi-transparent
-- **Mode revision** : liste des notes sans video, avec timestamps cliquables pour revoir les passages
-
-### Export
-
-- Notes exportables en Markdown
-- Timestamps preserves dans l'export
-- Format compatible avec Obsidian, Notion, et autres outils PKM
-
-### Interactions cles
-
-- **Clic sur timestamp** : seek instantane dans la video
-- **Raccourci clavier** : creer une note au timestamp courant (pendant le visionnage)
-- **Auto-pause optionnelle** : pause la video pendant la saisie
-- **Drag & drop** : reorganiser les notes dans une playlist
+- Do not present roadmap items as shipped parity.
+- Keep product screenshots, structured data, and CTA language in sync with the real app path configured through environment variables.
+- Prefer proof points, examples, and concrete workflow benefits over abstract slogans.

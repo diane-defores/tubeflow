@@ -1,106 +1,96 @@
 ---
 artifact: business_context
 metadata_schema_version: "1.0"
-artifact_version: "0.1.0"
-project: tubeflow-site
+artifact_version: "1.0.0"
+project: "tubeflow-site"
 created: "2026-04-25"
-updated: "2026-04-25"
-status: draft
-source_skill: sf-docs
-scope: business
-owner: unknown
-confidence: low
-risk_level: medium
-security_impact: unknown
-docs_impact: yes
-target_audience: unknown
-value_proposition: unknown
-business_model: unknown
-market: unknown
-depends_on: []
-supersedes: []
-evidence: []
-next_review: "unknown"
-next_step: /sf-docs audit BUSINESS.md
+updated: "2026-04-27"
+status: "reviewed"
+source_skill: "sf-docs"
+scope: "business"
+owner: "Diane"
+confidence: "high"
+risk_level: "medium"
+security_impact: "unknown"
+docs_impact: "yes"
+target_audience: "Solo creators, students, and educators who use video for structured learning and ongoing veille"
+value_proposition: "TubeFlow turns watch time into organized learning with timestamped notes, retrieval, and focused review."
+business_model: "LTD offer + recurring subscription"
+market: "Bilingual English/French web audience for learning-centric video workflows"
+depends_on:
+  - artifact: "/home/claude/tubeflow-app/BUSINESS.md"
+    artifact_version: "1.0.0"
+    required_status: "reviewed"
+  - artifact: "/home/claude/tubeflow-app/PRODUCT.md"
+    artifact_version: "1.0.0"
+    required_status: "reviewed"
+supersedes:
+  - artifact_version: "0.1.1"
+evidence:
+  - "README.md (repo positioned as TubeFlow marketing site)"
+  - "src/config/site.ts (PUBLIC_APP_URL points to app.tubeflow.winflowz.com)"
+  - "src/pages/pricing.astro (commercial offer and upgrade framing)"
+  - "/home/claude/tubeflow-app/BUSINESS.md (canonical product business contract)"
+next_review: "2026-05-26"
+next_step: "Keep public pricing copy and offer framing aligned with the canonical app business contract."
 ---
-# Business - TubeFlow
+# Business Context
+
+## Role of This Repo in Business Decisions
+
+`tubeflow-site` is the acquisition and conversion surface for TubeFlow. It is not the canonical product contract.
+
+Canonical product truth lives in `/home/claude/tubeflow-app`. This site can frame, qualify, and convert demand, but it should not introduce business claims that diverge from the app contract.
 
 ## Mission
 
-Transformer la consommation passive de videos en apprentissage actif.
+Convert visitors who learn from video into activated app users by presenting a clear value proposition:
 
-## Proposition de valeur
+"Turn watch time into organized learning."
 
-Prendre des notes horodatees pendant le visionnage de videos, les retrouver instantanement, les organiser par playlist. Un clic sur un timestamp ramene directement au passage de la video : le contexte n'est jamais perdu.
+## Business Direction (Canonical Alignment)
 
-## Business Model : Freemium
+Confirmed direction inherited from the canonical product business contract:
 
-### Gratuit
+- Monetization model: `LTD + recurring subscription`.
+- Priority segments: solo creators, students, educators.
+- Positioning axis: productivity plus learning/veille workflows.
 
-- Notes illimitees
-- 3 playlists maximum
-- Lecture video basique (YouTube et plateformes supportees par react-player)
-- Recherche dans ses notes
+Site-level pricing copy can vary by package naming, but it must stay compatible with this business direction.
 
-### Premium
+## Value Proposition for Site Conversion
 
-- Playlists illimitees
-- Resumes automatiques par IA
-- Export des notes (Markdown, PDF)
-- Collaboration (notes partagees sur une video)
-- Synchronisation cross-device complete
-- Mode hors-ligne (notes en cache)
+The strongest defensible message on this repository is:
 
-## Persona principal
+- Users can capture timestamped notes while watching video.
+- Users can revisit exact moments quickly.
+- Users can organize and retrieve learning material more reliably.
 
-### "L'Apprenant Actif"
+The site should treat any advanced claims as qualified commercial messaging unless implementation evidence is available in the canonical app contract.
 
-Etudiants, chercheurs, autodidactes qui regardent des cours, conferences et tutoriels en ligne. Ils veulent retenir ce qu'ils regardent, pas juste consommer passivement.
+## Target Audience
 
-**Caracteristiques :**
+Primary:
 
-- Regarde 3 a 10 videos educatives par semaine
-- Prend deja des notes (papier, Notion, fichier texte) mais perd le lien avec la video
-- Revise regulierement ses notes
-- Frustre par l'impossibilite de retrouver "ce passage a la minute 23"
+- Solo creators using video as an execution or research surface.
+- Students following lectures, courses, and tutorial workflows.
+- Educators curating and revisiting instructional video content.
 
-**Segments secondaires :**
+Secondary:
 
-- Createurs de contenu qui analysent des videos concurrentes
-- Professionnels en formation continue
-- Journalistes et veilleurs qui annotent des sources video
+- Self-directed learners and professionals with similar watch-note-review behavior.
 
-## Marche
+## Positioning
 
-- **Secteur** : EdTech, video-based learning
-- **Opportunite** : YouTube = 2B+ utilisateurs, les cours en ligne explosent (Coursera, Udemy, YouTube Education)
-- **Probleme** : Aucune solution native pour lier notes et timestamps de maniere fluide
-- **Tendance** : Apprentissage en ligne en croissance continue, demande de productivite accrue
+TubeFlow sits between algorithm-first video consumption and disconnected note-taking tools. The differentiation is preserving learning context at source timestamp granularity while reducing friction to retrieval.
 
-## Avantage concurrentiel
+## Conversion Metrics
 
-| Avantage | Detail |
-|----------|--------|
-| Notes liees au timestamp | Retrouver le contexte en 1 clic |
-| Temps reel | Synchronisation instantanee via Convex |
-| Multi-plateforme | Web (Next.js) + mobile (Expo, a venir) |
-| UX focus | Interface split video/notes, pas de distraction |
-| Ecosysteme Flowz | Auth partagee (Clerk), integration future avec NoteFlowz |
+- Visitor -> app click-through from `/`, `/features`, `/compare`, `/pricing`, `/fr`.
+- Visitor -> signup conversion once redirected to app routes.
+- Activation quality (first note created, repeat use signals) tracked in the app layer.
 
-## Go-to-Market
+## Business Claim Guardrails
 
-1. **Phase 1 (actuel - MVP)** : App web, fonctionnalites de base (notes + timestamps + playlists)
-2. **Phase 2** : Extension navigateur pour annoter directement sur YouTube
-3. **Phase 3** : App mobile (React Native/Expo)
-4. **Phase 4** : Fonctionnalites IA (resumes, extraction de concepts)
-
-## Metriques cles
-
-| Metrique | Description |
-|----------|-------------|
-| Notes creees | Volume d'engagement |
-| Videos annotees | Adoption de la fonctionnalite coeur |
-| Temps gagne en revision | Valeur percue (enquete utilisateur) |
-| Retention J7 / J30 | Fidelisation |
-| Conversion free-to-premium | Monetisation |
-| Playlists creees | Profondeur d'usage |
+- Safe claims: timestamped notes, focused learning workflow, bilingual audience support, and `LTD + subscription` direction.
+- Review-required claims: hard numbers (for example user counts), security/compliance depth, and roadmap features presented as shipped.
