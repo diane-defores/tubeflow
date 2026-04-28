@@ -1,0 +1,7 @@
+.claude/
+.flox/
+.venv/
+.venv.py313.bak/
+.venv312/
+__pycache__/
+*.pyc
