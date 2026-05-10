@@ -328,8 +328,11 @@
     async buildSignInUrl(publishableKey, redirectUrl) {
       const clerk = await ensureLoaded(publishableKey);
       return clerk.buildSignInUrl({
+        redirectUrl,
         signInForceRedirectUrl: redirectUrl,
         signUpForceRedirectUrl: redirectUrl,
+        signInFallbackRedirectUrl: redirectUrl,
+        signUpFallbackRedirectUrl: redirectUrl,
       });
     },
 

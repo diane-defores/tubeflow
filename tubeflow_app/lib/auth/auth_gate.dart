@@ -706,20 +706,37 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               )
               .toString()
         : tubeFlowAppUrl;
-    final hostedUri = Uri.parse(hostedUrl);
-    final uri = hostedUri.replace(
-      queryParameters: {
-        ...hostedUri.queryParameters,
-        'redirect_url': redirectTarget,
-        'sign_in_force_redirect_url': redirectTarget,
-        'sign_up_force_redirect_url': redirectTarget,
-        'sign_in_fallback_redirect_url': redirectTarget,
-        'sign_up_fallback_redirect_url': redirectTarget,
-        'fallback_redirect_url': redirectTarget,
-      },
-    );
-
     try {
+      var uri = Uri.parse(hostedUrl);
+      if (kIsWeb) {
+        try {
+          final builtUrl = await clerkWebBuildSignInUrl(redirectTarget);
+          if (builtUrl != null && builtUrl.isNotEmpty) {
+            uri = Uri.parse(builtUrl);
+          }
+        } catch (e) {
+          AppLogger.instance.log(
+            'Clerk buildSignInUrl failed; falling back to configured hosted URL',
+            source: 'SignInScreen',
+            level: LogLevel.warning,
+            error: e,
+          );
+        }
+      }
+      if (!uri.hasFragment) {
+        uri = uri.replace(
+          queryParameters: {
+            ...uri.queryParameters,
+            'redirect_url': redirectTarget,
+            'sign_in_force_redirect_url': redirectTarget,
+            'sign_up_force_redirect_url': redirectTarget,
+            'sign_in_fallback_redirect_url': redirectTarget,
+            'sign_up_fallback_redirect_url': redirectTarget,
+            'fallback_redirect_url': redirectTarget,
+          },
+        );
+      }
+
       await _setPendingHostedSignIn(true);
       AppLogger.instance.log(
         'Opening hosted Clerk sign-in: $uri (redirect_url=$redirectTarget, postAuthRoute=$postAuthRoute)',
