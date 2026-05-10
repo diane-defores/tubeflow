@@ -37,7 +37,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
     final youtubeConnected =
         youtubeConnectionAsync.asData?.value?['connected'] == true;
-    final notesAsync = ref.watch(notesProvider);
+    final notesAsync = youtubeConnected ? ref.watch(notesProvider) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -83,20 +83,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
           ),
           // Notes list grouped by video
           Expanded(
-            child: notesAsync.when(
-              data: (notes) =>
-                  _buildGroupedNotesList(context, notes, youtubeConnected),
-              loading: () {
-                if (youtubeConnectionAsync.isLoading &&
-                    youtubeConnectionAsync.asData == null) {
-                  return const YoutubeConnectionLoadingState(
-                    title: 'Checking your YouTube notes',
-                    description:
-                        'TubeFlow is confirming your YouTube connection before loading notes.',
-                  );
-                }
-
-                if (!youtubeConnected) {
+            child: youtubeConnectionAsync.when(
+              data: (status) {
+                if (status?['connected'] != true) {
                   return const YoutubeConnectRequiredState(
                     title: 'Connect YouTube to start taking notes',
                     description:
@@ -105,12 +94,26 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   );
                 }
 
-                return _buildShimmerLoading();
+                return notesAsync!.when(
+                  data: (notes) =>
+                      _buildGroupedNotesList(context, notes, youtubeConnected),
+                  loading: () => _buildShimmerLoading(),
+                  error: (error, stack) => ErrorStateView(
+                    error: error,
+                    prefix: 'Failed to load notes',
+                    onRetry: () => ref.invalidate(notesProvider),
+                  ),
+                );
               },
+              loading: () => const YoutubeConnectionLoadingState(
+                title: 'Checking your YouTube notes',
+                description:
+                    'TubeFlow is confirming your YouTube connection before loading notes.',
+              ),
               error: (error, stack) => ErrorStateView(
                 error: error,
-                prefix: 'Failed to load notes',
-                onRetry: () => ref.invalidate(notesProvider),
+                prefix: 'Failed to check YouTube connection',
+                onRetry: () => ref.invalidate(youtubeConnectionProvider),
               ),
             ),
           ),
@@ -146,10 +149,16 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     final filtered = _searchQuery.isEmpty
         ? allNotes
         : allNotes
-            .where((n) =>
-                n.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                n.content.toLowerCase().contains(_searchQuery.toLowerCase()))
-            .toList();
+              .where(
+                (n) =>
+                    n.title.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    ) ||
+                    n.content.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    ),
+              )
+              .toList();
 
     if (filtered.isEmpty) {
       if (!youtubeConnected) {
@@ -202,9 +211,16 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
       itemBuilder: (context, groupIndex) {
         final videoId = groupKeys[groupIndex];
         final groupNotes = grouped[videoId]!;
-        final videoTitle = videoId != null ? 'Video: $videoId' : 'Standalone Notes';
+        final videoTitle = videoId != null
+            ? 'Video: $videoId'
+            : 'Standalone Notes';
         return _buildVideoGroup(
-            context, videoTitle, groupNotes, groupIndex, groupKeys.length);
+          context,
+          videoTitle,
+          groupNotes,
+          groupIndex,
+          groupKeys.length,
+        );
       },
     );
   }
@@ -237,16 +253,16 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               Expanded(
                 child: Text(
                   videoTitle,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               Text(
                 '${notes.length} note${notes.length == 1 ? '' : 's'}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.grey,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.grey),
               ),
             ],
           ),

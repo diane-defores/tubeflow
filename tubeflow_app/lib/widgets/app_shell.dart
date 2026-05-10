@@ -59,6 +59,14 @@ class AppShell extends ConsumerWidget {
     return 0;
   }
 
+  bool _showYoutubeStatusChrome(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    return location.startsWith(Routes.videos) ||
+        location.startsWith(Routes.play) ||
+        location.startsWith(Routes.playlists) ||
+        location.startsWith(Routes.notes);
+  }
+
   void _onDestinationSelected(BuildContext context, int index) {
     context.go(_destinations[index].path);
   }
@@ -87,11 +95,16 @@ class AppShell extends ConsumerWidget {
   // Bottom navigation (mobile)
   // ---------------------------------------------------------------------------
 
-  Widget _buildWithBottomNav(BuildContext context, WidgetRef ref, int selected) {
+  Widget _buildWithBottomNav(
+    BuildContext context,
+    WidgetRef ref,
+    int selected,
+  ) {
+    final showYoutubeStatusChrome = _showYoutubeStatusChrome(context);
     return Scaffold(
       body: Column(
         children: [
-          const YoutubeConnectBanner(),
+          if (showYoutubeStatusChrome) const YoutubeConnectBanner(),
           const YoutubeOAuthFeedbackBanner(),
           Expanded(child: child),
         ],
@@ -117,6 +130,7 @@ class AppShell extends ConsumerWidget {
 
   Widget _buildWithRail(BuildContext context, WidgetRef ref, int selected) {
     final colorScheme = Theme.of(context).colorScheme;
+    final showYoutubeStatusChrome = _showYoutubeStatusChrome(context);
 
     return Scaffold(
       body: Row(
@@ -149,7 +163,7 @@ class AppShell extends ConsumerWidget {
           Expanded(
             child: Column(
               children: [
-                const YoutubeConnectBanner(),
+                if (showYoutubeStatusChrome) const YoutubeConnectBanner(),
                 const YoutubeOAuthFeedbackBanner(),
                 Expanded(child: child),
               ],

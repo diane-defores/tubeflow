@@ -78,10 +78,7 @@ Map<String, dynamic>? _normalizeTranscriptMap(Map<String, dynamic>? raw) {
     }
   }
 
-  return <String, dynamic>{
-    ...raw,
-    'entries': entries,
-  };
+  return <String, dynamic>{...raw, 'entries': entries};
 }
 
 Map<String, dynamic> _normalizeSettingsMap(
@@ -280,9 +277,14 @@ class VideosArgs {
 final videosProvider = StreamProvider.family<List<YouTubeVideo>, VideosArgs>((
   ref,
   args,
-) {
+) async* {
   final service = ref.watch(convexServiceProvider);
-  return service
+  if (!await _waitForConvexAuthReady(ref, consumer: 'videosProvider')) {
+    yield const <YouTubeVideo>[];
+    return;
+  }
+
+  yield* service
       .subscribe<dynamic>('youtube:getAllVideos', {
         'sortOrder': args.sortOrder,
         'includeWatched': args.includeWatched,
@@ -299,9 +301,14 @@ final videosProvider = StreamProvider.family<List<YouTubeVideo>, VideosArgs>((
 // ---------------------------------------------------------------------------
 
 /// Subscribes to `youtube:getYoutubePlaylists` — real-time playlist list.
-final playlistsProvider = StreamProvider<List<YouTubePlaylist>>((ref) {
+final playlistsProvider = StreamProvider<List<YouTubePlaylist>>((ref) async* {
   final service = ref.watch(convexServiceProvider);
-  return service
+  if (!await _waitForConvexAuthReady(ref, consumer: 'playlistsProvider')) {
+    yield const <YouTubePlaylist>[];
+    return;
+  }
+
+  yield* service
       .subscribe<dynamic>('youtube:getYoutubePlaylists', {})
       .map(
         (raw) => _decodeList(
@@ -315,9 +322,14 @@ final playlistsProvider = StreamProvider<List<YouTubePlaylist>>((ref) {
 // ---------------------------------------------------------------------------
 
 /// Subscribes to `notes:getNotes` — all notes for the current user.
-final notesProvider = StreamProvider<List<Note>>((ref) {
+final notesProvider = StreamProvider<List<Note>>((ref) async* {
   final service = ref.watch(convexServiceProvider);
-  return service
+  if (!await _waitForConvexAuthReady(ref, consumer: 'notesProvider')) {
+    yield const <Note>[];
+    return;
+  }
+
+  yield* service
       .subscribe<dynamic>('notes:getNotes', {})
       .map(
         (raw) => _decodeList(
@@ -571,10 +583,7 @@ class FeedbackAdminListArgs {
 }
 
 class TranscriptArgs {
-  const TranscriptArgs({
-    required this.youtubeVideoId,
-    this.language = 'en',
-  });
+  const TranscriptArgs({required this.youtubeVideoId, this.language = 'en'});
 
   final String youtubeVideoId;
   final String language;
@@ -672,7 +681,10 @@ final feedbackAdminEntriesProvider =
 /// missing on the connected backend, this provider falls back to legacy
 /// `youtube:getTranscript`.
 final activeTranscriptProvider =
-    FutureProvider.family<Map<String, dynamic>?, TranscriptArgs>((ref, args) async {
+    FutureProvider.family<Map<String, dynamic>?, TranscriptArgs>((
+      ref,
+      args,
+    ) async {
       if (args.youtubeVideoId.trim().isEmpty) {
         return null;
       }
@@ -688,10 +700,10 @@ final activeTranscriptProvider =
       }
 
       try {
-        final active = await queryTranscript('transcripts:getActiveTranscript', {
-          'youtubeVideoId': args.youtubeVideoId,
-          'language': args.language,
-        });
+        final active = await queryTranscript(
+          'transcripts:getActiveTranscript',
+          {'youtubeVideoId': args.youtubeVideoId, 'language': args.language},
+        );
         if (active != null) {
           return active;
         }
@@ -724,7 +736,10 @@ final activeTranscriptProvider =
           'language': args.language,
         });
       } catch (e, st) {
-        if (isMissingPublicConvexFunctionError(e, path: 'youtube:getTranscript')) {
+        if (isMissingPublicConvexFunctionError(
+          e,
+          path: 'youtube:getTranscript',
+        )) {
           _logFunctionMissing(
             'youtube:getTranscript',
             consumer: 'activeTranscriptProvider',

@@ -394,7 +394,7 @@ class ClerkService {
   }
 
   Future<bool> waitForConvexTokenReady({
-    int maxAttempts = 8,
+    int maxAttempts = 3,
     Duration delay = const Duration(milliseconds: 350),
   }) async {
     await ready;
@@ -419,12 +419,6 @@ class ClerkService {
       }
 
       if (attempt < maxAttempts) {
-        if (kIsWeb) {
-          await _authState?.refreshClient();
-          if (_authState?.env.isEmpty == true) {
-            await _authState?.refreshEnvironment();
-          }
-        }
         await Future<void>.delayed(delay);
       }
     }
