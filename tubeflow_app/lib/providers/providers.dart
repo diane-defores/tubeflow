@@ -385,6 +385,26 @@ final currentUserProvider = StreamProvider<TubeFlowUser?>((ref) {
 final youtubeConnectionProvider = FutureProvider<Map<String, dynamic>?>((
   ref,
 ) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return <String, dynamic>{
+      'hasTokens': false,
+      'connected': false,
+      'authReady': false,
+    };
+  }
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'youtubeConnectionProvider',
+  )) {
+    return <String, dynamic>{
+      'hasTokens': false,
+      'connected': false,
+      'authReady': false,
+    };
+  }
+
   final service = ref.watch(convexServiceProvider);
   final raw = await service.query<dynamic>(
     'youtube:getYoutubeConnectionStatus',
