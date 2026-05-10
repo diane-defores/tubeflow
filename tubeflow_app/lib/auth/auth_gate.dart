@@ -646,7 +646,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
 
   Future<void> _continueWithGoogleFallback() async {
     if (kIsWeb) {
-      await _continueWithGoogleWeb();
+      await _openHostedSignIn();
       return;
     }
 
@@ -677,64 +677,6 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           _notice = null;
         });
       }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
-
-  Future<void> _continueWithGoogleWeb() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-      _notice = null;
-    });
-
-    final postAuthRoute = _currentPostAuthRoute();
-    final redirectUrl = Uri.parse(Uri.base.origin)
-        .replace(
-          path: '/sso-callback',
-          queryParameters: {_postAuthRouteParam: postAuthRoute},
-        )
-        .toString();
-    final redirectUrlComplete = Uri.parse(
-      Uri.base.origin,
-    ).replace(path: postAuthRoute).toString();
-
-    try {
-      await _setPendingHostedSignIn(true);
-      AppLogger.instance.log(
-        'Starting Google sign-in via Clerk web bridge',
-        source: 'SignInScreen',
-      );
-
-      final started = await clerkWebStartGoogleSignIn(
-        redirectUrl: redirectUrl,
-        redirectUrlComplete: redirectUrlComplete,
-      );
-
-      if (!started && mounted) {
-        setState(() {
-          _error = 'Clerk web Google sign-in failed to start.';
-          _notice = null;
-        });
-        await _setPendingHostedSignIn(false);
-      }
-    } catch (e) {
-      AppLogger.instance.log(
-        'Google web sign-in failed',
-        source: 'SignInScreen',
-        level: LogLevel.error,
-        error: e,
-      );
-      if (mounted) {
-        setState(() {
-          _error = '$e';
-          _notice = null;
-        });
-      }
-      await _setPendingHostedSignIn(false);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -1297,7 +1239,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Google sign-in should redirect through Clerk in this tab. If your browser gets stuck on a stale session, use Reset web sign-in state below.',
+                        'Google sign-in opens the Clerk hosted sign-in page in this tab. If your browser gets stuck on a stale session, use Reset web sign-in state below.',
                         style: theme.textTheme.bodySmall,
                       ),
                     ),
