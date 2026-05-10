@@ -355,7 +355,8 @@
       if (signIn?.authenticateWithRedirect) {
         await signIn.authenticateWithRedirect({
           strategy: 'oauth_google',
-          redirectUrl,
+          redirectCallbackUrl: redirectUrl,
+          redirectUrl: redirectUrlComplete,
           redirectUrlComplete,
         });
         return true;

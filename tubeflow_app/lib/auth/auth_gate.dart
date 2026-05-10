@@ -700,7 +700,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
         .toString();
     final redirectUrlComplete = Uri.parse(
       Uri.base.origin,
-    ).replace(fragment: postAuthRoute).toString();
+    ).replace(path: postAuthRoute).toString();
 
     try {
       await _setPendingHostedSignIn(true);
