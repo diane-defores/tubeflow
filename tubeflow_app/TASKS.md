@@ -7,6 +7,7 @@
 
 #### High
 - [x] Replace `PlayScreen` placeholders with real player/transcript plumbing and implement queue/options actions
+- [ ] Retest `BUG-2026-05-10-001`: YouTube connection check must not fall back to an uninitialized Convex client
 - [ ] Persist playlist reorder and complete playlist-detail navigation actions
 - [ ] Add automated coverage for auth/bootstrap/OAuth critical paths and run it in CI
 

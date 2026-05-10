@@ -139,13 +139,13 @@ class ConvexService {
         return await _queryViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          '[http_bridge_fallback] Convex HTTP query bridge failed for $path; '
-          'falling back to WebSocket client',
+          '[http_bridge_failed] Convex HTTP query bridge failed for $path',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
           stackTrace: st,
         );
+        rethrow;
       }
     }
     await _waitForConnection();
@@ -165,13 +165,13 @@ class ConvexService {
         return await _mutationViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          '[http_bridge_fallback] Convex HTTP mutation bridge failed for '
-          '$path; falling back to WebSocket client',
+          '[http_bridge_failed] Convex HTTP mutation bridge failed for $path',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
           stackTrace: st,
         );
+        rethrow;
       }
     }
     await _waitForConnection();
@@ -191,13 +191,13 @@ class ConvexService {
         return await _actionViaHttpBridge<T>(path, args);
       } catch (e, st) {
         AppLogger.instance.log(
-          '[http_bridge_fallback] Convex HTTP action bridge failed for $path; '
-          'falling back to WebSocket client',
+          '[http_bridge_failed] Convex HTTP action bridge failed for $path',
           source: 'ConvexService',
           level: LogLevel.warning,
           error: e,
           stackTrace: st,
         );
+        rethrow;
       }
     }
     await _waitForConnection();
