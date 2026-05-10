@@ -18,10 +18,10 @@ value_proposition: "TubeFlow turns watch time into organized learning with times
 business_model: "LTD offer + recurring subscription"
 market: "Bilingual English/French web audience for learning-centric video workflows"
 depends_on:
-  - artifact: "/home/claude/tubeflow-app/BUSINESS.md"
+  - artifact: "tubeflow_app/BUSINESS.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "/home/claude/tubeflow-app/PRODUCT.md"
+  - artifact: "tubeflow_app/PRODUCT.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
@@ -30,7 +30,7 @@ evidence:
   - "README.md (repo positioned as TubeFlow marketing site)"
   - "src/config/site.ts (PUBLIC_APP_URL points to app.tubeflow.winflowz.com)"
   - "src/pages/pricing.astro (commercial offer and upgrade framing)"
-  - "/home/claude/tubeflow-app/BUSINESS.md (canonical product business contract)"
+  - "tubeflow_app/BUSINESS.md (canonical product business contract)"
 next_review: "2026-05-26"
 next_step: "Keep public pricing copy and offer framing aligned with the canonical app business contract."
 ---
@@ -40,7 +40,7 @@ next_step: "Keep public pricing copy and offer framing aligned with the canonica
 
 `tubeflow-site` is the acquisition and conversion surface for TubeFlow. It is not the canonical product contract.
 
-Canonical product truth lives in `/home/claude/tubeflow-app`. This site can frame, qualify, and convert demand, but it should not introduce business claims that diverge from the app contract.
+Canonical product truth lives in `tubeflow_app`. This site can frame, qualify, and convert demand, but it should not introduce business claims that diverge from the app contract.
 
 ## Mission
 

@@ -18,10 +18,10 @@ linked_systems: ["Flutter Web", "Google OAuth", "Vercel Serverless Functions", "
 depends_on: []
 supersedes: []
 evidence:
-  - "/home/claude/tubeflow-app/api/auth/youtube.js"
-  - "/home/claude/tubeflow-app/api/auth/youtube/callback.js"
-  - "/home/claude/tubeflow-app/api/auth/_youtube.js"
-  - "/home/claude/tubeflow-app/lib/widgets/youtube_connect.dart"
+  - "tubeflow_app/api/auth/youtube.js"
+  - "tubeflow_app/api/auth/youtube/callback.js"
+  - "tubeflow_app/api/auth/_youtube.js"
+  - "tubeflow_app/lib/widgets/youtube_connect.dart"
 next_step: "Keep redirect parameters and callback behavior aligned when OAuth routes change."
 ---
 # Title
@@ -86,12 +86,12 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 # Dependencies
 
-- Clerk browser session availability via [web/clerk_bridge.js](/home/claude/tubeflow-app/web/clerk_bridge.js:297) and [lib/auth/clerk_web_bridge_web.dart](/home/claude/tubeflow-app/lib/auth/clerk_web_bridge_web.dart:86)
-- OAuth initiation and callback handlers in [api/auth/youtube.js](/home/claude/tubeflow-app/api/auth/youtube.js:1), [api/auth/youtube/callback.js](/home/claude/tubeflow-app/api/auth/youtube/callback.js:1), and [api/auth/_youtube.js](/home/claude/tubeflow-app/api/auth/_youtube.js:1)
-- Flutter bootstrap and Convex auth wiring in [lib/main.dart](/home/claude/tubeflow-app/lib/main.dart:1)
-- YouTube connect UI and post-return feedback in [lib/widgets/youtube_connect.dart](/home/claude/tubeflow-app/lib/widgets/youtube_connect.dart:1)
-- Refresh helpers in [lib/providers/mutations.dart](/home/claude/tubeflow-app/lib/providers/mutations.dart:177)
-- YouTube status query in [lib/providers/providers.dart](/home/claude/tubeflow-app/lib/providers/providers.dart:295)
+- Clerk browser session availability via [web/clerk_bridge.js](tubeflow_app/web/clerk_bridge.js:297) and [lib/auth/clerk_web_bridge_web.dart](tubeflow_app/lib/auth/clerk_web_bridge_web.dart:86)
+- OAuth initiation and callback handlers in [api/auth/youtube.js](tubeflow_app/api/auth/youtube.js:1), [api/auth/youtube/callback.js](tubeflow_app/api/auth/youtube/callback.js:1), and [api/auth/_youtube.js](tubeflow_app/api/auth/_youtube.js:1)
+- Flutter bootstrap and Convex auth wiring in [lib/main.dart](tubeflow_app/lib/main.dart:1)
+- YouTube connect UI and post-return feedback in [lib/widgets/youtube_connect.dart](tubeflow_app/lib/widgets/youtube_connect.dart:1)
+- Refresh helpers in [lib/providers/mutations.dart](tubeflow_app/lib/providers/mutations.dart:177)
+- YouTube status query in [lib/providers/providers.dart](tubeflow_app/lib/providers/providers.dart:295)
 - Reference architecture in `/home/claude/tubeflow`:
   - [apps/web/src/hooks/use-youtube.ts](/home/claude/tubeflow/apps/web/src/hooks/use-youtube.ts:55)
   - [apps/web/src/app/api/auth/youtube/route.ts](/home/claude/tubeflow/apps/web/src/app/api/auth/youtube/route.ts:1)
@@ -111,11 +111,11 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 # Links & Consequences
 
-- [lib/widgets/youtube_connect.dart](/home/claude/tubeflow-app/lib/widgets/youtube_connect.dart:1) is the main orchestration point and will lose popup-specific concerns while keeping route cleanup, feedback banner behavior, diagnostics, and refresh triggers.
-- [api/auth/youtube.js](/home/claude/tubeflow-app/api/auth/youtube.js:1) and [api/auth/youtube/callback.js](/home/claude/tubeflow-app/api/auth/youtube/callback.js:1) will become easier to reason about by using redirect as the only supported web completion path.
-- [lib/widgets/youtube_oauth_popup_bridge_web.dart](/home/claude/tubeflow-app/lib/widgets/youtube_oauth_popup_bridge_web.dart:1), [lib/widgets/youtube_oauth_popup_bridge.dart](/home/claude/tubeflow-app/lib/widgets/youtube_oauth_popup_bridge.dart:1), [lib/widgets/youtube_oauth_popup_bridge_stub.dart](/home/claude/tubeflow-app/lib/widgets/youtube_oauth_popup_bridge_stub.dart:1), and [lib/widgets/youtube_oauth_popup_result.dart](/home/claude/tubeflow-app/lib/widgets/youtube_oauth_popup_result.dart:1) become dead weight and should either be removed or left unused temporarily with a follow-up cleanup explicitly avoided in the same implementation if removal creates unnecessary churn.
+- [lib/widgets/youtube_connect.dart](tubeflow_app/lib/widgets/youtube_connect.dart:1) is the main orchestration point and will lose popup-specific concerns while keeping route cleanup, feedback banner behavior, diagnostics, and refresh triggers.
+- [api/auth/youtube.js](tubeflow_app/api/auth/youtube.js:1) and [api/auth/youtube/callback.js](tubeflow_app/api/auth/youtube/callback.js:1) will become easier to reason about by using redirect as the only supported web completion path.
+- [lib/widgets/youtube_oauth_popup_bridge_web.dart](tubeflow_app/lib/widgets/youtube_oauth_popup_bridge_web.dart:1), [lib/widgets/youtube_oauth_popup_bridge.dart](tubeflow_app/lib/widgets/youtube_oauth_popup_bridge.dart:1), [lib/widgets/youtube_oauth_popup_bridge_stub.dart](tubeflow_app/lib/widgets/youtube_oauth_popup_bridge_stub.dart:1), and [lib/widgets/youtube_oauth_popup_result.dart](tubeflow_app/lib/widgets/youtube_oauth_popup_result.dart:1) become dead weight and should either be removed or left unused temporarily with a follow-up cleanup explicitly avoided in the same implementation if removal creates unnecessary churn.
 - User-facing copy across the connect CTA, empty states, and diagnostics must stop claiming that “Google opens in a secure popup” on web.
-- The app shell continues to mount [YoutubeOAuthFeedbackBanner](/home/claude/tubeflow-app/lib/widgets/youtube_connect.dart:481), so redirect-return state must stay compatible with the current shell-level post-auth banner approach.
+- The app shell continues to mount [YoutubeOAuthFeedbackBanner](tubeflow_app/lib/widgets/youtube_connect.dart:481), so redirect-return state must stay compatible with the current shell-level post-auth banner approach.
 - The implementation must preserve the ability to start YouTube connect from multiple surfaces:
   - persistent connect banner
   - preferences settings card

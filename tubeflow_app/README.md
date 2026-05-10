@@ -21,18 +21,22 @@ The `build.sh` script wraps `flutter build web` and passes the required `--dart-
 
 ## Environment Variables
 
-Both are required at **build time** (`--dart-define`), not runtime. Flutter web bakes them into the compiled JS bundle.
+The Flutter values are required at **build time** (`--dart-define`), not runtime. Flutter web bakes them into the compiled JS bundle. The OAuth handler values are runtime environment variables for Vercel functions.
 
 | Variable | Purpose |
 |---|---|
 | `CONVEX_URL` | Convex deployment URL (e.g. `https://xxx.convex.cloud`). App fails explicitly when missing. |
 | `CLERK_PUBLISHABLE_KEY` | Clerk publishable key. When missing, app runs in guest mode without auth. |
 | `TUBEFLOW_APP_URL` | Web app origin used for the YouTube OAuth callback URLs (current deployment: `https://app.tubeflow.winflowz.com`). |
+| `CLERK_HOSTED_SIGN_IN_URL` | Optional hosted Clerk sign-in override. When omitted, the app derives the sign-in URL from `TUBEFLOW_APP_URL`. |
+| `BUILD_COMMIT_SHA` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_GIT_COMMIT_SHA` or the local Git short SHA in `build.sh`. |
+| `BUILD_ENVIRONMENT` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_ENV` or `local` in `build.sh`. |
+| `BUILD_TIMESTAMP` | Optional build metadata shown in diagnostics. Defaults to the current UTC timestamp in `build.sh`. |
 | `CLERK_SECRET_KEY` | Clerk backend secret used by the Vercel YouTube OAuth callback to mint the `convex` JWT from the current session. |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID used for the YouTube consent screen. |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret used to exchange the YouTube authorization code for tokens. |
 
-See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks.
+See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks. The OAuth handlers also accept `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` as compatibility fallbacks.
 
 Convex deployment variables used by backend features:
 

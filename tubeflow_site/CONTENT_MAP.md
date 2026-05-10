@@ -46,7 +46,7 @@ depends_on:
   - artifact: "GTM.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "/home/claude/tubeflow-app/PRODUCT.md"
+  - artifact: "tubeflow_app/PRODUCT.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
@@ -61,7 +61,7 @@ next_step: "/sf-docs audit CONTENT_MAP.md"
 
 This map defines where public messaging and trust content live in `tubeflow-site`, and what must be updated when core product framing changes.
 
-Canonical product truth remains `/home/claude/tubeflow-app`.
+Canonical product truth remains `tubeflow_app`.
 
 ## Content Surfaces
 
@@ -104,4 +104,4 @@ Canonical product truth remains `/home/claude/tubeflow-app`.
 
 ## Governance Rule
 
-When `tubeflow-site` messaging conflicts with canonical product artifacts, resolve in favor of `/home/claude/tubeflow-app`.
+When `tubeflow-site` messaging conflicts with canonical product artifacts, resolve in favor of `tubeflow_app`.

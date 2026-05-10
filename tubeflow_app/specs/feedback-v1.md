@@ -18,18 +18,18 @@ linked_systems: ["Flutter Web", "Convex", "Clerk", "Vercel"]
 depends_on: []
 supersedes: []
 evidence:
-  - "/home/claude/tubeflow-app/lib/screens/feedback/feedback_screen.dart"
-  - "/home/claude/tubeflow-app/lib/screens/feedback/feedback_admin_screen.dart"
-  - "/home/claude/tubeflow-app/lib/providers/mutations.dart"
-  - "/home/claude/tubeflow-app/lib/providers/providers.dart"
-  - "/home/claude/tubeflow-app/vercel.json"
+  - "tubeflow_app/lib/screens/feedback/feedback_screen.dart"
+  - "tubeflow_app/lib/screens/feedback/feedback_admin_screen.dart"
+  - "tubeflow_app/lib/providers/mutations.dart"
+  - "tubeflow_app/lib/providers/providers.dart"
+  - "tubeflow_app/vercel.json"
 next_step: "Keep aligned with the Convex backend feedback contract before implementation changes."
 ---
 # Spec Technique — Feedback App + Admin v1 pour TubeFlow
 
 Date: 2026-04-19
 Branche front: `main`
-Frontend repo: `/home/claude/tubeflow-app`
+Frontend repo: `tubeflow_app`
 Backend Convex repo: `/home/claude/tubeflow/packages/backend/convex`
 
 ## Titre
@@ -72,10 +72,10 @@ Ajouter un flux de feedback unifié dans l’app Flutter existante, utilisable s
 - Les reads typed sont centralisés dans `lib/providers/providers.dart`.
 - Le router actuel force l’auth sur toutes les routes sauf `/sign-in`; un feedback anonyme exige donc une nouvelle route publique autorisée.
 - Il n’existe aujourd’hui aucun module feedback ni aucune table feedback côté Convex.
-- Le web déployé via Vercel bloque explicitement le micro dans [vercel.json](/home/claude/tubeflow-app/vercel.json:1); l’audio web ne peut pas fonctionner sans changement de headers.
+- Le web déployé via Vercel bloque explicitement le micro dans [vercel.json](tubeflow_app/vercel.json:1); l’audio web ne peut pas fonctionner sans changement de headers.
 - Les préférences utilisateur existent déjà et exposent une langue stockée côté Convex, mais l’app n’applique pas encore une locale globale dans `MaterialApp.router`.
-- La navigation secondaire naturelle pour une zone admin discrète est l’écran [preferences_screen.dart](/home/claude/tubeflow-app/lib/screens/preferences/preferences_screen.dart:1).
-- Le pattern d’écran admin/listing le plus proche est [hidden_screen.dart](/home/claude/tubeflow-app/lib/screens/hidden/hidden_screen.dart:1).
+- La navigation secondaire naturelle pour une zone admin discrète est l’écran [preferences_screen.dart](tubeflow_app/lib/screens/preferences/preferences_screen.dart:1).
+- Le pattern d’écran admin/listing le plus proche est [hidden_screen.dart](tubeflow_app/lib/screens/hidden/hidden_screen.dart:1).
 - Il n’existe pas de système legacy de feedback local à migrer dans TubeFlow. La section migration du plan source doit donc être simplifiée.
 
 ## Décisions produit adaptées à TubeFlow
@@ -190,9 +190,9 @@ Variable d’environnement Convex:
 
 ### Entrées utilisateur
 
-- Route publique `Routes.feedback` ajoutée dans [router.dart](/home/claude/tubeflow-app/lib/app/router.dart:1).
+- Route publique `Routes.feedback` ajoutée dans [router.dart](tubeflow_app/lib/app/router.dart:1).
 - Point d’entrée authentifié depuis `Preferences`.
-- Point d’entrée non authentifié depuis [auth_gate.dart](/home/claude/tubeflow-app/lib/auth/auth_gate.dart:1).
+- Point d’entrée non authentifié depuis [auth_gate.dart](tubeflow_app/lib/auth/auth_gate.dart:1).
 
 ### Flux texte
 

@@ -26,7 +26,7 @@ evidence:
   - "src/pages/compare.astro"
   - "src/pages/blog/index.astro"
   - "src/pages/fr/index.astro"
-  - "/home/claude/tubeflow-app/GTM.md"
+  - "tubeflow_app/GTM.md"
 linked_artifacts:
   - "PRODUCT.md"
   - "CONTENT_MAP.md"
@@ -34,7 +34,7 @@ depends_on:
   - artifact: "PRODUCT.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "/home/claude/tubeflow-app/GTM.md"
+  - artifact: "tubeflow_app/GTM.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
@@ -47,7 +47,7 @@ next_step: "/sf-docs audit GTM.md"
 
 ## GTM Scope
 
-This repository is the acquisition and conversion layer for TubeFlow. Canonical product truth is maintained in `/home/claude/tubeflow-app`.
+This repository is the acquisition and conversion layer for TubeFlow. Canonical product truth is maintained in `tubeflow_app`.
 
 GTM claims in this file are reviewed for marketing use, not for implementation proof.
 
@@ -132,4 +132,4 @@ Evidence-backed channels:
 
 - Keep note-taking and review as the primary promise.
 - Use anti-distraction framing as a hook, not the full narrative.
-- Resolve product-level messaging conflicts in favor of `/home/claude/tubeflow-app` artifacts.
+- Resolve product-level messaging conflicts in favor of `tubeflow_app` artifacts.
