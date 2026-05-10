@@ -1,0 +1,9 @@
+fastapi==0.124.4
+uvicorn[standard]==0.35.0
+requests>=2.33.0,<3
+# Security floor for CVE-2025-62727 / GHSA-7f5h-v6xp-fcq8.
+starlette>=0.49.1,<0.51
+yt-dlp==2026.3.17
+faster-whisper==1.2.0
+openai==1.107.2
+funasr==1.2.7

@@ -46,7 +46,7 @@ Convex deployment variables used by backend features:
 
 ## Tech Stack
 
-- **Flutter 3.8+ / Dart 3.8+** — web target
+- **Flutter 3.41.7 / Dart 3.11.5** — web target
 - **Riverpod 3** — state management (`flutter_riverpod` + code-gen via `riverpod_generator`)
 - **go_router 17** — routing with auth-aware redirects
 - **Clerk** (`clerk_flutter 0.0.14-beta`) — authentication, custom `ClerkAuthState` owned by `ClerkService`
@@ -108,7 +108,7 @@ No shared secret — verification is RS256 + JWKS.
 
 - **Platform**: Vercel (static build of `build/web/` + `/api/auth/youtube` functions for YouTube OAuth)
 - **Build command**: `bash build.sh` (see `vercel.json`)
-- **Install command**: clones Flutter stable from GitHub into `./flutter/`, runs `pub get`
+- **Install command**: clones Flutter `3.41.7` from GitHub into `./flutter/`, runs `pub get`
 - **Security headers**: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - **SPA routing**: all routes rewritten to `/index.html`
 

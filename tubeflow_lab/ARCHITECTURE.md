@@ -4,7 +4,7 @@ metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
 project: "tubeflow_lab"
 created: "2026-04-26"
-updated: "2026-04-26"
+updated: "2026-05-10"
 status: "reviewed"
 source_skill: "sf-docs"
 scope: "architecture"
@@ -18,6 +18,8 @@ evidence:
   - "main.py"
   - "server.py"
   - ".env.example"
+  - "requirements.in"
+  - "requirements.lock"
   - "requirements.txt"
   - "ecosystem.config.cjs"
   - "Dockerfile"
@@ -141,7 +143,7 @@ The worker response returns:
 
 ### Docker
 
-- `Dockerfile` builds from `python:3.11-slim`
+- `Dockerfile` builds from `python:3.12-slim`
 - Installs `ffmpeg`
 - Installs Python requirements
 - Copies `server.py`

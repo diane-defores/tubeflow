@@ -706,14 +706,17 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
               )
               .toString()
         : tubeFlowAppUrl;
-    final bridgeUrl = kIsWeb
-        ? await clerkWebBuildSignInUrl(redirectTarget)
-        : null;
-    final uri = Uri.parse(
-      bridgeUrl ??
-          Uri.parse(hostedUrl)
-              .replace(queryParameters: {'redirect_url': redirectTarget})
-              .toString(),
+    final hostedUri = Uri.parse(hostedUrl);
+    final uri = hostedUri.replace(
+      queryParameters: {
+        ...hostedUri.queryParameters,
+        'redirect_url': redirectTarget,
+        'sign_in_force_redirect_url': redirectTarget,
+        'sign_up_force_redirect_url': redirectTarget,
+        'sign_in_fallback_redirect_url': redirectTarget,
+        'sign_up_fallback_redirect_url': redirectTarget,
+        'fallback_redirect_url': redirectTarget,
+      },
     );
 
     try {

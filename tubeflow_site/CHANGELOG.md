@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-05-10]
+
+### Security
+- Patched Astro/PostCSS advisory exposure by updating Astro within the 6.x line and regenerating the npm lockfile.
+
+### Changed
+- Added the npm package-manager pin and documented `npm ci` plus `npm audit --json` as the maintenance path.
+
 ## [2026-04-07]
 
 ### Added

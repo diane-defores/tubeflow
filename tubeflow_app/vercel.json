@@ -1,7 +1,7 @@
 {
   "buildCommand": "bash build.sh",
   "outputDirectory": "build/web",
-  "installCommand": "git clone --depth 1 -b stable https://github.com/flutter/flutter.git flutter && flutter/bin/flutter pub get",
+  "installCommand": "git clone --depth 1 --branch 3.41.7 https://github.com/flutter/flutter.git flutter && flutter/bin/flutter pub get",
   "framework": null,
   "headers": [
     {

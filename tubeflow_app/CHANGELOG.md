@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-05-10]
+
+### Changed
+- Pinned the Vercel and Android CI Flutter toolchains to Flutter 3.41.7.
+- Removed unused `flutter_slidable` and `google_fonts` dependencies after usage verification.
+- Documented the pinned Flutter/Dart toolchain in the app README.
+
 ## [2026-04-19]
 
 ### Added

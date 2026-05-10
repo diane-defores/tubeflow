@@ -4,7 +4,7 @@ metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
 project: "tubeflow_lab"
 created: "2026-04-26"
-updated: "2026-04-26"
+updated: "2026-05-10"
 status: "reviewed"
 source_skill: sf-docs
 scope: "file"
@@ -30,7 +30,8 @@ evidence:
   - "main.py"
   - "server.py"
   - ".env.example"
-  - "requirements.txt"
+  - "requirements.in"
+  - "requirements.lock"
   - "ecosystem.config.cjs"
   - "Dockerfile"
 next_step: "rg -n '^(def |class |@app\\.|async def )' server.py"
@@ -46,6 +47,8 @@ next_step: "rg -n '^(def |class |@app\\.|async def )' server.py"
 
 - Runtime entrypoints: `main.py`, `server.py`
 - Operator-facing setup: `README.md`, `.env.example`
+- Direct Python dependency source: `requirements.in`
+- Reproducible Python install lock: `requirements.lock`
 - Deployment surfaces: `Dockerfile`, `ecosystem.config.cjs`
 
 ## Working rules for future agents
@@ -56,6 +59,7 @@ next_step: "rg -n '^(def |class |@app\\.|async def )' server.py"
 - Preserve the preflight pipeline: metadata fetch, limit evaluation, download, normalization, provider execution.
 - Keep concurrency behavior intact unless the caller explicitly wants queueing semantics changed. The worker uses a bounded semaphore and returns `429` when saturated.
 - Treat auth and cookies as security-sensitive. `TRANSCRIPT_WORKER_SECRET` protects the worker, and `YTDLP_COOKIES_FILE` can unlock bot-gated videos.
+- Change direct Python dependencies in `requirements.in`, regenerate `requirements.lock` with pip-tools hash mode, and keep Docker installs on `pip install --require-hashes -r requirements.lock`.
 
 ## Mental model
 
@@ -72,6 +76,7 @@ next_step: "rg -n '^(def |class |@app\\.|async def )' server.py"
 - Provider behavior and response shaping: `transcribe_*` functions in `server.py`
 - Media safety and operational limits: `evaluate_media_limits`, `evaluate_downloaded_audio_size`, `reserve_job_slot`
 - Deployment/runtime config: `.env.example`, `ecosystem.config.cjs`, `Dockerfile`
+- Dependency source and lock: `requirements.in`, `requirements.lock`
 
 ## Constraints
 

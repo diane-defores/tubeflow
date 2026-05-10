@@ -92,8 +92,31 @@ cd /home/claude/tubeflow_lab
 flox activate -- bash -lc '
   python -m venv .venv
   ./.venv/bin/python -m pip install -U pip
-  ./.venv/bin/python -m pip install -r requirements.txt
+  ./.venv/bin/python -m pip install --require-hashes -r requirements.lock
 '
+```
+
+Dependency source and lock policy:
+
+- edit `requirements.in` for direct worker dependencies
+- regenerate `requirements.lock` with `pip-compile --generate-hashes --allow-unsafe --strip-extras --output-file requirements.lock requirements.in`
+- install from `requirements.lock` with `--require-hashes`
+- `requirements.txt` is only a compatibility include for older commands
+
+Audit after dependency updates:
+
+```bash
+cd /home/claude/tubeflow_lab
+pip-audit -r requirements.lock -f json
+```
+
+If the host lacks Python `venv`/`ensurepip` support, install the lock into a
+disposable target directory and audit that resolved environment instead:
+
+```bash
+cd /home/claude/tubeflow_lab
+python3 -m pip install --target /tmp/tubeflow-worker-audit --require-hashes -r requirements.lock
+pip-audit --path /tmp/tubeflow-worker-audit
 ```
 
 Run:
@@ -212,7 +235,7 @@ The supported server setup is Flox-managed:
 - `gcc`
 - `pkg-config`
 
-`yt-dlp` is installed from `requirements.txt`, and the worker enables
+`yt-dlp` is installed from the generated `requirements.lock`, and the worker enables
 `--js-runtimes node` for YouTube extraction.
 
 ### Start the worker with PM2
@@ -224,7 +247,7 @@ cd /home/claude/tubeflow_lab
 flox activate -- bash -lc '
   python -m venv .venv
   ./.venv/bin/python -m pip install -U pip
-  ./.venv/bin/python -m pip install -r requirements.txt
+  ./.venv/bin/python -m pip install --require-hashes -r requirements.lock
 '
 ```
 
@@ -449,7 +472,7 @@ Running the worker on a user's own machine is possible, but that is better treat
 As of 2026-04-06, the validated server setup is:
 
 - Flox environment with Python 3.12 and FFmpeg 8
-- local `.venv` built from the Flox interpreter
+- local `.venv` built from the Flox interpreter and `requirements.lock`
 - PM2 launching `main.py` through that `.venv`
 
 The worker healthcheck is green in this configuration. End-to-end transcript
