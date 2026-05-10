@@ -110,6 +110,88 @@ class ClerkSignInPage extends ConsumerWidget {
   }
 }
 
+class ClerkSsoCallbackPage extends ConsumerStatefulWidget {
+  const ClerkSsoCallbackPage({super.key});
+
+  @override
+  ConsumerState<ClerkSsoCallbackPage> createState() =>
+      _ClerkSsoCallbackPageState();
+}
+
+class _ClerkSsoCallbackPageState extends ConsumerState<ClerkSsoCallbackPage> {
+  bool _started = false;
+  String? _error;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    unawaited(_completeCallback());
+  }
+
+  Future<void> _completeCallback() async {
+    final target = _normalizePostAuthRoute(
+      Uri.base.queryParameters[_postAuthRouteParam],
+    );
+
+    try {
+      final clerkService = ref.read(clerkServiceProvider);
+      await clerkService.ready;
+      final handled = await clerkService.handleWebOAuthRedirect();
+      if (!handled) {
+        throw StateError('Clerk OAuth callback was not handled.');
+      }
+
+      for (var attempt = 0; attempt < 8; attempt++) {
+        final signedIn = await clerkWebIsSignedIn();
+        if (signedIn) {
+          if (!mounted) return;
+          context.go(target);
+          return;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+      }
+
+      if (!mounted) return;
+      context.go(
+        Uri(
+          path: Routes.signIn,
+          queryParameters: {_postAuthRouteParam: target},
+        ).toString(),
+      );
+    } catch (e, st) {
+      AppLogger.instance.log(
+        'Clerk SSO callback page failed',
+        source: 'SignInScreen',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
+      if (mounted) {
+        setState(() => _error = '$e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: _error == null
+              ? const CircularProgressIndicator()
+              : InlineErrorCard(
+                  error: _error!,
+                  prefix: 'Google sign-in callback failed',
+                ),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // AuthGate
 // ---------------------------------------------------------------------------
@@ -616,9 +698,9 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
           queryParameters: {_postAuthRouteParam: postAuthRoute},
         )
         .toString();
-    final redirectUrlComplete = Uri.parse(Uri.base.origin)
-        .replace(fragment: postAuthRoute)
-        .toString();
+    final redirectUrlComplete = Uri.parse(
+      Uri.base.origin,
+    ).replace(fragment: postAuthRoute).toString();
 
     try {
       await _setPendingHostedSignIn(true);

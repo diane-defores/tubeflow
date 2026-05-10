@@ -36,6 +36,24 @@ const _knownClerkWebSessionKey = 'known_clerk_web_session';
 const _lastKnownWebUserKey = 'last_known_clerk_web_user';
 const _postOAuthRouteParam = 'tf_redirect';
 
+Uri? _webOAuthCallbackUri() {
+  if (!kIsWeb) return null;
+
+  final uri = Uri.base;
+  if (uri.path == '/sso-callback') {
+    return uri;
+  }
+
+  final fragment = uri.fragment;
+  if (fragment.isEmpty) return null;
+  final parsed = Uri.parse(fragment.startsWith('/') ? fragment : '/$fragment');
+  if (parsed.path == '/sso-callback') {
+    return parsed;
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // ClerkService
 // ---------------------------------------------------------------------------
@@ -147,11 +165,21 @@ class ClerkService {
   // ---------------------------------------------------------------------------
 
   Future<bool> _handleWebOAuthRedirectIfNeeded() async {
-    if (!kIsWeb || Uri.base.path != '/sso-callback') {
+    final callbackUri = _webOAuthCallbackUri();
+    if (callbackUri == null) {
       return false;
     }
 
-    final target = Uri.base.queryParameters[_postOAuthRouteParam] ?? '/videos';
+    return handleWebOAuthRedirect(callbackUri: callbackUri);
+  }
+
+  Future<bool> handleWebOAuthRedirect({Uri? callbackUri}) async {
+    if (!kIsWeb) return false;
+
+    final uri = callbackUri ?? _webOAuthCallbackUri();
+    if (uri == null) return false;
+
+    final target = uri.queryParameters[_postOAuthRouteParam] ?? '/videos';
     final completeUrl = Uri.parse(Uri.base.origin)
         .replace(fragment: target.startsWith('/') ? target : '/$target')
         .toString();
@@ -172,6 +200,7 @@ class ClerkService {
         stackTrace: st,
       );
       authNotifier.setUnauthenticated(error: '$e');
+      return false;
     }
     return true;
   }

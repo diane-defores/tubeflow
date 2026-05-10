@@ -25,6 +25,7 @@ import 'package:tubeflow_app/widgets/app_shell.dart';
 
 abstract final class Routes {
   static const signIn = '/sign-in';
+  static const ssoCallback = '/sso-callback';
   static const videos = '/videos';
   static const play = '/play';
   static const playlists = '/playlists';
@@ -70,8 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.videos,
     redirect: (BuildContext context, GoRouterState state) {
       final goingToSignIn = state.matchedLocation == Routes.signIn;
+      final goingToSsoCallback = state.matchedLocation == Routes.ssoCallback;
       final goingToPublicFeedback = state.matchedLocation == Routes.feedback;
-      final goingToProtectedRoute = !goingToSignIn && !goingToPublicFeedback;
+      final goingToProtectedRoute =
+          !goingToSignIn && !goingToSsoCallback && !goingToPublicFeedback;
 
       if (isLoading) {
         // On web the app can cold-start on a protected route before Clerk has
@@ -102,6 +105,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.signIn,
         builder: (context, state) => const ClerkSignInPage(),
+      ),
+      GoRoute(
+        path: Routes.ssoCallback,
+        builder: (context, state) => const ClerkSsoCallbackPage(),
       ),
       GoRoute(
         path: Routes.feedback,
