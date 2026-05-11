@@ -532,7 +532,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     required String currentValue,
     required ValueChanged<String> onSelected,
   }) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => SimpleDialog(
         title: Text(title),
@@ -678,6 +678,7 @@ class _DiagnosticsCard extends ConsumerWidget {
       'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'SENTRY: ${sentryStatusLabel()}',
       'Clerk initialised: ${clerk.isInitialised ? 'yes' : 'no'}',
       'Auth state: $authLabel',
       'Current user: ${clerk.currentUser?.id ?? 'none'}',

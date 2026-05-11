@@ -117,6 +117,8 @@ Flutter build-time values:
 - `TUBEFLOW_APP_URL`: app origin used for OAuth callback/origin handling.
 - `CLERK_HOSTED_SIGN_IN_URL`: optional hosted sign-in URL passed through `build.sh`.
 - `BUILD_COMMIT_SHA`, `BUILD_ENVIRONMENT`, `BUILD_TIMESTAMP`: build metadata injected by `build.sh`.
+- `SENTRY_DSN`: optional Sentry DSN. Missing value leaves Sentry disabled.
+- `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`: optional Sentry metadata/tuning values injected by `build.sh`.
 
 Vercel serverless/OAuth values:
 

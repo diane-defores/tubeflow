@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
@@ -14,30 +15,42 @@ import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  FlutterError.onError = (FlutterErrorDetails details) {
-    AppLogger.instance.log(
-      details.summary.toString(),
-      source: 'FlutterError',
-      level: LogLevel.error,
-      error: details.exception,
-      stackTrace: details.stack,
-    );
-    FlutterError.presentError(details);
-  };
+  if (sentryDsn.isEmpty) {
+    await _runApp();
+    return;
+  }
 
-  PlatformDispatcher.instance.onError = (error, stack) {
-    AppLogger.instance.log(
-      'Uncaught platform error',
-      source: 'PlatformDispatcher',
-      level: LogLevel.error,
-      error: error,
-      stackTrace: stack,
-    );
-    return true;
-  };
+  await SentryFlutter.init((options) {
+    options.dsn = sentryDsn;
+    options.environment = sentryEnvironmentLabel();
+    options.release = sentryReleaseLabel();
+    options.sendDefaultPii = false;
+    options.attachScreenshot = false;
+    options.debug = sentryDebug;
+    options.diagnosticLevel = sentryDebug
+        ? SentryLevel.debug
+        : SentryLevel.warning;
+    if (sentryTracesSampleRate > 0) {
+      options.tracesSampleRate = sentryTracesSampleRate;
+    }
+  }, appRunner: _runApp);
+}
+
+Future<void> _runApp() async {
+  _installErrorHandlers();
+  await _configureSentryScope();
+
+  AppLogger.instance.log(
+    sentryDsn.isEmpty
+        ? 'Sentry disabled — SENTRY_DSN is empty'
+        : 'Sentry initialised (environment=${sentryEnvironmentLabel()}, release=${sentryReleaseLabel()}, tracesSampleRate=$sentryTracesSampleRate)',
+    source: 'Sentry',
+    level: sentryDsn.isEmpty ? LogLevel.warning : LogLevel.info,
+    reportToSentry: false,
+  );
 
   AppLogger.instance.log(
     'main() start — CONVEX_URL=${const bool.hasEnvironment('CONVEX_URL')} '
@@ -69,6 +82,65 @@ void main() async {
   }
 
   runApp(const ProviderScope(child: _AppBootstrap()));
+}
+
+void _installErrorHandlers() {
+  final previousFlutterError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    AppLogger.instance.log(
+      details.summary.toString(),
+      source: 'FlutterError',
+      level: LogLevel.error,
+      error: details.exception,
+      stackTrace: details.stack,
+      reportToSentry: false,
+    );
+    if (previousFlutterError != null) {
+      previousFlutterError(details);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
+
+  final previousPlatformError = PlatformDispatcher.instance.onError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    AppLogger.instance.log(
+      'Uncaught platform error',
+      source: 'PlatformDispatcher',
+      level: LogLevel.error,
+      error: error,
+      stackTrace: stack,
+      reportToSentry: false,
+    );
+    return previousPlatformError?.call(error, stack) ?? true;
+  };
+}
+
+Future<void> _configureSentryScope() async {
+  if (sentryDsn.isEmpty) return;
+
+  await Sentry.configureScope((scope) async {
+    await scope.setTag('build_commit', buildCommitSha);
+    await scope.setTag('build_environment', buildEnvironment);
+    await scope.setTag('build_mode', buildModeLabel());
+    await scope.setContexts('tubeflow_build', {
+      'commit': buildCommitSha,
+      'environment': buildEnvironment,
+      'timestamp': buildTimestamp,
+      'mode': buildModeLabel(),
+      'app_url_host': hostForUrl(tubeFlowAppUrl),
+      'clerk_hosted_sign_in_host': hostForUrl(clerkHostedSignInUrl()),
+      'sentry_traces_sample_rate': sentryTracesSampleRate,
+    });
+    if (kIsWeb) {
+      await scope.setTag('current_host', Uri.base.host);
+      await scope.setContexts('tubeflow_web', {
+        'origin': Uri.base.origin,
+        'path': Uri.base.path,
+        'fragment_path': Uri.base.fragment,
+      });
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -210,6 +282,7 @@ class _ConfigFallbackScreen extends StatelessWidget {
       'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'SENTRY: ${sentryStatusLabel()}',
       'Bootstrap error: ${bootstrapError ?? 'none'}',
       '',
       'Recent logs:',
@@ -286,7 +359,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
                       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}\n'
                       'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}\n'
                       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}\n'
-                      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+                      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}\n'
+                      'SENTRY: ${sentryStatusLabel()}',
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(

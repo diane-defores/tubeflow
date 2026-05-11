@@ -46,23 +46,19 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.videocam_off),
-              text: 'Hidden Videos',
-            ),
-            Tab(
-              icon: Icon(Icons.playlist_remove),
-              text: 'Hidden Playlists',
-            ),
+            Tab(icon: Icon(Icons.videocam_off), text: 'Hidden Videos'),
+            Tab(icon: Icon(Icons.playlist_remove), text: 'Hidden Playlists'),
           ],
         ),
       ),
       body: hiddenAsync.when(
         data: (items) {
-          final hiddenVideos =
-              items.where((i) => i.itemType == HiddenItemType.video).toList();
-          final hiddenPlaylists =
-              items.where((i) => i.itemType == HiddenItemType.playlist).toList();
+          final hiddenVideos = items
+              .where((i) => i.itemType == HiddenItemType.video)
+              .toList();
+          final hiddenPlaylists = items
+              .where((i) => i.itemType == HiddenItemType.playlist)
+              .toList();
 
           return TabBarView(
             controller: _tabController,
@@ -102,7 +98,9 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
   }
 
   Widget _buildHiddenVideosList(
-      BuildContext context, List<HiddenItem> hiddenVideos) {
+    BuildContext context,
+    List<HiddenItem> hiddenVideos,
+  ) {
     if (hiddenVideos.isEmpty) {
       return _buildEmptyState(
         context,
@@ -158,7 +156,9 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
   }
 
   Widget _buildHiddenPlaylistsList(
-      BuildContext context, List<HiddenItem> hiddenPlaylists) {
+    BuildContext context,
+    List<HiddenItem> hiddenPlaylists,
+  ) {
     if (hiddenPlaylists.isEmpty) {
       return _buildEmptyState(
         context,
@@ -239,16 +239,16 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
           const SizedBox(height: 16),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
           ),
         ],
       ),
@@ -261,13 +261,11 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
     required String itemName,
     required VoidCallback onConfirm,
   }) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Unhide $itemType?'),
-        content: Text(
-          '"$itemName" will be visible again in your library.',
-        ),
+        content: Text('"$itemName" will be visible again in your library.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),

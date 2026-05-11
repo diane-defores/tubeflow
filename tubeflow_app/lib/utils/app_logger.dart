@@ -1,7 +1,9 @@
 import 'dart:collection';
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Severity of a log entry.
 enum LogLevel { info, warning, error }
@@ -54,6 +56,7 @@ class AppLogger extends ChangeNotifier {
     LogLevel level = LogLevel.info,
     Object? error,
     StackTrace? stackTrace,
+    bool reportToSentry = true,
   }) {
     final entry = LogEntry(
       timestamp: DateTime.now(),
@@ -72,9 +75,57 @@ class AppLogger extends ChangeNotifier {
       name: source,
       error: error,
       stackTrace: stackTrace,
-      level: level == LogLevel.error ? 1000 : (level == LogLevel.warning ? 900 : 800),
+      level: level == LogLevel.error
+          ? 1000
+          : (level == LogLevel.warning ? 900 : 800),
     );
+    _sendToSentry(entry, reportException: reportToSentry);
     notifyListeners();
+  }
+
+  void _sendToSentry(LogEntry entry, {required bool reportException}) {
+    unawaited(
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: entry.message,
+          category: entry.source,
+          level: _toSentryLevel(entry.level),
+          data: {
+            'source': entry.source,
+            if (entry.error != null) 'has_error': true,
+          },
+        ),
+      ),
+    );
+
+    if (!reportException || entry.level != LogLevel.error) {
+      return;
+    }
+
+    if (entry.error != null) {
+      unawaited(
+        Sentry.captureException(entry.error, stackTrace: entry.stackTrace),
+      );
+      return;
+    }
+
+    unawaited(
+      Sentry.captureMessage(
+        '${entry.source}: ${entry.message}',
+        level: SentryLevel.error,
+      ),
+    );
+  }
+
+  SentryLevel _toSentryLevel(LogLevel level) {
+    switch (level) {
+      case LogLevel.info:
+        return SentryLevel.info;
+      case LogLevel.warning:
+        return SentryLevel.warning;
+      case LogLevel.error:
+        return SentryLevel.error;
+    }
   }
 
   void clear() {

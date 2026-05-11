@@ -32,6 +32,10 @@ The Flutter values are required at **build time** (`--dart-define`), not runtime
 | `BUILD_COMMIT_SHA` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_GIT_COMMIT_SHA` or the local Git short SHA in `build.sh`. |
 | `BUILD_ENVIRONMENT` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_ENV` or `local` in `build.sh`. |
 | `BUILD_TIMESTAMP` | Optional build metadata shown in diagnostics. Defaults to the current UTC timestamp in `build.sh`. |
+| `SENTRY_DSN` | Optional Sentry DSN for Flutter error capture. When missing, Sentry stays disabled. |
+| `SENTRY_ENVIRONMENT` | Optional Sentry environment. Defaults to `BUILD_ENVIRONMENT` in `build.sh`. |
+| `SENTRY_RELEASE` | Optional Sentry release. Defaults to `tubeflow_app@BUILD_COMMIT_SHA` in `build.sh`. |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional Sentry performance tracing sample rate. Defaults to `0` (off). |
 | `CLERK_SECRET_KEY` | Clerk backend secret used by the Vercel YouTube OAuth callback to mint the `convex` JWT from the current session. |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID used for the YouTube consent screen. |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret used to exchange the YouTube authorization code for tokens. |

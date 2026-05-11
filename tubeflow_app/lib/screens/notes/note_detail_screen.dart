@@ -63,7 +63,10 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
           return Scaffold(
             appBar: AppBar(title: const Text('Note')),
             body: const Center(
-              child: Text('Note not found', style: TextStyle(color: Colors.grey)),
+              child: Text(
+                'Note not found',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
           );
         }
@@ -180,9 +183,9 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                   )
                 : Text(
                     note.content,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          height: 1.6,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.6),
                   ),
             const SizedBox(height: 24),
 
@@ -266,9 +269,9 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         const SizedBox(height: 8),
         Text(
           'Created: ${note.createdAt != null ? formatDate(note.createdAt) : 'Unknown'}',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.grey,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: Colors.grey),
         ),
       ],
     );
@@ -279,9 +282,9 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       await updateNote(ref, note.id, _contentController.text);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note saved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Note saved')));
       }
     } catch (e) {
       if (mounted) {
@@ -305,7 +308,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   }
 
   void _showDeleteConfirmation(Note note) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Note?'),
@@ -352,10 +355,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     }
 
     context.go(
-      Uri(
-        path: Routes.play,
-        queryParameters: {'videoId': videoId},
-      ).toString(),
+      Uri(path: Routes.play, queryParameters: {'videoId': videoId}).toString(),
     );
   }
 }

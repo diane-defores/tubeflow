@@ -51,9 +51,19 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin just_audio, com.ryanheise.just_audio.JustAudioPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new dev.fluttercommunity.plus.packageinfo.PackageInfoPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin package_info_plus, dev.fluttercommunity.plus.packageinfo.PackageInfoPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.llfbandit.record.RecordPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin record_android, com.llfbandit.record.RecordPlugin", e);
+    }
+    try {
+      flutterEngine.getPlugins().add(new io.sentry.flutter.SentryFlutterPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin sentry_flutter, io.sentry.flutter.SentryFlutterPlugin", e);
     }
     try {
       flutterEngine.getPlugins().add(new io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin());

@@ -69,9 +69,7 @@ Future<dynamic> updateNote(WidgetRef ref, String noteId, String content) async {
 /// Deletes a note by its Convex document ID.
 Future<dynamic> deleteNote(WidgetRef ref, String noteId) async {
   final service = ref.read(convexServiceProvider);
-  return service.mutate<dynamic>('notes:deleteNote', {
-    'noteId': noteId,
-  });
+  return service.mutate<dynamic>('notes:deleteNote', {'noteId': noteId});
 }
 
 // ---------------------------------------------------------------------------
@@ -178,11 +176,10 @@ Future<Map<String, dynamic>> generateTranscript(
   String language = 'en',
 }) async {
   final service = ref.read(convexServiceProvider);
-  final raw = await service.action<dynamic>('transcriptGeneration:generateTranscript', {
-    'youtubeVideoId': youtubeVideoId,
-    'language': language,
-    'activate': true,
-  });
+  final raw = await service.action<dynamic>(
+    'transcriptGeneration:generateTranscript',
+    {'youtubeVideoId': youtubeVideoId, 'language': language, 'activate': true},
+  );
 
   if (raw is Map<String, dynamic>) {
     return raw;
@@ -201,15 +198,17 @@ List<String> _extractYoutubePlaylistIds(dynamic rawPlaylists) {
   if (rawPlaylists is! List) return const <String>[];
 
   return rawPlaylists
-      .whereType<Map>()
+      .whereType<Map<dynamic, dynamic>>()
       .map((playlist) => playlist['youtubePlaylistId']?.toString() ?? '')
       .where((playlistId) => playlistId.isNotEmpty)
       .toList(growable: false);
 }
 
 Future<dynamic> _syncAllPlaylistsWithService(ConvexService service) async {
-  final rawPlaylists =
-      await service.action<dynamic>('youtube:fetchYoutubePlaylists', {});
+  final rawPlaylists = await service.action<dynamic>(
+    'youtube:fetchYoutubePlaylists',
+    {},
+  );
   final playlistIds = _extractYoutubePlaylistIds(rawPlaylists);
 
   for (final playlistId in playlistIds) {
@@ -218,9 +217,7 @@ Future<dynamic> _syncAllPlaylistsWithService(ConvexService service) async {
     });
   }
 
-  return <String, dynamic>{
-    'playlistCount': playlistIds.length,
-  };
+  return <String, dynamic>{'playlistCount': playlistIds.length};
 }
 
 /// Triggers a full YouTube refresh using the current backend action names.
@@ -230,7 +227,9 @@ Future<dynamic> syncAllPlaylists(WidgetRef ref) async {
 }
 
 /// Triggers the same full refresh without relying on a widget-bound [WidgetRef].
-Future<dynamic> syncAllPlaylistsWithContainer(ProviderContainer container) async {
+Future<dynamic> syncAllPlaylistsWithContainer(
+  ProviderContainer container,
+) async {
   final service = container.read(convexServiceProvider);
   return _syncAllPlaylistsWithService(service);
 }
@@ -258,10 +257,7 @@ Future<dynamic> reorderPlaylistVideos(
   try {
     return await service.mutate<dynamic>('videoOrder:updateOrder', args);
   } catch (e) {
-    if (isMissingPublicConvexFunctionError(
-      e,
-      path: 'videoOrder:updateOrder',
-    )) {
+    if (isMissingPublicConvexFunctionError(e, path: 'videoOrder:updateOrder')) {
       return service.mutate<dynamic>('videoOrder:saveVideoOrder', args);
     }
     rethrow;
@@ -314,11 +310,7 @@ Future<dynamic> createPlaylist(
 ///
 /// [type] should be `'like'` or `'dislike'`. Toggling the same type twice
 /// removes the interaction.
-Future<dynamic> toggleLike(
-  WidgetRef ref,
-  String videoId,
-  String type,
-) async {
+Future<dynamic> toggleLike(WidgetRef ref, String videoId, String type) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('likes:toggleLike', {
     'youtubeVideoId': videoId,
@@ -447,10 +439,7 @@ Future<dynamic> createFeedbackAudio(
 }
 
 /// Marks an admin feedback entry as reviewed.
-Future<dynamic> markFeedbackReviewed(
-  WidgetRef ref,
-  String feedbackId,
-) async {
+Future<dynamic> markFeedbackReviewed(WidgetRef ref, String feedbackId) async {
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('feedback:markReviewed', {
     'feedbackId': feedbackId,

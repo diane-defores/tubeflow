@@ -339,6 +339,7 @@ class _SignInScreenState extends ConsumerState<_SignInScreen>
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
       'CLERK_HOSTED_SIGN_IN_URL: ${clerkHostedSignInUrl().isNotEmpty ? clerkHostedSignInUrl() : '(missing)'}',
+      'SENTRY: ${sentryStatusLabel()}',
       'Clerk service initialised: ${clerkService?.isInitialised == true ? 'yes' : 'no'}',
       'Clerk env empty: ${envEmpty ? 'yes' : 'no'}',
       'Clerk isSignedIn: ${authState?.isSignedIn == true ? 'yes' : 'no'}',
