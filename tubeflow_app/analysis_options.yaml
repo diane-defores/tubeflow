@@ -2,6 +2,9 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
     prefer_const_constructors: true
     prefer_const_declarations: true
     avoid_print: true

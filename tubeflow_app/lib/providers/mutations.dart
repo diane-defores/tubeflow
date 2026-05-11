@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/convex/convex_client.dart';
+import 'package:tubeflow_app/convex/convex_errors.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 
 // =============================================================================
@@ -240,6 +241,31 @@ Future<dynamic> syncPlaylist(WidgetRef ref, String playlistId) async {
   return service.action<dynamic>('youtube:fetchPlaylistItems', {
     'playlistId': playlistId,
   });
+}
+
+/// Persists the custom video ordering for a playlist.
+///
+/// Uses `videoOrder:updateOrder` when available, and falls back to
+/// `videoOrder:saveVideoOrder` for environments still on the older function name.
+Future<dynamic> reorderPlaylistVideos(
+  WidgetRef ref, {
+  required String playlistId,
+  required List<String> orderedIds,
+}) async {
+  final service = ref.read(convexServiceProvider);
+  final args = {'playlistId': playlistId, 'orderedIds': orderedIds};
+
+  try {
+    return await service.mutate<dynamic>('videoOrder:updateOrder', args);
+  } catch (e) {
+    if (isMissingPublicConvexFunctionError(
+      e,
+      path: 'videoOrder:updateOrder',
+    )) {
+      return service.mutate<dynamic>('videoOrder:saveVideoOrder', args);
+    }
+    rethrow;
+  }
 }
 
 /// Disconnects the current YouTube account and clears cached playlist data.

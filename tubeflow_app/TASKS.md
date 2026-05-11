@@ -14,6 +14,6 @@
 #### Medium
 - [x] Wire no-op taps in Videos/Playlists/Notes screens to actual routes
 - [x] Mark OAuth redirects as non-cacheable (`Cache-Control: no-store`)
-- [ ] Add CSP/HSTS hardening headers in `vercel.json`
-- [ ] Tighten Dart analyzer settings (`strict-casts`, `strict-inference`, `strict-raw-types`)
+- [x] Add CSP/HSTS hardening headers in `vercel.json`
+- [x] Tighten Dart analyzer settings (`strict-casts`, `strict-inference`, `strict-raw-types`)
 - [ ] Verify Clerk + Convex bootstrap and WebSocket startup end-to-end in a real Flutter environment

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -15,7 +18,7 @@ import 'package:tubeflow_app/widgets/error_feedback.dart';
 /// Convex queries/mutations used:
 /// - `playlists.getPlaylistWithVideos` — fetch playlist metadata + videos
 /// - `videoOrder.getOrder` — fetch custom video sort order within playlist
-/// - `videoOrder.updateOrder` — persist reorder changes
+/// - `videoOrder.updateOrder` (or `videoOrder.saveVideoOrder`) — persist reorder changes
 /// - `playlists.updatePlaylist` — update playlist metadata (title, color, etc.)
 /// - `playlists.removeVideoFromPlaylist` — remove a video from the playlist
 class PlaylistDetailScreen extends ConsumerStatefulWidget {
@@ -31,6 +34,7 @@ class PlaylistDetailScreen extends ConsumerStatefulWidget {
 
 class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
   bool _isReorderMode = false;
+  bool _isSavingOrder = false;
   List<YouTubeVideo> _reorderList = [];
 
   @override
@@ -122,13 +126,22 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       pinned: true,
       actions: [
         IconButton(
-          icon: Icon(_isReorderMode ? Icons.check : Icons.reorder),
+          icon: _isSavingOrder
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(_isReorderMode ? Icons.check : Icons.reorder),
           tooltip: _isReorderMode ? 'Done reordering' : 'Reorder videos',
-          onPressed: () {
-            setState(() => _isReorderMode = !_isReorderMode);
-            if (!_isReorderMode && _reorderList.isNotEmpty) {
-              // TODO: call videoOrder.updateOrder with _reorderList IDs
-            }
+          onPressed: _isSavingOrder
+              ? null
+              : () async {
+                  if (!_isReorderMode) {
+                    setState(() => _isReorderMode = true);
+                    return;
+                  }
+                  await _persistVideoOrder(context);
           },
         ),
         PopupMenuButton<String>(
@@ -150,6 +163,18 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                       prefix: 'Refresh failed',
                     );
                   }
+                }
+                break;
+              case 'share':
+                await _copyPlaylistLink(context);
+                break;
+              case 'edit':
+                if (context.mounted) {
+                  showErrorSnackBar(
+                    context,
+                    error: 'Playlist editing is not implemented yet.',
+                    prefix: 'Edit disabled',
+                  );
                 }
                 break;
             }
@@ -220,9 +245,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
           const Spacer(),
           FilledButton.tonal(
             onPressed: videos.isNotEmpty
-                ? () {
-                    // TODO: play all from beginning - navigate to play screen
-                  }
+                ? () => _openVideo(context, videos.first.youtubeVideoId)
                 : null,
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -311,19 +334,32 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             trailing: PopupMenuButton<String>(
               onSelected: (value) async {
                 switch (value) {
-                  case 'remove':
+                case 'remove':
                     try {
                       await removeVideoFromPlaylist(ref,
                           playlistId: widget.id, videoId: video.id);
+                      if (context.mounted) {
+                        ref.invalidate(playlistVideosProvider(widget.id));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Video removed from playlist.')),
+                        );
+                      }
                     } catch (e) {
                       if (context.mounted) {
                         showErrorSnackBar(context, error: e, prefix: 'Error');
                       }
                     }
                     break;
-                  case 'hide':
+                case 'hide':
                     try {
                       await hideVideo(ref, video.youtubeVideoId);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Video hidden from library.')),
+                        );
+                      }
                     } catch (e) {
                       if (context.mounted) {
                         showErrorSnackBar(context, error: e, prefix: 'Error');
@@ -337,13 +373,82 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 const PopupMenuItem(value: 'hide', child: Text('Hide')),
               ],
             ),
-            onTap: () {
-              // TODO: navigate to play screen with video.id
-            },
+            onTap: () => _openVideo(context, video.youtubeVideoId),
           );
         },
         childCount: videos.length,
       ),
+    );
+  }
+
+  Future<void> _persistVideoOrder(BuildContext context) async {
+    if (_reorderList.isEmpty) {
+      setState(() => _isReorderMode = false);
+      return;
+    }
+
+    final orderedIds = _reorderList.map((video) => video.id).toList(growable: false);
+    setState(() {
+      _isSavingOrder = true;
+    });
+
+    try {
+      await reorderPlaylistVideos(
+        ref,
+        playlistId: widget.id,
+        orderedIds: orderedIds,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Playlist order saved.')),
+        );
+      }
+      setState(() {
+        _isReorderMode = false;
+      });
+      ref.invalidate(playlistVideosProvider(widget.id));
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(
+          context,
+          error: e,
+          prefix: 'Failed to save playlist order',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingOrder = false;
+        });
+      }
+    }
+  }
+
+  void _openVideo(BuildContext context, String youtubeVideoId) {
+    if (youtubeVideoId.isEmpty) {
+      showErrorSnackBar(
+        context,
+        error: 'This video is missing a YouTube identifier.',
+        prefix: 'Cannot open video',
+      );
+      return;
+    }
+
+    context.go(
+      Uri(
+        path: Routes.play,
+        queryParameters: {'videoId': youtubeVideoId},
+      ).toString(),
+    );
+  }
+
+  Future<void> _copyPlaylistLink(BuildContext context) async {
+    await Clipboard.setData(
+      ClipboardData(text: Routes.playlistDetail(widget.id)),
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Playlist link copied.')),
     );
   }
 
