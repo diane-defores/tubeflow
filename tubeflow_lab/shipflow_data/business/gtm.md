@@ -23,10 +23,10 @@ evidence:
   - "CHANGELOG.md emphasizes reliability, bot-gate handling, and observability"
 linked_artifacts:
   - "README.md"
-  - "PRODUCT.md"
-  - "CONTENT_MAP.md"
+  - "shipflow_data/business/product.md"
+  - "shipflow_data/editorial/content-map.md"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes: []

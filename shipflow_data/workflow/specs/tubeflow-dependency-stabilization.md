@@ -176,7 +176,7 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 - `tubeflow_app/vercel.json`: replace `git clone -b stable` with a pinned Flutter SDK strategy or an explicit documented stable version source.
 - `tubeflow_app/.github/workflows/android-apk.yml`: pin Flutter action input beyond floating `stable` when feasible.
 - `.github/dependabot.yml`: new root automation config with multiple directory entries.
-- Root `README.md`, `AGENT.md`, `TASKS.md`: docs only if implementation changes command expectations; `sf-spec` itself does not update tasks.
+- Root `README.md`, `AGENT.md`, `shipflow_data/workflow/TASKS.md`: docs only if implementation changes command expectations; `sf-spec` itself does not update tasks.
 - Downstream product consequences: fewer public XSS exposures on the marketing site, lower worker supply-chain drift, more predictable Flutter web/app builds, and less manual security monitoring.
 
 # Documentation Coherence
@@ -318,7 +318,7 @@ Stabilize dependencies in three layers: first patch the known security advisorie
   - Action: Run focused checks for all changed subprojects and record any proof gaps.
   - User story link: Dependency stabilization is proven rather than assumed.
   - Depends on: Tasks 1-14.
-  - Validate with: `cd tubeflow_site && npm audit --json && npm run build`; `cd tubeflow_lab && pip-audit -r requirements.lock --require-hashes -f json && python -m py_compile main.py server.py`; `cd tubeflow_app && flutter pub outdated --json && flutter analyze`; `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data specs/tubeflow-dependency-stabilization.md`.
+  - Validate with: `cd tubeflow_site && npm audit --json && npm run build`; `cd tubeflow_lab && pip-audit -r requirements.lock --require-hashes -f json && python -m py_compile main.py server.py`; `cd tubeflow_app && flutter pub outdated --json && flutter analyze`; `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`.
   - Notes: If Docker is available, include `docker build` for the worker; if not, list Docker as unverified.
 
 # Acceptance Criteria
@@ -365,7 +365,7 @@ Stabilize dependencies in three layers: first patch the known security advisorie
   - `cd tubeflow_app && flutter pub outdated --json`
   - `cd tubeflow_app && flutter analyze`
 - Governance/docs:
-  - `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data specs/tubeflow-dependency-stabilization.md`
+  - `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`
   - `git diff --check`
 
 # Risks
@@ -452,7 +452,7 @@ These batches authorize spec-gated parallelism only after `sf-ready` marks this 
 
 ## Batch D: Automation, Shared Docs, And Final Integration
 
-- Write ownership: `.github/dependabot.yml`, root `README.md`, `specs/tubeflow-dependency-stabilization.md`, and final integration notes only.
+- Write ownership: `.github/dependabot.yml`, root `README.md`, `shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`, and final integration notes only.
 - Forbidden files: `bugs/**`, `tubeflow_app/lib/auth/auth_gate.dart`, and any subproject files already owned by active Batch A, B, or C workers.
 - Tasks covered: Task 1, Task 14, Task 15, status/checklist updates, and final docs coherence.
 - Dependency order: Start after A, B, and C have returned, unless only `.github/dependabot.yml` is edited before the wave with no overlap.
@@ -477,11 +477,11 @@ None.
 
 | Step | Status | Notes |
 |------|--------|-------|
-| sf-spec | done | Draft spec created in `specs/tubeflow-dependency-stabilization.md`. |
+| sf-spec | done | Draft spec created in `shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`. |
 | sf-ready | done | Spec marked ready after metadata, Open Questions, and Execution Batches were corrected. |
 | sf-start | done | Safe batches A-D implemented site, worker, app, automation, and docs changes. |
 | sf-verify | partial | Local validation passed; Docker image build could not run because Docker is unavailable. |
 | sf-end | blocked | Closure is blocked until the Docker proof gap and bounded ship scope are accepted. |
-| sf-ship | blocked | Ship scope must exclude unrelated dirty files: `bugs/BUG-2026-05-10-001.md` and `tubeflow_app/lib/auth/auth_gate.dart`. |
+| sf-ship | blocked | Ship scope must exclude unrelated dirty files: `shipflow_data/workflow/bugs/BUG-2026-05-10-001.md` and `tubeflow_app/lib/auth/auth_gate.dart`. |
 
 Next command: `/sf-ship TubeFlow dependency stabilization --bounded-scope`

@@ -18,8 +18,8 @@ evidence:
   - "astro.config.mjs enables English and French locales."
   - "src/config/site.ts centralizes public URL and email-domain configuration."
 depends_on:
-  - "BUSINESS.md"
-  - "BRANDING.md"
+  - "shipflow_data/business/business.md"
+  - "shipflow_data/business/branding.md"
 supersedes: []
 next_review: "2026-05-26"
 next_step: "Keep route copy and app claims synchronized with product releases."
@@ -68,4 +68,4 @@ next_step: "Keep route copy and app claims synchronized with product releases."
 
 - Update `.env.example` when public env usage changes.
 - Update `CLAUDE.md` when stack, commands, or architecture assumptions change.
-- Update `BUSINESS.md` or `BRANDING.md` when product positioning or claims change materially.
+- Update `shipflow_data/business/business.md` or `shipflow_data/business/branding.md` when product positioning or claims change materially.

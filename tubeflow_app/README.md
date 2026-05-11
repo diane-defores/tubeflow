@@ -120,7 +120,7 @@ If a Flutter change depends on a new Convex function or schema change, deploy th
 
 ## Tests
 
-Currently no test coverage. Listed as an open task in `TASKS.md`.
+Currently no test coverage. Listed as an open task in `shipflow_data/workflow/TASKS.md`.
 
 Before shipping a Flutter change that depends on backend functions, you can run:
 
@@ -132,7 +132,7 @@ This verifies that the critical Convex functions used by Flutter still exist in 
 
 ## Files
 
-- `TASKS.md` — open work items (audit findings)
+- `shipflow_data/workflow/TASKS.md` — open work items (audit findings)
 - `CHANGELOG.md` — user-facing changes
-- `AUDIT_LOG.md` — code audit history
+- `shipflow_data/workflow/AUDIT_LOG.md` — code audit history
 - `CLAUDE.md` — guidance for Claude Code working in this repo

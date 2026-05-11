@@ -23,16 +23,16 @@ evidence:
   - ".env.example"
   - "vercel.json"
   - "lib/app/router.dart"
-  - "specs/feedback-v1.md"
-  - "specs/flutter-web-youtube-auth-redirect-spec.md"
+  - "shipflow_data/workflow/specs/feedback-v1.md"
+  - "shipflow_data/workflow/specs/flutter-web-youtube-auth-redirect-spec.md"
 linked_artifacts:
-  - "PRODUCT.md"
-  - "BUSINESS.md"
-  - "BRANDING.md"
-  - "CONTENT_MAP.md"
+  - "shipflow_data/business/product.md"
+  - "shipflow_data/business/business.md"
+  - "shipflow_data/business/branding.md"
+  - "shipflow_data/editorial/content-map.md"
   - "README.md"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:

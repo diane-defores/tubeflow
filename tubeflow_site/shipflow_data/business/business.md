@@ -18,10 +18,10 @@ value_proposition: "TubeFlow turns watch time into organized learning with times
 business_model: "LTD offer + recurring subscription"
 market: "Bilingual English/French web audience for learning-centric video workflows"
 depends_on:
-  - artifact: "tubeflow_app/BUSINESS.md"
+  - artifact: "tubeflow_app/shipflow_data/business/business.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "tubeflow_app/PRODUCT.md"
+  - artifact: "tubeflow_app/shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
@@ -30,7 +30,7 @@ evidence:
   - "README.md (repo positioned as TubeFlow marketing site)"
   - "src/config/site.ts (PUBLIC_APP_URL points to app.tubeflow.winflowz.com)"
   - "src/pages/pricing.astro (commercial offer and upgrade framing)"
-  - "tubeflow_app/BUSINESS.md (canonical product business contract)"
+  - "tubeflow_app/shipflow_data/business/business.md (canonical product business contract)"
 next_review: "2026-05-26"
 next_step: "Keep public pricing copy and offer framing aligned with the canonical app business contract."
 ---

@@ -41,7 +41,7 @@ depends_on: []
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-07-25"
-next_step: "Keep this file aligned with AGENT.md and ARCHITECTURE.md when bootstrap, auth, routing, or deployment changes."
+next_step: "Keep this file aligned with AGENT.md and shipflow_data/technical/architecture.md when bootstrap, auth, routing, or deployment changes."
 ---
 
 # CLAUDE.md

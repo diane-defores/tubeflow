@@ -27,7 +27,7 @@ next_review: "2026-05-26"
 next_step: "Keep user-facing business decisions aligned with tubeflow-app product truth."
 ---
 
-# BUSINESS.md
+# shipflow_data/business/business.md
 
 ## Decision Boundary
 

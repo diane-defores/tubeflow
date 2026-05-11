@@ -19,13 +19,13 @@ evidence:
 brand_voice: "Practical, explicit, and operational"
 trust_posture: "State assumptions clearly and avoid inflating transcript accuracy or platform scope"
 depends_on:
-  - "BUSINESS.md@1.0.0"
+  - "shipflow_data/business/business.md@1.0.0"
 supersedes: []
 next_review: "2026-05-26"
 next_step: "Mirror public brand decisions from tubeflow-app while keeping this repo operational."
 ---
 
-# BRANDING.md
+# shipflow_data/business/branding.md
 
 ## Decision Boundary
 

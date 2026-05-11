@@ -35,24 +35,24 @@ evidence:
   - "src/pages/terms.astro"
   - "src/content/blog"
 linked_artifacts:
-  - "PRODUCT.md"
-  - "GTM.md"
-  - "BUSINESS.md"
-  - "BRANDING.md"
+  - "shipflow_data/business/product.md"
+  - "shipflow_data/business/gtm.md"
+  - "shipflow_data/business/business.md"
+  - "shipflow_data/business/branding.md"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "GTM.md"
+  - artifact: "shipflow_data/business/gtm.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "tubeflow_app/PRODUCT.md"
+  - artifact: "tubeflow_app/shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-05-27"
-next_step: "/sf-docs audit CONTENT_MAP.md"
+next_step: "/sf-docs audit shipflow_data/editorial/content-map.md"
 ---
 
 # Content Map
@@ -74,7 +74,7 @@ Canonical product truth remains `tubeflow_app`.
 | Blog | `src/pages/blog/index.astro`, `src/pages/blog/[slug].astro`, `src/content/blog/*.md` | SEO and education funnel | Markdown posts + blog routes |
 | French landing | `src/pages/fr/index.astro` | Bilingual acquisition surface | Route file + `src/i18n/*.ts` |
 | Trust/legal | `src/pages/privacy.astro`, `src/pages/terms.astro` | Compliance and trust completion surfaces | Route files |
-| Repo docs | `README.md`, `BUSINESS.md`, `BRANDING.md`, `PRODUCT.md`, `GTM.md`, `CONTENT_MAP.md` | Operating contracts for marketing and docs consistency | Root docs |
+| Repo docs | `README.md`, `shipflow_data/business/business.md`, `shipflow_data/business/branding.md`, `shipflow_data/business/product.md`, `shipflow_data/business/gtm.md`, `shipflow_data/editorial/content-map.md` | Operating contracts for marketing and docs consistency | Root docs |
 
 ## Funnel Mapping
 
@@ -96,9 +96,9 @@ Canonical product truth remains `tubeflow_app`.
 
 | Trigger | Required updates |
 |---|---|
-| Product promise changes | `/`, `/features`, `/compare`, `PRODUCT.md`, `GTM.md` |
-| Offer or pricing changes | `/pricing`, homepage pricing blocks, `BUSINESS.md`, `GTM.md` |
-| Brand voice/tagline changes | `/`, `/fr`, `BRANDING.md`, selected blog intros/outros |
+| Product promise changes | `/`, `/features`, `/compare`, `shipflow_data/business/product.md`, `shipflow_data/business/gtm.md` |
+| Offer or pricing changes | `/pricing`, homepage pricing blocks, `shipflow_data/business/business.md`, `shipflow_data/business/gtm.md` |
+| Brand voice/tagline changes | `/`, `/fr`, `shipflow_data/business/branding.md`, selected blog intros/outros |
 | CTA destination changes | `src/config/site.ts` and all CTA-bearing pages |
 | Legal/trust updates | `/privacy`, `/terms`, plus any impacted pricing/support copy |
 

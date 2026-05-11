@@ -1,22 +1,23 @@
 ---
 artifact: documentation
 metadata_schema_version: "1.0"
-artifact_version: "1.0.0"
+artifact_version: "1.1.0"
 project: "tubeflow-site"
 created: "2026-04-26"
-updated: "2026-04-27"
+updated: "2026-05-11"
 status: "reviewed"
 source_skill: "sf-docs"
 scope: "file"
 owner: "Diane"
 confidence: "high"
 risk_level: "low"
-security_impact: "none"
+security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
   - "TubeFlow app"
   - "Astro"
   - "Tailwind CSS"
+  - "Sentry"
 depends_on: []
 supersedes: []
 evidence:
@@ -26,6 +27,7 @@ evidence:
   - "src/layouts/Layout.astro"
   - "src/pages/index.astro"
   - "src/pages/fr/index.astro"
+  - "/home/claude/shipflow/skills/references/sentry-observability.md"
 next_step: "npm run build"
 ---
 
@@ -41,6 +43,7 @@ This repository is the public marketing site for TubeFlow. It is an Astro site w
 - Primary conversion targets point to the TubeFlow app, usually `appUrl('/videos')`.
 - The codebase does not include the product app itself; it only links to it.
 - Route copy and structured data matter as much as visuals because this repo is SEO-facing.
+- Sentry is intentionally not required while this remains a static marketing/content site with no authentication or user-specific runtime workflow.
 
 ## Stack
 
@@ -67,6 +70,8 @@ This repository is the public marketing site for TubeFlow. It is an Astro site w
 
 - Treat `src/config/site.ts` as the source of truth for public URLs and email domain.
 - Preserve canonical URLs, `hreflang`, Open Graph tags, and JSON-LD when editing pages.
+- Do not add Sentry browser instrumentation just to satisfy the monorepo observability default while the site remains static.
+- Add Sentry, or revisit this exception, as soon as the site gains authentication, account state, protected routes, checkout/payment flows, form submissions with server handling, or other user-specific runtime behavior.
 - Keep English and French experiences aligned intentionally. Today they are implemented differently:
   - English home uses shared components.
   - French home is a separate, largely duplicated page.

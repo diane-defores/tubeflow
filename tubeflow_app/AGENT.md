@@ -22,7 +22,7 @@ linked_systems:
 depends_on:
   - "README.md"
   - "CLAUDE.md"
-  - "ARCHITECTURE.md"
+  - "shipflow_data/technical/architecture.md"
 supersedes:
   - artifact_version: "0.1.0"
 evidence:

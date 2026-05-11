@@ -25,13 +25,13 @@ evidence:
   - "CHANGELOG.md records operator-visible behavior changes"
 linked_artifacts:
   - "README.md"
-  - "PRODUCT.md"
-  - "GTM.md"
+  - "shipflow_data/business/product.md"
+  - "shipflow_data/business/gtm.md"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "GTM.md"
+  - artifact: "shipflow_data/business/gtm.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes: []
@@ -43,16 +43,16 @@ next_step: "Keep this map synced when worker API, providers, or deployment model
 
 ## Purpose
 
-`CONTENT_MAP.md` defines where canonical documentation lives for `tubeflow_lab` and what each surface may claim. This repository is backend/experimental; user-facing product truth is handled in `tubeflow-app`.
+`shipflow_data/editorial/content-map.md` defines where canonical documentation lives for `tubeflow_lab` and what each surface may claim. This repository is backend/experimental; user-facing product truth is handled in `tubeflow-app`.
 
 ## Content Surfaces
 
 | Surface | Canonical path | Purpose | Source of truth | Update when |
 |---|---|---|---|---|
 | Repo overview and runbook | `README.md` | Explain what the worker does and how to run/deploy it | Worker code and runtime behavior | Endpoints, providers, deployment flow, or env assumptions change |
-| Product contract | `PRODUCT.md` | Define worker user, problem, outcomes, scope, and risks | Worker behavior plus explicit boundary to parent product | Worker role in pipeline changes |
-| GTM contract | `GTM.md` | Define backend positioning, channels, proof points, and KPIs | Product contract plus distribution reality | Positioning assumptions change |
-| Editorial map | `CONTENT_MAP.md` | Route docs to the right surface | Current repository structure | A new content surface appears |
+| Product contract | `shipflow_data/business/product.md` | Define worker user, problem, outcomes, scope, and risks | Worker behavior plus explicit boundary to parent product | Worker role in pipeline changes |
+| GTM contract | `shipflow_data/business/gtm.md` | Define backend positioning, channels, proof points, and KPIs | Product contract plus distribution reality | Positioning assumptions change |
+| Editorial map | `shipflow_data/editorial/content-map.md` | Route docs to the right surface | Current repository structure | A new content surface appears |
 | API/runtime contract | `server.py` | Canonical request models, endpoints, auth, and runtime controls | Implementation | API fields, providers, or behavior change |
 | Release history | `CHANGELOG.md` | Operator-visible change ledger | Merged runtime changes | Any behavior change affecting operations |
 | Dependency inventory | `requirements.txt` | Runtime dependency list | Active package set | Framework/provider/runtime dependencies change |
@@ -61,10 +61,10 @@ next_step: "Keep this map synced when worker API, providers, or deployment model
 
 | Cluster | Pillar surface | Supporting surfaces | Target intent | Status |
 |---|---|---|---|---|
-| Worker purpose and architecture | `README.md` | `PRODUCT.md`, `server.py` | Understand why the worker exists | live |
+| Worker purpose and architecture | `README.md` | `shipflow_data/business/product.md`, `server.py` | Understand why the worker exists | live |
 | Operations and deployment | `README.md` | `CHANGELOG.md`, `requirements.txt` | Run and maintain safely | live |
 | API and integration contract | `server.py` | `README.md` | Integrate parent app with predictable behavior | live |
-| Product and positioning decisions | `PRODUCT.md` | `GTM.md`, `CONTENT_MAP.md` | Keep scope and messaging coherent | reviewed |
+| Product and positioning decisions | `shipflow_data/business/product.md` | `shipflow_data/business/gtm.md`, `shipflow_data/editorial/content-map.md` | Keep scope and messaging coherent | reviewed |
 
 ## Page Roles
 
@@ -81,11 +81,11 @@ next_step: "Keep this map synced when worker API, providers, or deployment model
 
 | Trigger | Check these surfaces |
 |---|---|
-| Provider added or removed | `README.md`, `PRODUCT.md`, `GTM.md`, `server.py`, `requirements.txt` |
+| Provider added or removed | `README.md`, `shipflow_data/business/product.md`, `shipflow_data/business/gtm.md`, `server.py`, `requirements.txt` |
 | Endpoint or auth change | `README.md`, `server.py`, deployment notes |
-| Deployment model change | `README.md`, `CONTENT_MAP.md` |
-| New guardrail or warning behavior | `README.md`, `CHANGELOG.md`, `PRODUCT.md` |
-| Parent-product positioning update | `PRODUCT.md`, `GTM.md`, and boundaries referencing `tubeflow-app` |
+| Deployment model change | `README.md`, `shipflow_data/editorial/content-map.md` |
+| New guardrail or warning behavior | `README.md`, `CHANGELOG.md`, `shipflow_data/business/product.md` |
+| Parent-product positioning update | `shipflow_data/business/product.md`, `shipflow_data/business/gtm.md`, and boundaries referencing `tubeflow-app` |
 
 ## Open Gaps
 

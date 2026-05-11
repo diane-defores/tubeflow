@@ -47,7 +47,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Security headers in `vercel.json` (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - Shared `color_utils.dart` with `parseHexColor()` extracted from duplicate screen implementations
 - `.env.example` documenting required environment variables
-- `AUDIT_LOG.md` tracking audit findings and resolutions
+- `shipflow_data/workflow/AUDIT_LOG.md` tracking audit findings and resolutions
 
 ### Changed
 - All screens now route Convex mutations through `mutations.dart` helpers — no screen imports `convex_provider.dart` directly for mutations

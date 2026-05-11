@@ -26,7 +26,7 @@ supersedes: []
 evidence:
   - "server.py"
   - "main.py"
-next_step: "sed -n '1,260p' CONTEXT-FUNCTION-TREE.md"
+next_step: "sed -n '1,260p' shipflow_data/technical/context-function-tree.md"
 ---
 
 # CONTEXT FUNCTION TREE

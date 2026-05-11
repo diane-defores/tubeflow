@@ -26,21 +26,21 @@ evidence:
   - "src/pages/compare.astro"
   - "src/pages/blog/index.astro"
   - "src/pages/fr/index.astro"
-  - "tubeflow_app/GTM.md"
+  - "tubeflow_app/shipflow_data/business/gtm.md"
 linked_artifacts:
-  - "PRODUCT.md"
-  - "CONTENT_MAP.md"
+  - "shipflow_data/business/product.md"
+  - "shipflow_data/editorial/content-map.md"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "tubeflow_app/GTM.md"
+  - artifact: "tubeflow_app/shipflow_data/business/gtm.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-05-27"
-next_step: "/sf-docs audit GTM.md"
+next_step: "/sf-docs audit shipflow_data/business/gtm.md"
 ---
 
 # GTM Context

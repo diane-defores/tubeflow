@@ -33,7 +33,7 @@ next_review: "2026-05-26"
 next_step: "Align these repository guidelines with the main TubeFlow engineering standards if a shared standard exists."
 ---
 
-# GUIDELINES.md
+# shipflow_data/technical/guidelines.md
 
 ## Engineering principles
 

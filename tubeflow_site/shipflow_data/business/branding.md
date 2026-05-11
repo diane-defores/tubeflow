@@ -16,10 +16,10 @@ docs_impact: "yes"
 brand_voice: "Professional, clear, practical, and low-hype in both English and French"
 trust_posture: "Conservative claims only; marketing copy must stay compatible with canonical app truth"
 depends_on:
-  - artifact: "tubeflow_app/BRANDING.md"
+  - artifact: "tubeflow_app/shipflow_data/business/branding.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
-  - artifact: "tubeflow_app/BUSINESS.md"
+  - artifact: "tubeflow_app/shipflow_data/business/business.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
@@ -29,7 +29,7 @@ evidence:
   - "src/pages/index.astro (hero and CTA framing)"
   - "src/pages/features.astro (benefit language and workflow framing)"
   - "src/pages/fr/index.astro (active French marketing surface)"
-  - "tubeflow_app/BRANDING.md (canonical brand contract)"
+  - "tubeflow_app/shipflow_data/business/branding.md (canonical brand contract)"
 next_review: "2026-05-26"
 next_step: "Apply these voice rules to homepage, features, compare, pricing, and bilingual surfaces."
 ---

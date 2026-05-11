@@ -44,7 +44,7 @@ depends_on:
   - ".env.example"
 supersedes: []
 next_review: "2026-05-26"
-next_step: "sed -n '1,260p' ARCHITECTURE.md"
+next_step: "sed -n '1,260p' shipflow_data/technical/architecture.md"
 ---
 
 # ARCHITECTURE

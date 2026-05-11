@@ -25,18 +25,18 @@ evidence:
   - "src/pages/pricing.astro"
   - "src/pages/compare.astro"
   - "src/pages/fr/index.astro"
-  - "tubeflow_app/PRODUCT.md"
+  - "tubeflow_app/shipflow_data/business/product.md"
 linked_artifacts:
-  - "GTM.md"
-  - "CONTENT_MAP.md"
+  - "shipflow_data/business/gtm.md"
+  - "shipflow_data/editorial/content-map.md"
 depends_on:
-  - artifact: "tubeflow_app/PRODUCT.md"
+  - artifact: "tubeflow_app/shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:
   - artifact_version: "0.1.0"
 next_review: "2026-05-27"
-next_step: "/sf-docs audit PRODUCT.md"
+next_step: "/sf-docs audit shipflow_data/business/product.md"
 ---
 
 # Product Context
@@ -45,7 +45,7 @@ next_step: "/sf-docs audit PRODUCT.md"
 
 `tubeflow-site` is the public marketing and conversion layer for TubeFlow. It describes the product promise and routes visitors to the app at `app.tubeflow.winflowz.com`.
 
-Canonical product truth is `tubeflow_app/PRODUCT.md`. This repository must stay aligned with that contract and avoid introducing a parallel product definition.
+Canonical product truth is `tubeflow_app/shipflow_data/business/product.md`. This repository must stay aligned with that contract and avoid introducing a parallel product definition.
 
 ## Target User
 
@@ -103,7 +103,7 @@ Secondary framing around escaping algorithmic distraction is acceptable as a hoo
 ## Product Truth Alignment Rule
 
 - This site documents and markets; it does not define app behavior canonically.
-- Any product-level conflict resolves in favor of `tubeflow_app/PRODUCT.md`.
+- Any product-level conflict resolves in favor of `tubeflow_app/shipflow_data/business/product.md`.
 - Roadmap claims must be labeled as planned, not implied as shipped.
 
 ## Risks

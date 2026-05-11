@@ -14,6 +14,12 @@ PUBLIC_EMAIL_DOMAIN=winflowz.com
 
 All canonicals, structured data URLs, and CTA links read from these variables through `src/config/site.ts`.
 
+## Observability
+
+Sentry is not required for this site while it remains a static marketing/content surface with no authentication or user-specific runtime workflow.
+
+Add Sentry before introducing authentication, account state, protected routes, checkout/payment flows, server-handled form submissions, or other runtime behavior where a user action can fail outside the build/deploy pipeline.
+
 ## Commands
 
 All commands are run from the root of the project, from a terminal:

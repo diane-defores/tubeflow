@@ -20,10 +20,10 @@ security_impact: "unknown"
 evidence:
   - "README.md describes timestamped notes, playlists, viewing history, authentication, and deployment"
   - "CLAUDE.md describes authenticated YouTube viewing and note workflows"
-  - "PRODUCT.md reviewed product scope and claim boundaries"
+  - "shipflow_data/business/product.md reviewed product scope and claim boundaries"
   - "Owner decisions confirmed in working session on 2026-04-27"
 depends_on:
-  - artifact: "PRODUCT.md"
+  - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
     required_status: "reviewed"
 supersedes:

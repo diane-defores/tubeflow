@@ -20,8 +20,8 @@ linked_systems:
   - "Convex"
   - "Vercel"
 depends_on:
-  - "CONTEXT.md"
-  - "ARCHITECTURE.md"
+  - "shipflow_data/technical/context.md"
+  - "shipflow_data/technical/architecture.md"
 supersedes:
   - artifact_version: "0.1.0"
 evidence:
