@@ -42,6 +42,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (!sessionId) {
+    console.warn('[YouTube OAuth] Missing Clerk session handoff cookie');
     sendRedirect(
       res,
       buildReturnUrl(origin, returnTo, {

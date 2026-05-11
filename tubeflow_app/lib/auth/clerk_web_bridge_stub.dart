@@ -34,6 +34,9 @@ Future<bool> clerkWebHandleOAuthRedirect(String redirectUrlComplete) async =>
 
 Future<bool> clerkWebPrepareSessionCookie() async => false;
 
+Future<bool> clerkWebPrepareSessionCookieForSessionId(String sessionId) async =>
+    false;
+
 Future<void> clerkWebSignOut() async {}
 
 Future<bool> clerkWebResetState() async => false;

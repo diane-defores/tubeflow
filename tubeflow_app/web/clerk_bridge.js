@@ -269,6 +269,26 @@
     }
   }
 
+  function writeYoutubeSessionCookie(sessionId) {
+    if (!sessionId) {
+      return false;
+    }
+
+    const parts = [
+      `tubeflow_youtube_clerk_session_id=${encodeURIComponent(sessionId)}`,
+      'Path=/',
+      'Max-Age=600',
+      'SameSite=Lax',
+    ];
+
+    if (window.location.protocol === 'https:') {
+      parts.push('Secure');
+    }
+
+    document.cookie = parts.join('; ');
+    return true;
+  }
+
   window.tubeFlowClerkBridge = {
     async init(publishableKey) {
       await ensureLoaded(publishableKey);
@@ -406,19 +426,11 @@
         return false;
       }
 
-      const parts = [
-        `tubeflow_youtube_clerk_session_id=${encodeURIComponent(session.id)}`,
-        'Path=/',
-        'Max-Age=600',
-        'SameSite=Lax',
-      ];
+      return writeYoutubeSessionCookie(session.id);
+    },
 
-      if (window.location.protocol === 'https:') {
-        parts.push('Secure');
-      }
-
-      document.cookie = parts.join('; ');
-      return true;
+    async prepareSessionCookieForSessionId(_publishableKey, sessionId) {
+      return writeYoutubeSessionCookie(sessionId);
     },
 
     async signOut(publishableKey) {

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/app/router.dart';
+import 'package:tubeflow_app/auth/clerk_service.dart';
 import 'package:tubeflow_app/auth/clerk_web_bridge.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -203,8 +204,25 @@ Future<void> _launchYoutubeConnect(
   }
 
   try {
+    final container = _providerContainer(context);
     if (kIsWeb) {
-      final prepared = await clerkWebPrepareSessionCookie();
+      var prepared = await clerkWebPrepareSessionCookie();
+      if (!prepared) {
+        final sessionId = container
+            .read(clerkServiceProvider)
+            .authState
+            ?.session
+            ?.id;
+        if (sessionId != null && sessionId.isNotEmpty) {
+          prepared = await clerkWebPrepareSessionCookieForSessionId(sessionId);
+          if (prepared) {
+            AppLogger.instance.log(
+              'Prepared YouTube OAuth session cookie from ClerkAuthState session fallback',
+              source: 'YoutubeConnect',
+            );
+          }
+        }
+      }
       if (!prepared) {
         if (!context.mounted) return;
         final routeAfterSignIn = _currentRouterRoute(preferredRoute: returnTo);

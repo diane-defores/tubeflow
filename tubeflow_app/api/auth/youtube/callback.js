@@ -279,6 +279,9 @@ module.exports = async function handler(req, res) {
 
     sendCallbackRedirect({ youtube_connected: 'true' });
   } catch (error) {
+    console.error('[YouTube OAuth Callback] Failed to complete callback', {
+      message: error instanceof Error ? error.message : String(error),
+    });
     redirectWithError(
       error instanceof Error
         ? error.message
