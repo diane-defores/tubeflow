@@ -53,7 +53,8 @@ const Map<String, dynamic> en = {
     'noVideos': 'No videos yet',
     'noVideosDesc': 'Connect your YouTube account to import your playlists.',
     'allCaughtUp': 'All caught up!',
-    'allCaughtUpDesc': 'You\'ve watched all your videos. Show watched to review them.',
+    'allCaughtUpDesc':
+        'You\'ve watched all your videos. Show watched to review them.',
     'linkCopied': 'Link copied!',
     'swipeHint': 'Swipe left on a video to see actions',
     'swipeActions': 'Swipe for actions',

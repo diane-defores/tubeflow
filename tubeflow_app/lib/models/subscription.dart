@@ -150,7 +150,7 @@ class UserSubscription {
   /// Convex document ID (`_id`).
   final String id;
 
-  /// Clerk user ID.
+  /// Auth provider user ID.
   final String userId;
 
   /// Current subscription plan tier.
@@ -207,7 +207,8 @@ class UserSubscription {
       status: SubscriptionStatus.fromJson(json['status'] as String),
       features: json['features'] != null
           ? SubscriptionFeatures.fromJson(
-              json['features'] as Map<String, dynamic>)
+              json['features'] as Map<String, dynamic>,
+            )
           : SubscriptionFeatures.forPlan(plan),
       cancelAtPeriodEnd: json['cancelAtPeriodEnd'] as bool? ?? false,
       currentPeriodStart: json['currentPeriodStart'] as int?,
@@ -225,8 +226,7 @@ class UserSubscription {
       'status': status.toJson(),
       'features': features.toJson(),
       'cancelAtPeriodEnd': cancelAtPeriodEnd,
-      if (currentPeriodStart != null)
-        'currentPeriodStart': currentPeriodStart,
+      if (currentPeriodStart != null) 'currentPeriodStart': currentPeriodStart,
       if (currentPeriodEnd != null) 'currentPeriodEnd': currentPeriodEnd,
       'createdAt': createdAt,
       'updatedAt': updatedAt,

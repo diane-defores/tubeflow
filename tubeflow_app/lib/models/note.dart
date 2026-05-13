@@ -6,7 +6,7 @@ class Note {
   /// Convex document ID (`_id`).
   final String id;
 
-  /// Clerk user ID of the note owner.
+  /// Auth provider user ID of the note owner.
   final String userId;
 
   /// Note title.

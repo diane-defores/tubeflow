@@ -117,8 +117,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     final videosAsync = youtubeConnected
         ? ref.watch(videosProvider(const VideosArgs()))
         : null;
-    final notesAsync =
-        youtubeConnected ? ref.watch(notesProvider) : null;
+    final notesAsync = youtubeConnected ? ref.watch(notesProvider) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -151,10 +150,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
             icon: const Icon(Icons.sync),
             onPressed: () async {
               if (!youtubeConnected) {
-                await startYoutubeConnectFlow(
-                  context,
-                  returnTo: Routes.videos,
-                );
+                await startYoutubeConnectFlow(context, returnTo: Routes.videos);
                 return;
               }
 
@@ -326,7 +322,9 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                         placeholder: (context, url) => Container(
                           height: 200,
                           color: Colors.grey[300],
-                          child: const Center(child: CircularProgressIndicator()),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
                         ),
                         errorWidget: (context, url, error) => Container(
                           height: 200,
@@ -365,7 +363,9 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                           ),
                           if (video.duration != null)
                             Text(
-                              formatDuration(parseDuration(video.duration) ?? 0),
+                              formatDuration(
+                                parseDuration(video.duration) ?? 0,
+                              ),
                               style: Theme.of(context).textTheme.labelSmall,
                             ),
                         ],
@@ -386,9 +386,8 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                               ),
                             Text(
                               video.playlistTitle!,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: Colors.grey,
-                                  ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -419,10 +418,14 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                     height: 68,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      width: 120, height: 68, color: Colors.grey[300],
+                      width: 120,
+                      height: 68,
+                      color: Colors.grey[300],
                     ),
                     errorWidget: (context, url, error) => Container(
-                      width: 120, height: 68, color: Colors.grey[300],
+                      width: 120,
+                      height: 68,
+                      color: Colors.grey[300],
                       child: const Icon(Icons.play_circle_outline),
                     ),
                   ),
@@ -433,7 +436,11 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
                   color: Colors.grey[300],
                   child: const Icon(Icons.play_circle_outline),
                 ),
-          title: Text(video.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+          title: Text(
+            video.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: Text(
             '${video.channelTitle}'
             '${video.duration != null ? ' - ${formatDuration(parseDuration(video.duration) ?? 0)}' : ''}',
@@ -448,7 +455,9 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
   }
 
   Widget _buildSummaryView(
-      List<YouTubeVideo> videos, Map<String, int> notesByVideo) {
+    List<YouTubeVideo> videos,
+    Map<String, int> notesByVideo,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: videos.length,
@@ -550,11 +559,7 @@ class _ViewModeMenuItem extends StatelessWidget {
         Expanded(child: Text(label)),
         if (selected) ...[
           const SizedBox(width: 12),
-          Icon(
-            Icons.check_rounded,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.check_rounded, size: 18, color: theme.colorScheme.primary),
         ],
       ],
     );

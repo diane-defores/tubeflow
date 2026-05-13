@@ -19,7 +19,7 @@ import 'package:tubeflow_app/utils/app_logger.dart';
 /// ```dart
 /// await ConvexService.initialize('https://your-deployment.convex.cloud');
 /// final convex = ConvexService.instance;
-/// convex.setAuth(() => clerkService.getConvexToken());
+/// convex.setAuth(() => authService.getConvexToken());
 /// final videos = await convex.query<List>('youtube:getAllVideos', {});
 /// ```
 class ConvexService {
@@ -66,7 +66,7 @@ class ConvexService {
   /// Handle returned by [setAuthWithRefresh], disposed on [clearAuth]/[dispose].
   dynamic _authHandle;
 
-  /// Token provider wired from Clerk during bootstrap.
+  /// Token provider wired from Firebase Auth during bootstrap.
   Future<String?> Function()? _tokenProvider;
 
   /// Whether the service has been disposed.
@@ -79,7 +79,7 @@ class ConvexService {
   /// Registers a callback that returns a fresh JWT for Convex auth and sets up
   /// automatic token refresh.
   ///
-  /// Typically wired to `ClerkService.getConvexToken`.
+  /// Typically wired to the Firebase-backed auth service.
   Future<void> setAuth(Future<String?> Function() getToken) async {
     _tokenProvider = getToken;
     if (kIsWeb) {

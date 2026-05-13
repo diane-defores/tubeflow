@@ -9,7 +9,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/app/theme.dart';
-import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/auth/auth_service.dart';
+import 'package:tubeflow_app/auth/firebase_config.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
@@ -54,7 +55,7 @@ Future<void> _runApp() async {
 
   AppLogger.instance.log(
     'main() start — CONVEX_URL=${const bool.hasEnvironment('CONVEX_URL')} '
-    'CLERK_PUBLISHABLE_KEY=${clerkPublishableKey.isNotEmpty} '
+    'FIREBASE_PROJECT_ID=${firebaseProjectId.isNotEmpty} '
     'BUILD_COMMIT_SHA=$buildCommitSha '
     'BUILD_ENVIRONMENT=$buildEnvironment',
     source: 'main',
@@ -129,7 +130,7 @@ Future<void> _configureSentryScope() async {
       'timestamp': buildTimestamp,
       'mode': buildModeLabel(),
       'app_url_host': hostForUrl(tubeFlowAppUrl),
-      'clerk_hosted_sign_in_host': hostForUrl(clerkHostedSignInUrl()),
+      'firebase_project_id': firebaseProjectId,
       'sentry_traces_sample_rate': sentryTracesSampleRate,
     });
     if (kIsWeb) {
@@ -147,10 +148,10 @@ Future<void> _configureSentryScope() async {
 // Bootstrap widget
 // ---------------------------------------------------------------------------
 
-/// Eagerly initialises Clerk and wires the Convex auth token before building
+/// Eagerly initialises Firebase Auth and wires the Convex auth token before building
 /// the main application widget.
 ///
-/// This is a separate [ConsumerStatefulWidget] so that the [ClerkService] is
+/// This is a separate [ConsumerStatefulWidget] so that the auth service is
 /// created (and begins restoring a persisted session) on the very first frame,
 /// and the Convex client gets its token provider as soon as both services
 /// exist.
@@ -167,7 +168,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
   bool get _hasConvexConfig => convexUrl.isNotEmpty;
 
-  bool get _hasClerkConfig => clerkPublishableKey.isNotEmpty;
+  bool get _hasFirebaseConfig => hasFirebaseConfig;
 
   @override
   void initState() {
@@ -180,34 +181,34 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 
   Future<void> _bootstrap() async {
     AppLogger.instance.log(
-      'bootstrap() start — hasConvex=$_hasConvexConfig hasClerk=$_hasClerkConfig',
+      'bootstrap() start — hasConvex=$_hasConvexConfig hasFirebase=$_hasFirebaseConfig',
       source: 'bootstrap',
     );
     try {
-      if (_hasConvexConfig && _hasClerkConfig) {
-        final clerk = ref.read(clerkServiceProvider);
-        await clerk.ready;
+      if (_hasConvexConfig && _hasFirebaseConfig) {
+        final auth = ref.read(authServiceProvider);
+        await auth.ready;
         AppLogger.instance.log(
-          'Clerk ready (isInitialised=${clerk.isInitialised})',
+          'Firebase Auth ready (isInitialised=${auth.isInitialised})',
           source: 'bootstrap',
         );
         final convex = ref.read(convexServiceProvider);
-        await convex.setAuth(() => clerk.getConvexToken());
+        await convex.setAuth(() => auth.getConvexToken());
         AppLogger.instance.log('Convex auth wired', source: 'bootstrap');
-        if (clerk.isAuthenticated) {
-          final convexAuthReady = await clerk.waitForConvexTokenReady();
+        if (auth.isAuthenticated) {
+          final convexAuthReady = await auth.waitForConvexTokenReady();
           AppLogger.instance.log(
             convexAuthReady
-                ? 'Convex auth ready for ${clerk.currentUser?.id ?? 'signed-in user'}'
+                ? 'Convex auth ready for ${auth.currentUser?.uid ?? 'signed-in user'}'
                 : 'Convex auth not fully ready yet; guarded providers will use '
-                      'local fallbacks until Clerk token minting catches up',
+                      'local fallbacks until Firebase token minting catches up',
             source: 'bootstrap',
             level: convexAuthReady ? LogLevel.info : LogLevel.warning,
           );
         }
       } else {
         AppLogger.instance.log(
-          'Skipping Clerk/Convex wiring — missing env vars',
+          'Skipping Firebase/Convex wiring — missing env vars',
           source: 'bootstrap',
           level: LogLevel.warning,
         );
@@ -248,7 +249,7 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
         themeMode: ThemeMode.system,
         home: _ConfigFallbackScreen(
           hasConvexConfig: _hasConvexConfig,
-          hasClerkConfig: _hasClerkConfig,
+          hasFirebaseConfig: _hasFirebaseConfig,
           bootstrapError: _bootstrapError,
         ),
       );
@@ -261,12 +262,12 @@ class _AppBootstrapState extends ConsumerState<_AppBootstrap> {
 class _ConfigFallbackScreen extends StatelessWidget {
   const _ConfigFallbackScreen({
     required this.hasConvexConfig,
-    required this.hasClerkConfig,
+    required this.hasFirebaseConfig,
     this.bootstrapError,
   });
 
   final bool hasConvexConfig;
-  final bool hasClerkConfig;
+  final bool hasFirebaseConfig;
   final String? bootstrapError;
 
   Future<void> _copyDiagnostics(BuildContext context) async {
@@ -279,7 +280,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
       'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
       'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
-      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
+      'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}',
+      'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}',
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
       'SENTRY: ${sentryStatusLabel()}',
@@ -300,7 +302,7 @@ class _ConfigFallbackScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final missing = <String>[
       if (!hasConvexConfig) 'CONVEX_URL',
-      if (!hasClerkConfig) 'CLERK_PUBLISHABLE_KEY',
+      if (!hasFirebaseConfig) 'FIREBASE_*',
     ];
 
     return Scaffold(
@@ -357,7 +359,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
                       'Build mode: ${buildModeLabel()}\n'
                       'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}\n'
                       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}\n'
-                      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}\n'
+                      'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}\n'
+                      'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}\n'
                       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}\n'
                       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}\n'
                       'SENTRY: ${sentryStatusLabel()}',

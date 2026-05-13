@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 bool _isFrench(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'fr';
 
-String _copyLabel(BuildContext context) => _isFrench(context) ? 'Copier' : 'Copy';
+String _copyLabel(BuildContext context) =>
+    _isFrench(context) ? 'Copier' : 'Copy';
 
 String _retryLabel(BuildContext context) =>
     _isFrench(context) ? 'Réessayer' : 'Retry';
@@ -59,11 +60,7 @@ void showErrorSnackBar(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            message,
-            maxLines: 6,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(message, maxLines: 6, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
@@ -91,11 +88,7 @@ void showErrorSnackBar(
 }
 
 class InlineErrorCard extends StatelessWidget {
-  const InlineErrorCard({
-    super.key,
-    required this.error,
-    this.prefix,
-  });
+  const InlineErrorCard({super.key, required this.error, this.prefix});
 
   final Object error;
   final String? prefix;
@@ -117,20 +110,14 @@ class InlineErrorCard extends StatelessWidget {
         children: [
           SelectableText(
             message,
-            style: TextStyle(
-              color: colorScheme.error,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: colorScheme.error, fontSize: 13),
           ),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
             child: OutlinedButton.icon(
-              onPressed: () => copyErrorToClipboard(
-                context,
-                error,
-                prefix: prefix,
-              ),
+              onPressed: () =>
+                  copyErrorToClipboard(context, error, prefix: prefix),
               icon: const Icon(Icons.copy, size: 16),
               label: Text(_copyLabel(context)),
             ),
@@ -186,11 +173,8 @@ class ErrorStateView extends StatelessWidget {
                     ),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => copyErrorToClipboard(
-                      context,
-                      error,
-                      prefix: prefix,
-                    ),
+                    onPressed: () =>
+                        copyErrorToClipboard(context, error, prefix: prefix),
                     icon: const Icon(Icons.copy, size: 16),
                     label: Text(_copyLabel(context)),
                   ),

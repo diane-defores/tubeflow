@@ -9,7 +9,7 @@ class YouTubeComment {
   /// YouTube video ID the comment belongs to.
   final String youtubeVideoId;
 
-  /// Clerk user ID of the comment author.
+  /// Auth provider user ID of the comment author.
   final String userId;
 
   /// Comment text content.

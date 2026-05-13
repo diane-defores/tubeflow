@@ -155,7 +155,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       });
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, error: e, prefix: 'Could not stop recording');
+        showErrorSnackBar(
+          context,
+          error: e,
+          prefix: 'Could not stop recording',
+        );
       }
     } finally {
       if (mounted) {
@@ -189,10 +193,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     });
 
     try {
-      await _service.submitText(
-        message: message,
-        locale: _effectiveLocale(),
-      );
+      await _service.submitText(message: message, locale: _effectiveLocale());
       if (!mounted) return;
       _messageController.clear();
       setState(() {
@@ -200,7 +201,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       });
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, error: e, prefix: 'Feedback submission failed');
+        showErrorSnackBar(
+          context,
+          error: e,
+          prefix: 'Feedback submission failed',
+        );
       }
     } finally {
       if (mounted) {
@@ -251,11 +256,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final settings = ref.watch(settingsProvider).asData?.value;
-    final locale =
-        settings?.language?.trim().isNotEmpty == true
+    final locale = settings?.language?.trim().isNotEmpty == true
         ? settings!.language!.trim()
         : Localizations.localeOf(context).languageCode;
-    final canSendText = !_submitting && _messageController.text.trim().isNotEmpty;
+    final canSendText =
+        !_submitting && _messageController.text.trim().isNotEmpty;
     final canSendAudio =
         !_submitting &&
         !_recording &&
@@ -391,15 +396,16 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                     onPressed: _recording && !_stoppingRecording
                                         ? () => _stopRecording()
                                         : null,
-                                    icon: const Icon(Icons.stop_circle_outlined),
+                                    icon: const Icon(
+                                      Icons.stop_circle_outlined,
+                                    ),
                                     label: Text(
-                                      _stoppingRecording
-                                          ? 'Stopping…'
-                                          : 'Stop',
+                                      _stoppingRecording ? 'Stopping…' : 'Stop',
                                     ),
                                   ),
                                   OutlinedButton.icon(
-                                    onPressed: _submitting ||
+                                    onPressed:
+                                        _submitting ||
                                             (_recordingPath == null &&
                                                 !_recording)
                                         ? null
@@ -453,13 +459,15 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                         const SizedBox(height: 16),
                         Text(
                           _successNotice!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ],
-                      if (_draftLoaded && _messageController.text.trim().isNotEmpty)
+                      if (_draftLoaded &&
+                          _messageController.text.trim().isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(

@@ -74,7 +74,8 @@ class YouTubePlaylist {
       thumbnailUrl: json['thumbnailUrl'] as String?,
       customThumbnailUrl: json['customThumbnailUrl'] as String?,
       videoCount: json['videoCount'] as int,
-      originalVideoCount: json['originalVideoCount'] as int? ?? json['videoCount'] as int,
+      originalVideoCount:
+          json['originalVideoCount'] as int? ?? json['videoCount'] as int,
       privacyStatus: json['privacyStatus'] as String,
       publishedAt: json['publishedAt'] as String?,
       lastVideoAddedAt: json['lastVideoAddedAt'] as int?,

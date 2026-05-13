@@ -80,9 +80,7 @@ class FeedbackEntry {
     return FeedbackEntry(
       id: (json['id'] ?? json['_id']) as String,
       type: FeedbackEntryType.fromJson(json['type'] as String? ?? 'text'),
-      status: FeedbackEntryStatus.fromJson(
-        json['status'] as String? ?? 'new',
-      ),
+      status: FeedbackEntryStatus.fromJson(json['status'] as String? ?? 'new'),
       message: json['message'] as String?,
       audioStorageId: json['audioStorageId'] as String?,
       audioDurationMs: json['audioDurationMs'] as int?,

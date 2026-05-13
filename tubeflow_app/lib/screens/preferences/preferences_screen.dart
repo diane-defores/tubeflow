@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:tubeflow_app/app/build_info.dart';
 import 'package:tubeflow_app/app/router.dart';
 import 'package:tubeflow_app/auth/auth_state.dart';
-import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/auth/auth_service.dart';
+import 'package:tubeflow_app/auth/firebase_config.dart';
 import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
@@ -457,7 +458,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             leading: Icon(Icons.admin_panel_settings_outlined),
             title: Text('Checking admin access…'),
           ),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (error, stackTrace) => const SizedBox.shrink(),
         ),
         const SizedBox(height: 32),
 
@@ -595,7 +596,7 @@ class _AccountTile extends ConsumerWidget {
                   icon: const Icon(Icons.logout, size: 18),
                   label: const Text('Sign out'),
                   onPressed: () async {
-                    await ref.read(clerkServiceProvider).signOut();
+                    await ref.read(authServiceProvider).signOut();
                     if (context.mounted) context.go(Routes.signIn);
                   },
                 ),
@@ -644,10 +645,10 @@ class _DiagnosticsCard extends ConsumerWidget {
 
   Future<void> _copyDiagnostics(
     BuildContext context,
-    ClerkService clerk,
+    AuthService auth,
     AuthState authState,
   ) async {
-    final lines = _buildLines(clerk, authState);
+    final lines = _buildLines(auth, authState);
     await Clipboard.setData(ClipboardData(text: lines.join('\n')));
     if (!context.mounted) return;
     ScaffoldMessenger.of(
@@ -655,7 +656,7 @@ class _DiagnosticsCard extends ConsumerWidget {
     ).showSnackBar(const SnackBar(content: Text('Diagnostics copied.')));
   }
 
-  List<String> _buildLines(ClerkService clerk, AuthState authState) {
+  List<String> _buildLines(AuthService auth, AuthState authState) {
     String authLabel;
     switch (authState) {
       case AuthLoading():
@@ -675,13 +676,14 @@ class _DiagnosticsCard extends ConsumerWidget {
       'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
       'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
-      'CLERK_PUBLISHABLE_KEY: ${clerkPublishableKey.isNotEmpty ? maskValue(clerkPublishableKey) : '(missing)'}',
+      'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}',
+      'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}',
       'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
       'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
       'SENTRY: ${sentryStatusLabel()}',
-      'Clerk initialised: ${clerk.isInitialised ? 'yes' : 'no'}',
+      'Firebase Auth initialised: ${auth.isInitialised ? 'yes' : 'no'}',
       'Auth state: $authLabel',
-      'Current user: ${clerk.currentUser?.id ?? 'none'}',
+      'Current user: ${auth.currentUser?.uid ?? 'none'}',
       '',
       'Recent logs:',
       AppLogger.instance.formatAll(),
@@ -690,7 +692,7 @@ class _DiagnosticsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final clerk = ref.watch(clerkServiceProvider);
+    final auth = ref.watch(authServiceProvider);
     final authState = ref.watch(authStateProvider);
 
     String authLabel;
@@ -710,11 +712,16 @@ class _DiagnosticsCard extends ConsumerWidget {
         ok: convexUrl.isNotEmpty,
       ),
       (
-        key: 'CLERK_PUBLISHABLE_KEY',
-        value: clerkPublishableKey.isNotEmpty
-            ? maskValue(clerkPublishableKey)
+        key: 'FIREBASE_PROJECT_ID',
+        value: firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)',
+        ok: firebaseProjectId.isNotEmpty,
+      ),
+      (
+        key: 'FIREBASE_APP_ID',
+        value: firebaseAppId.isNotEmpty
+            ? maskValue(firebaseAppId)
             : '(missing)',
-        ok: clerkPublishableKey.isNotEmpty,
+        ok: firebaseAppId.isNotEmpty,
       ),
       (
         key: 'BUILD_COMMIT_SHA',
@@ -739,9 +746,9 @@ class _DiagnosticsCard extends ConsumerWidget {
             hostMatchLabel(tubeFlowAppUrl) == 'not-web',
       ),
       (
-        key: 'Clerk initialised',
-        value: clerk.isInitialised ? 'yes' : 'no',
-        ok: clerk.isInitialised,
+        key: 'Firebase Auth initialised',
+        value: auth.isInitialised ? 'yes' : 'no',
+        ok: auth.isInitialised,
       ),
       (key: 'Auth state', value: authLabel, ok: authState is AuthAuthenticated),
     ];
@@ -764,8 +771,7 @@ class _DiagnosticsCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: () =>
-                        _copyDiagnostics(context, clerk, authState),
+                    onPressed: () => _copyDiagnostics(context, auth, authState),
                     icon: const Icon(Icons.copy, size: 16),
                     label: const Text('Copy'),
                   ),
@@ -903,7 +909,8 @@ class _LogsCardState extends State<_LogsCard> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: entries.length,
-                      separatorBuilder: (_, __) => const Divider(height: 8),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 8),
                       itemBuilder: (context, i) {
                         final e = entries[i];
                         final color = switch (e.level) {

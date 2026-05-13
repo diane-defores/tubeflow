@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Lightweight user info extracted from a Clerk session.
+/// Lightweight user info extracted from the configured auth provider.
 ///
-/// This is decoupled from the Clerk SDK types so auth state can be
-/// managed independently of `clerk_flutter` internals.
+/// This stays decoupled from SDK types so auth state can be managed without
+/// pulling beta authentication packages into the app.
 class AuthUser {
   const AuthUser({
     required this.id,
@@ -12,7 +12,7 @@ class AuthUser {
     this.imageUrl,
   });
 
-  /// Clerk user ID.
+  /// Provider user ID.
   final String id;
 
   /// Primary email address.
@@ -84,8 +84,8 @@ class AuthAuthenticated extends AuthState {
 
 /// Manages transitions between [AuthState] variants.
 ///
-/// The [ClerkService] drives this notifier — call [setLoading],
-/// [setAuthenticated], or [setUnauthenticated] as the Clerk session changes.
+/// The auth service drives this notifier — call [setLoading],
+/// [setAuthenticated], or [setUnauthenticated] as the session changes.
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() => const AuthLoading();
@@ -94,8 +94,7 @@ class AuthNotifier extends Notifier<AuthState> {
   void setLoading() => state = const AuthLoading();
 
   /// Transition to the authenticated state with the given [user].
-  void setAuthenticated(AuthUser user) =>
-      state = AuthAuthenticated(user);
+  void setAuthenticated(AuthUser user) => state = AuthAuthenticated(user);
 
   /// Transition to the unauthenticated state, optionally with an [error].
   void setUnauthenticated({String? error}) =>
@@ -126,5 +125,6 @@ class AuthNotifier extends Notifier<AuthState> {
 /// ```dart
 /// ref.read(authStateProvider.notifier).setAuthenticated(user);
 /// ```
-final authStateProvider =
-    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authStateProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

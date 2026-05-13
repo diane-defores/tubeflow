@@ -52,8 +52,8 @@ Future<dynamic> createNote(
   return service.mutate<dynamic>('notes:createNote', {
     'youtubeVideoId': videoId,
     'content': content,
-    if (timestamp != null) 'timestamp': timestamp,
-    if (title != null) 'title': title,
+    'timestamp': ?timestamp,
+    'title': ?title,
   });
 }
 
@@ -296,9 +296,9 @@ Future<dynamic> createPlaylist(
   final service = ref.read(convexServiceProvider);
   return service.mutate<dynamic>('playlists:createPlaylist', {
     'title': title,
-    if (description != null) 'description': description,
+    'description': ?description,
     'privacyStatus': privacyStatus,
-    if (color != null) 'color': color,
+    'color': ?color,
   });
 }
 
@@ -407,9 +407,9 @@ Future<dynamic> createFeedbackText(
     'message': message,
     'platform': platform,
     'locale': locale,
-    if (buildCommitSha != null) 'buildCommitSha': buildCommitSha,
-    if (buildEnvironment != null) 'buildEnvironment': buildEnvironment,
-    if (buildTimestamp != null) 'buildTimestamp': buildTimestamp,
+    'buildCommitSha': ?buildCommitSha,
+    'buildEnvironment': ?buildEnvironment,
+    'buildTimestamp': ?buildTimestamp,
   });
 }
 
@@ -431,10 +431,10 @@ Future<dynamic> createFeedbackAudio(
     'audioDurationMs': audioDurationMs,
     'platform': platform,
     'locale': locale,
-    if (message != null) 'message': message,
-    if (buildCommitSha != null) 'buildCommitSha': buildCommitSha,
-    if (buildEnvironment != null) 'buildEnvironment': buildEnvironment,
-    if (buildTimestamp != null) 'buildTimestamp': buildTimestamp,
+    'message': ?message,
+    'buildCommitSha': ?buildCommitSha,
+    'buildEnvironment': ?buildEnvironment,
+    'buildTimestamp': ?buildTimestamp,
   });
 }
 

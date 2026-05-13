@@ -174,7 +174,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
 
     // Restore saved progress once per video load.
     progressAsync.whenData((progress) {
-      if (_progressRestored || progress == null || progress.progressSeconds <= 0) {
+      if (_progressRestored ||
+          progress == null ||
+          progress.progressSeconds <= 0) {
         return;
       }
       _progressRestored = true;
@@ -239,9 +241,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                       const SizedBox(height: 16),
                       Text(
                         'Choose a video to start playback',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
@@ -336,8 +337,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
 
   Widget _buildPlaybackControls(YouTubeVideo? currentVideo) {
     final maxSeconds = math.max(_resolvedDurationSeconds(currentVideo), 1);
-    final sliderValue =
-        _currentTimestamp.clamp(0, maxSeconds.toDouble()).toDouble();
+    final sliderValue = _currentTimestamp
+        .clamp(0, maxSeconds.toDouble())
+        .toDouble();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -518,10 +520,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
         prefix: 'Failed to load transcript',
         onRetry: () => ref.invalidate(
           activeTranscriptProvider(
-            TranscriptArgs(
-              youtubeVideoId: widget.videoId,
-              language: language,
-            ),
+            TranscriptArgs(youtubeVideoId: widget.videoId, language: language),
           ),
         ),
       ),
@@ -536,7 +535,11 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.subtitles_off, size: 40, color: Colors.grey),
+                    const Icon(
+                      Icons.subtitles_off,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 12),
                     const Text(
                       'No transcript available yet.',
@@ -572,7 +575,8 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
-            final isActive = _currentTimestamp >= entry.startSeconds &&
+            final isActive =
+                _currentTimestamp >= entry.startSeconds &&
                 _currentTimestamp < entry.endSeconds;
 
             return Card(
@@ -711,7 +715,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     }
   }
 
-  List<_TranscriptEntry> _parseTranscriptEntries(Map<String, dynamic>? transcript) {
+  List<_TranscriptEntry> _parseTranscriptEntries(
+    Map<String, dynamic>? transcript,
+  ) {
     if (transcript == null) {
       return const <_TranscriptEntry>[];
     }
@@ -763,9 +769,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
         ),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transcript generated.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Transcript generated.')));
       }
     } catch (e) {
       if (mounted) {
@@ -842,7 +848,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
 
                 final queue = snapshot.data ?? const <YouTubeVideo>[];
                 if (queue.isEmpty) {
-                  return const Center(child: Text('No videos in this playlist.'));
+                  return const Center(
+                    child: Text('No videos in this playlist.'),
+                  );
                 }
 
                 return ListView.builder(
@@ -854,7 +862,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
 
                     return ListTile(
                       leading: Icon(
-                        isCurrent ? Icons.play_circle_filled : Icons.play_circle,
+                        isCurrent
+                            ? Icons.play_circle_filled
+                            : Icons.play_circle,
                         color: isCurrent
                             ? Theme.of(context).colorScheme.primary
                             : Colors.grey,
@@ -929,7 +939,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                     await hideVideo(ref, videoId);
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Video hidden from library.')),
+                      const SnackBar(
+                        content: Text('Video hidden from library.'),
+                      ),
                     );
                     context.go(Routes.videos);
                   } catch (e) {

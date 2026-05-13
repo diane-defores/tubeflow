@@ -5,8 +5,8 @@ artifact_version: "1.0.0"
 project: "tubeflow-flutter"
 created: "2026-05-10"
 created_at: "2026-05-10 21:05:58 UTC"
-updated: "2026-05-10"
-updated_at: "2026-05-10 21:39:16 UTC"
+updated: "2026-05-11"
+updated_at: "2026-05-11 14:20:00 UTC"
 status: active
 source_skill: sf-spec
 source_model: "GPT-5 Codex"
@@ -472,6 +472,9 @@ None.
 | 2026-05-10 21:39:16 UTC | sf-start | GPT-5.5 medium subagents + GPT-5 Codex | Implemented dependency patches, automation, toolchain pins, Python hash lock, changelogs, and docs through safe batches A-D. | Implemented with Docker proof gap. | /sf-verify TubeFlow dependency stabilization |
 | 2026-05-10 21:39:16 UTC | sf-verify | GPT-5 Codex | Ran site, worker, app, metadata, YAML, audit, and diff validations against the spec. | Partial: local checks pass; Docker image build unavailable. | /sf-ship TubeFlow dependency stabilization --bounded-scope |
 | 2026-05-10 21:39:16 UTC | sf-build | GPT-5 Codex | Orchestrated readiness, spec-gated parallel implementation, integration, changelogs, and final local verification. | Partial: ship blocked by Docker proof gap and unrelated dirty files. | Confirm bounded ship scope or run Docker build where available. |
+| 2026-05-11 13:57:33 UTC | sf-deps | GPT-5 Codex | Re-audited `tubeflow_app` Pub graph with Flutter 3.41.7 / Dart 3.11.5, OSV batch query, license pass, import usage checks, and `flutter analyze`. | B-: no advisories; medium follow-ups remain for Clerk beta patch, unused codegen deps, and Sentry/lints major lanes. | Decide whether to patch Clerk beta and remove unused codegen packages in a bounded app dependency pass. |
+| 2026-05-11 14:20:00 UTC | direct deps pass | GPT-5 Codex | Removed beta Clerk Flutter SDKs, disabled sign-in with no-op auth facade, removed unused codegen deps, upgraded direct non-beta deps, fixed new lints, and regenerated plugin registrants. | A-: direct deps current; no beta packages in lock/package config; `flutter analyze` and `flutter build web` pass. | Choose a stable auth provider before restoring protected app flows. |
+| 2026-05-13 08:47:57 UTC | sf-ship | GPT-5 Codex | Shipped stable Firebase Auth replacement for the beta-Clerk removal follow-up, Vercel Firebase envs, and Convex Firebase auth config. | Shipped with hosted auth/OAuth validation pending. | /sf-prod tubeflow_app |
 
 # Current Chantier Flow
 
@@ -481,7 +484,7 @@ None.
 | sf-ready | done | Spec marked ready after metadata, Open Questions, and Execution Batches were corrected. |
 | sf-start | done | Safe batches A-D implemented site, worker, app, automation, and docs changes. |
 | sf-verify | partial | Local validation passed; Docker image build could not run because Docker is unavailable. |
-| sf-end | blocked | Closure is blocked until the Docker proof gap and bounded ship scope are accepted. |
-| sf-ship | blocked | Ship scope must exclude unrelated dirty files: `shipflow_data/workflow/bugs/BUG-2026-05-10-001.md` and `tubeflow_app/lib/auth/auth_gate.dart`. |
+| sf-end | skipped | User requested direct `sf-ship end` after Firebase and Convex env configuration. |
+| sf-ship | shipped | Stable Firebase Auth replacement shipped with deployed auth/OAuth validation pending behind `/sf-prod`. |
 
-Next command: `/sf-ship TubeFlow dependency stabilization --bounded-scope`
+Next command: `/sf-prod tubeflow_app`

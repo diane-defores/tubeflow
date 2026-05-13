@@ -34,7 +34,11 @@ String t(String key, {AppLocale locale = AppLocale.en}) {
 
 /// Translation helper with parameter substitution.
 /// Example: t('hero.socialProof', params: {'count': '500'})
-String tr(String key, {AppLocale locale = AppLocale.en, Map<String, String>? params}) {
+String tr(
+  String key, {
+  AppLocale locale = AppLocale.en,
+  Map<String, String>? params,
+}) {
   var result = t(key, locale: locale);
   if (params != null) {
     params.forEach((k, v) {

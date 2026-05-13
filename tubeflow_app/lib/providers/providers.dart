@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tubeflow_app/auth/auth_state.dart';
-import 'package:tubeflow_app/auth/clerk_service.dart';
+import 'package:tubeflow_app/auth/auth_service.dart';
 import 'package:tubeflow_app/convex/convex_client.dart';
 import 'package:tubeflow_app/convex/convex_errors.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
@@ -207,8 +207,8 @@ Future<bool> _waitForConvexAuthReady(
     return false;
   }
 
-  final clerk = ref.read(clerkServiceProvider);
-  final ready = await clerk.waitForConvexTokenReady();
+  final auth = ref.read(authServiceProvider);
+  final ready = await auth.waitForConvexTokenReady();
   if (!ready) {
     AppLogger.instance.log(
       '[convex_auth_not_ready] $consumer is using local fallbacks until '

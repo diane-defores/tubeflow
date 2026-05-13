@@ -33,15 +33,16 @@ Future<String?> convexWebQuery({
   required Map<String, dynamic> args,
   String? authToken,
 }) async {
-  final result = (await _bridge
-          .query(
-            convexUrl.toJS,
-            (authToken ?? '').toJS,
-            path.toJS,
-            jsonEncode(args).toJS,
-          )
-          .toDart)
-      .toDart;
+  final result =
+      (await _bridge
+              .query(
+                convexUrl.toJS,
+                (authToken ?? '').toJS,
+                path.toJS,
+                jsonEncode(args).toJS,
+              )
+              .toDart)
+          .toDart;
   return result.isEmpty ? null : result;
 }
 
@@ -51,15 +52,16 @@ Future<String?> convexWebMutation({
   required Map<String, dynamic> args,
   String? authToken,
 }) async {
-  final result = (await _bridge
-          .mutate(
-            convexUrl.toJS,
-            (authToken ?? '').toJS,
-            path.toJS,
-            jsonEncode(args).toJS,
-          )
-          .toDart)
-      .toDart;
+  final result =
+      (await _bridge
+              .mutate(
+                convexUrl.toJS,
+                (authToken ?? '').toJS,
+                path.toJS,
+                jsonEncode(args).toJS,
+              )
+              .toDart)
+          .toDart;
   return result.isEmpty ? null : result;
 }
 
@@ -69,14 +71,15 @@ Future<String?> convexWebAction({
   required Map<String, dynamic> args,
   String? authToken,
 }) async {
-  final result = (await _bridge
-          .action(
-            convexUrl.toJS,
-            (authToken ?? '').toJS,
-            path.toJS,
-            jsonEncode(args).toJS,
-          )
-          .toDart)
-      .toDart;
+  final result =
+      (await _bridge
+              .action(
+                convexUrl.toJS,
+                (authToken ?? '').toJS,
+                path.toJS,
+                jsonEncode(args).toJS,
+              )
+              .toDart)
+          .toDart;
   return result.isEmpty ? null : result;
 }

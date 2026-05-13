@@ -50,8 +50,10 @@ typedef ConvexQueryArgs = ({String path, Map<String, dynamic> args});
 ///
 /// Each unique combination of `(path, args)` gets its own cached provider
 /// instance, so identical queries share the same result.
-final convexQueryProvider =
-    FutureProvider.family<dynamic, ConvexQueryArgs>((ref, queryArgs) async {
+final convexQueryProvider = FutureProvider.family<dynamic, ConvexQueryArgs>((
+  ref,
+  queryArgs,
+) async {
   final service = ref.watch(convexServiceProvider);
   return service.query<dynamic>(queryArgs.path, queryArgs.args);
 });
@@ -77,6 +79,6 @@ final convexQueryProvider =
 /// ```
 final convexSubscriptionProvider =
     StreamProvider.family<dynamic, ConvexQueryArgs>((ref, queryArgs) {
-  final service = ref.watch(convexServiceProvider);
-  return service.subscribe<dynamic>(queryArgs.path, queryArgs.args);
-});
+      final service = ref.watch(convexServiceProvider);
+      return service.subscribe<dynamic>(queryArgs.path, queryArgs.args);
+    });

@@ -6,7 +6,7 @@ class TubeFlowUser {
   /// Convex document ID (`_id`).
   final String id;
 
-  /// Clerk authentication user ID.
+  /// Auth provider user ID. The field name is kept for backend schema compatibility.
   final String clerkId;
 
   /// User's email address.

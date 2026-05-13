@@ -34,11 +34,7 @@ class WatchedVideo {
     };
   }
 
-  WatchedVideo copyWith({
-    String? id,
-    String? youtubeVideoId,
-    int? watchedAt,
-  }) {
+  WatchedVideo copyWith({String? id, String? youtubeVideoId, int? watchedAt}) {
     return WatchedVideo(
       id: id ?? this.id,
       youtubeVideoId: youtubeVideoId ?? this.youtubeVideoId,
@@ -57,6 +53,5 @@ class WatchedVideo {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() =>
-      'WatchedVideo(id: $id, youtubeVideoId: $youtubeVideoId)';
+  String toString() => 'WatchedVideo(id: $id, youtubeVideoId: $youtubeVideoId)';
 }

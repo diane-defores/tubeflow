@@ -68,7 +68,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             child: videosAsync.when(
               data: (videos) => _buildStatsBar(context, videos),
               loading: () => _buildStatsBar(context, []),
-              error: (_, __) => _buildStatsBar(context, []),
+              error: (error, stackTrace) => _buildStatsBar(context, []),
             ),
           ),
           // Video list (reorderable when in edit mode)
@@ -90,7 +90,8 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 child: ErrorStateView(
                   error: error,
                   prefix: 'Failed to load videos',
-                  onRetry: () => ref.invalidate(playlistVideosProvider(widget.id)),
+                  onRetry: () =>
+                      ref.invalidate(playlistVideosProvider(widget.id)),
                 ),
               ),
             ),
@@ -108,9 +109,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
         children: List.generate(
           5,
           (index) => ListTile(
-            leading: Container(
-              width: 100, height: 56, color: Colors.white,
-            ),
+            leading: Container(width: 100, height: 56, color: Colors.white),
             title: Container(height: 14, width: 160, color: Colors.white),
             subtitle: Container(height: 10, width: 100, color: Colors.white),
           ),
@@ -119,8 +118,12 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, String title, Color color,
-      YouTubePlaylist? playlist) {
+  Widget _buildSliverAppBar(
+    BuildContext context,
+    String title,
+    Color color,
+    YouTubePlaylist? playlist,
+  ) {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
@@ -142,7 +145,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                     return;
                   }
                   await _persistVideoOrder(context);
-          },
+                },
         ),
         PopupMenuButton<String>(
           onSelected: (value) async {
@@ -180,19 +183,17 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(value: 'edit', child: Text('Edit Playlist')),
             const PopupMenuItem(
-                value: 'edit', child: Text('Edit Playlist')),
-            const PopupMenuItem(
-                value: 'refresh', child: Text('Refresh from YouTube')),
+              value: 'refresh',
+              child: Text('Refresh from YouTube'),
+            ),
             const PopupMenuItem(value: 'share', child: Text('Share')),
           ],
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 16),
-        ),
+        title: Text(title, style: const TextStyle(fontSize: 16)),
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -211,8 +212,11 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                   color: Colors.black.withValues(alpha: 0.3),
                   colorBlendMode: BlendMode.darken,
                   errorWidget: (context, url, error) => const Center(
-                    child: Icon(Icons.playlist_play,
-                        size: 64, color: Colors.white70),
+                    child: Icon(
+                      Icons.playlist_play,
+                      size: 64,
+                      color: Colors.white70,
+                    ),
                   ),
                 )
               : const Center(
@@ -237,11 +241,17 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          _buildStatChip(context, Icons.video_library,
-              '${videos.length} video${videos.length == 1 ? '' : 's'}'),
+          _buildStatChip(
+            context,
+            Icons.video_library,
+            '${videos.length} video${videos.length == 1 ? '' : 's'}',
+          ),
           const SizedBox(width: 16),
           _buildStatChip(
-              context, Icons.schedule, '${formatDuration(totalSeconds)} total'),
+            context,
+            Icons.schedule,
+            '${formatDuration(totalSeconds)} total',
+          ),
           const Spacer(),
           FilledButton.tonal(
             onPressed: videos.isNotEmpty
@@ -278,106 +288,114 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(32),
-            child: Text('No videos in this playlist',
-                style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'No videos in this playlist',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
         ),
       );
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final video = videos[index];
-          final durationSec = parseDuration(video.duration);
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final video = videos[index];
+        final durationSec = parseDuration(video.duration);
 
-          return ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: video.thumbnailUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: video.thumbnailUrl!,
+        return ListTile(
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: video.thumbnailUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: video.thumbnailUrl!,
+                    width: 100,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
                       width: 100,
                       height: 56,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        width: 100, height: 56, color: Colors.grey[300],
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        width: 100, height: 56, color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.play_circle_outline, size: 28),
-                        ),
-                      ),
-                    )
-                  : Container(
+                      color: Colors.grey[300],
+                    ),
+                    errorWidget: (context, url, error) => Container(
                       width: 100,
                       height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+                      color: Colors.grey[300],
                       child: const Center(
                         child: Icon(Icons.play_circle_outline, size: 28),
                       ),
                     ),
-            ),
-            title: Text(
-              video.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              '${video.channelTitle}'
-              '${durationSec != null ? ' - ${formatDuration(durationSec)}' : ''}',
-            ),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) async {
-                switch (value) {
+                  )
+                : Container(
+                    width: 100,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.play_circle_outline, size: 28),
+                    ),
+                  ),
+          ),
+          title: Text(
+            video.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${video.channelTitle}'
+            '${durationSec != null ? ' - ${formatDuration(durationSec)}' : ''}',
+          ),
+          trailing: PopupMenuButton<String>(
+            onSelected: (value) async {
+              switch (value) {
                 case 'remove':
-                    try {
-                      await removeVideoFromPlaylist(ref,
-                          playlistId: widget.id, videoId: video.id);
-                      if (context.mounted) {
-                        ref.invalidate(playlistVideosProvider(widget.id));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Video removed from playlist.')),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        showErrorSnackBar(context, error: e, prefix: 'Error');
-                      }
+                  try {
+                    await removeVideoFromPlaylist(
+                      ref,
+                      playlistId: widget.id,
+                      videoId: video.id,
+                    );
+                    if (context.mounted) {
+                      ref.invalidate(playlistVideosProvider(widget.id));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Video removed from playlist.'),
+                        ),
+                      );
                     }
-                    break;
+                  } catch (e) {
+                    if (context.mounted) {
+                      showErrorSnackBar(context, error: e, prefix: 'Error');
+                    }
+                  }
+                  break;
                 case 'hide':
-                    try {
-                      await hideVideo(ref, video.youtubeVideoId);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Video hidden from library.')),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        showErrorSnackBar(context, error: e, prefix: 'Error');
-                      }
+                  try {
+                    await hideVideo(ref, video.youtubeVideoId);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Video hidden from library.'),
+                        ),
+                      );
                     }
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'remove', child: Text('Remove')),
-                const PopupMenuItem(value: 'hide', child: Text('Hide')),
-              ],
-            ),
-            onTap: () => _openVideo(context, video.youtubeVideoId),
-          );
-        },
-        childCount: videos.length,
-      ),
+                  } catch (e) {
+                    if (context.mounted) {
+                      showErrorSnackBar(context, error: e, prefix: 'Error');
+                    }
+                  }
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'remove', child: Text('Remove')),
+              const PopupMenuItem(value: 'hide', child: Text('Hide')),
+            ],
+          ),
+          onTap: () => _openVideo(context, video.youtubeVideoId),
+        );
+      }, childCount: videos.length),
     );
   }
 
@@ -387,7 +405,9 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       return;
     }
 
-    final orderedIds = _reorderList.map((video) => video.id).toList(growable: false);
+    final orderedIds = _reorderList
+        .map((video) => video.id)
+        .toList(growable: false);
     setState(() {
       _isSavingOrder = true;
     });
@@ -399,9 +419,9 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
         orderedIds: orderedIds,
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Playlist order saved.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Playlist order saved.')));
       }
       setState(() {
         _isReorderMode = false;
@@ -447,9 +467,9 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       ClipboardData(text: Routes.playlistDetail(widget.id)),
     );
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Playlist link copied.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Playlist link copied.')));
   }
 
   Widget _buildReorderableList() {
@@ -471,12 +491,17 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
           return ListTile(
             key: ValueKey(video.id),
             leading: const Icon(Icons.drag_handle),
-            title: Text(video.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(durationSec != null ? formatDuration(durationSec) : ''),
+            title: Text(
+              video.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              durationSec != null ? formatDuration(durationSec) : '',
+            ),
           );
         },
       ),
     );
   }
-
 }

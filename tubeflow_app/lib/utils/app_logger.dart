@@ -37,7 +37,7 @@ class LogEntry {
 
 /// In-memory ring buffer of recent log entries.
 ///
-/// Lets the Preferences screen display what happened during startup (Clerk
+/// Lets the Preferences screen display what happened during startup (auth
 /// init, Convex connection, uncaught errors) on devices without DevTools.
 class AppLogger extends ChangeNotifier {
   AppLogger._();

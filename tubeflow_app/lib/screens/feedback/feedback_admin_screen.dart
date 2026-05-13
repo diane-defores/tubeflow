@@ -22,7 +22,9 @@ enum _FeedbackAdminFilter {
       case _FeedbackAdminFilter.all:
         return const FeedbackAdminListArgs();
       case _FeedbackAdminFilter.unread:
-        return const FeedbackAdminListArgs(status: FeedbackEntryStatus.newEntry);
+        return const FeedbackAdminListArgs(
+          status: FeedbackEntryStatus.newEntry,
+        );
       case _FeedbackAdminFilter.text:
         return const FeedbackAdminListArgs(type: FeedbackEntryType.text);
       case _FeedbackAdminFilter.audio:
@@ -48,7 +50,8 @@ class FeedbackAdminScreen extends ConsumerStatefulWidget {
   const FeedbackAdminScreen({super.key});
 
   @override
-  ConsumerState<FeedbackAdminScreen> createState() => _FeedbackAdminScreenState();
+  ConsumerState<FeedbackAdminScreen> createState() =>
+      _FeedbackAdminScreenState();
 }
 
 class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
@@ -140,7 +143,9 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
         data: (isAdmin) {
           if (!isAdmin) {
             return const Center(
-              child: Text('Access denied. This screen is restricted to admins.'),
+              child: Text(
+                'Access denied. This screen is restricted to admins.',
+              ),
             );
           }
 
@@ -185,7 +190,8 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
                             _activeAudioId == entry.id && _player.playing;
                         final isLoadingAudio = _loadingAudioId == entry.id;
                         final isReviewing = _reviewingIds.contains(entry.id);
-                        final subtitle = entry.message?.trim().isNotEmpty == true
+                        final subtitle =
+                            entry.message?.trim().isNotEmpty == true
                             ? entry.message!.trim()
                             : entry.type == FeedbackEntryType.audio
                             ? 'Audio feedback'
@@ -263,9 +269,9 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
                                               ),
                                               child: Text(
                                                 'Reviewed by ${entry.reviewedByEmail} on ${formatDateTime(entry.reviewedAt, locale: locale)}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
                                               ),
                                             ),
                                         ],
@@ -273,8 +279,9 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
                                     ),
                                     if (entry.hasAudio)
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 12),
+                                        padding: const EdgeInsets.only(
+                                          left: 12,
+                                        ),
                                         child: IconButton.filledTonal(
                                           onPressed: isLoadingAudio
                                               ? null
@@ -285,8 +292,8 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
                                                   height: 18,
                                                   child:
                                                       CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
+                                                        strokeWidth: 2,
+                                                      ),
                                                 )
                                               : Icon(
                                                   isPlaying
@@ -329,9 +336,8 @@ class _FeedbackAdminScreenState extends ConsumerState<FeedbackAdminScreen> {
                       },
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => ErrorStateView(
                     error: error,
                     prefix: 'Failed to load feedback admin entries',

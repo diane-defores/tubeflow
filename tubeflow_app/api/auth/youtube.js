@@ -5,12 +5,15 @@ const {
   getEnv,
   getRequestOrigin,
   isSecureOrigin,
-  parseCookies,
   serializeCookie,
   sanitizeReturnTo,
-  buildReturnUrl,
-  sendRedirect,
 } = require('./_youtube');
+
+function sendJsonError(res, statusCode, message) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.end(JSON.stringify({ error: message }));
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -24,32 +27,26 @@ module.exports = async function handler(req, res) {
   const secure = isSecureOrigin(origin);
   const requestUrl = new URL(req.url, origin);
   const returnTo = sanitizeReturnTo(requestUrl.searchParams.get('return_to'));
-  const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.tubeflow_youtube_clerk_session_id;
+  const authHeader = req.headers.authorization || '';
+  const firebaseIdToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : '';
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
     'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
   );
 
   if (!googleClientId) {
-    sendRedirect(
+    sendJsonError(
       res,
-      buildReturnUrl(origin, returnTo, {
-        youtube_error: 'Google OAuth is not configured on this deployment.',
-      }),
+      500,
+      'Google OAuth is not configured on this deployment.',
     );
     return;
   }
 
-  if (!sessionId) {
-    console.warn('[YouTube OAuth] Missing Clerk session handoff cookie');
-    sendRedirect(
-      res,
-      buildReturnUrl(origin, returnTo, {
-        youtube_error:
-          'TubeFlow could not find the YouTube auth session cookie. Start YouTube connect again from the app.',
-      }),
-    );
+  if (!firebaseIdToken) {
+    sendJsonError(res, 401, 'Missing Firebase auth token.');
     return;
   }
 
@@ -66,7 +63,9 @@ module.exports = async function handler(req, res) {
   authUrl.searchParams.set('include_granted_scopes', 'true');
   authUrl.searchParams.set('state', state);
 
-  sendRedirect(res, authUrl.toString(), [
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Set-Cookie', [
     serializeCookie('youtube_oauth_state', state, {
       path: '/',
       httpOnly: true,
@@ -81,5 +80,13 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 600,
     }),
+    serializeCookie('tubeflow_youtube_firebase_id_token', firebaseIdToken, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure,
+      maxAge: 3000,
+    }),
   ]);
+  res.end(JSON.stringify({ authUrl: authUrl.toString() }));
 };

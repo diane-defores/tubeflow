@@ -77,8 +77,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           !goingToSignIn && !goingToSsoCallback && !goingToPublicFeedback;
 
       if (isLoading) {
-        // On web the app can cold-start on a protected route before Clerk has
-        // restored its session. Keep that bootstrap on /sign-in so users do
+        // On web the app can cold-start on a protected route before Firebase
+        // has restored its session. Keep that bootstrap on /sign-in so users do
         // not interact with a "dead" dashboard while auth is still unknown.
         if (goingToProtectedRoute) {
           return Uri(
@@ -104,11 +104,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Sign-in (no shell)
       GoRoute(
         path: Routes.signIn,
-        builder: (context, state) => const ClerkSignInPage(),
+        builder: (context, state) => const AuthSignInPage(),
       ),
       GoRoute(
         path: Routes.ssoCallback,
-        builder: (context, state) => const ClerkSsoCallbackPage(),
+        builder: (context, state) => const AuthSsoCallbackPage(),
       ),
       GoRoute(
         path: Routes.feedback,

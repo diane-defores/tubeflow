@@ -32,11 +32,7 @@ class LikeStatus {
   /// Total number of dislikes on the video.
   final int dislikeCount;
 
-  const LikeStatus({
-    this.userLike,
-    this.likeCount = 0,
-    this.dislikeCount = 0,
-  });
+  const LikeStatus({this.userLike, this.likeCount = 0, this.dislikeCount = 0});
 
   /// Whether the current user has liked this video.
   bool get isLiked => userLike == LikeType.like;

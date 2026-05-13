@@ -242,12 +242,13 @@ class PlaybackSettings {
       defaultSpeed: (json['defaultSpeed'] as num?)?.toDouble(),
       mobileControlsPosition: json['mobileControlsPosition'] != null
           ? MobileControlsPosition.fromJson(
-              json['mobileControlsPosition'] as String?)
+              json['mobileControlsPosition'] as String?,
+            )
           : null,
       captionsEnabled: json['captionsEnabled'] as bool?,
       captionsLanguage: json['captionsLanguage'] as String?,
-      autoMarkWatchedThreshold:
-          (json['autoMarkWatchedThreshold'] as num?)?.toDouble(),
+      autoMarkWatchedThreshold: (json['autoMarkWatchedThreshold'] as num?)
+          ?.toDouble(),
     );
   }
 
@@ -293,10 +294,7 @@ class NoteSettings {
   final bool defaultTimestamped;
   final NoteSortOrder? sortOrder;
 
-  const NoteSettings({
-    this.defaultTimestamped = true,
-    this.sortOrder,
-  });
+  const NoteSettings({this.defaultTimestamped = true, this.sortOrder});
 
   factory NoteSettings.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const NoteSettings();
@@ -315,10 +313,7 @@ class NoteSettings {
     };
   }
 
-  NoteSettings copyWith({
-    bool? defaultTimestamped,
-    NoteSortOrder? sortOrder,
-  }) {
+  NoteSettings copyWith({bool? defaultTimestamped, NoteSortOrder? sortOrder}) {
     return NoteSettings(
       defaultTimestamped: defaultTimestamped ?? this.defaultTimestamped,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -396,8 +391,7 @@ class TranscriptSettings {
           ? TranscriptProvider.fromJson(json['defaultProvider'] as String?)
           : null,
       defaultLanguage: json['defaultLanguage'] as String?,
-      autoAttemptYoutubeCaptions:
-          json['autoAttemptYoutubeCaptions'] as bool?,
+      autoAttemptYoutubeCaptions: json['autoAttemptYoutubeCaptions'] as bool?,
       autoAttemptLocalFallback: json['autoAttemptLocalFallback'] as bool?,
       sortBy: json['sortBy'] != null
           ? TranscriptSortBy.fromJson(json['sortBy'] as String?)
@@ -407,8 +401,7 @@ class TranscriptSettings {
 
   Map<String, dynamic> toJson() {
     return {
-      if (defaultProvider != null)
-        'defaultProvider': defaultProvider!.toJson(),
+      if (defaultProvider != null) 'defaultProvider': defaultProvider!.toJson(),
       if (defaultLanguage != null) 'defaultLanguage': defaultLanguage,
       if (autoAttemptYoutubeCaptions != null)
         'autoAttemptYoutubeCaptions': autoAttemptYoutubeCaptions,
@@ -450,7 +443,7 @@ class UserSettings {
   /// Convex document ID (`_id`).
   final String id;
 
-  /// Clerk user ID.
+  /// Auth provider user ID.
   final String userId;
 
   /// App theme preference.
@@ -497,15 +490,18 @@ class UserSettings {
       theme: AppThemeMode.fromJson(json['theme'] as String?),
       language: json['language'] as String?,
       notifications: NotificationSettings.fromJson(
-          json['notifications'] as Map<String, dynamic>?),
+        json['notifications'] as Map<String, dynamic>?,
+      ),
       playback: PlaybackSettings.fromJson(
-          json['playback'] as Map<String, dynamic>?),
-      notes:
-          NoteSettings.fromJson(json['notes'] as Map<String, dynamic>?),
+        json['playback'] as Map<String, dynamic>?,
+      ),
+      notes: NoteSettings.fromJson(json['notes'] as Map<String, dynamic>?),
       channelSync: ChannelSyncSettings.fromJson(
-          json['channelSync'] as Map<String, dynamic>?),
+        json['channelSync'] as Map<String, dynamic>?,
+      ),
       transcripts: TranscriptSettings.fromJson(
-          json['transcripts'] as Map<String, dynamic>?),
+        json['transcripts'] as Map<String, dynamic>?,
+      ),
       updatedAt: json['updatedAt'] as int?,
     );
   }

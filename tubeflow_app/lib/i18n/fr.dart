@@ -50,9 +50,11 @@ const Map<String, dynamic> fr = {
     'refreshAll': 'Tout actualiser',
     'playAll': 'Tout lire',
     'noVideos': 'Aucune vidéo',
-    'noVideosDesc': 'Connectez votre compte YouTube pour importer vos playlists.',
+    'noVideosDesc':
+        'Connectez votre compte YouTube pour importer vos playlists.',
     'allCaughtUp': 'Tout est vu !',
-    'allCaughtUpDesc': 'Vous avez regardé toutes vos vidéos. Affichez les vues pour les revoir.',
+    'allCaughtUpDesc':
+        'Vous avez regardé toutes vos vidéos. Affichez les vues pour les revoir.',
     'linkCopied': 'Lien copié !',
     'swipeHint': 'Glissez vers la gauche pour voir les actions',
     'swipeActions': 'Glissez pour agir',
@@ -75,7 +77,8 @@ const Map<String, dynamic> fr = {
     'title': 'Playlists',
     'createPlaylist': 'Créer une playlist',
     'noPlaylists': 'Aucune playlist',
-    'noPlaylistsDesc': 'Créez votre première playlist pour organiser vos vidéos.',
+    'noPlaylistsDesc':
+        'Créez votre première playlist pour organiser vos vidéos.',
     'refreshPlaylists': 'Actualiser les playlists',
     'videosCount': 'vidéos',
     'confirmDelete': 'Supprimer cette playlist ?',

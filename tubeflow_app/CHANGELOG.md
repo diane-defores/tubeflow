@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-05-11]
+
+### Changed
+- Removed beta Clerk Flutter SDK dependencies and disabled Flutter sign-in until a stable auth provider is integrated.
+- Replaced the disabled beta-Clerk auth path with stable Firebase Auth Google sign-in and Firebase ID tokens for Convex auth.
+- Updated the YouTube OAuth handoff to use Firebase ID tokens instead of Clerk session/JWT minting.
+- Switched build and example environment variables from Clerk to Firebase web app configuration.
+- Upgraded app dependencies to the latest resolvable non-beta direct versions, including `go_router`, `sentry_flutter`, and `flutter_lints`.
+- Removed unused Riverpod codegen dependencies (`riverpod_annotation`, `build_runner`, `riverpod_generator`) and updated analyzer/lint fixes for the new lint set.
+
 ## [2026-05-10]
 
 ### Changed

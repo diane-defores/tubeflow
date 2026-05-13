@@ -40,7 +40,9 @@ String formatTimeAgo(String? dateString, {String locale = 'en'}) {
 String formatDate(int? timestampMs, {String locale = 'en'}) {
   if (timestampMs == null) return '';
   final date = DateTime.fromMillisecondsSinceEpoch(timestampMs);
-  final fmt = locale == 'fr' ? DateFormat('d MMM yyyy', 'fr') : DateFormat('MMM d, yyyy');
+  final fmt = locale == 'fr'
+      ? DateFormat('d MMM yyyy', 'fr')
+      : DateFormat('MMM d, yyyy');
   return fmt.format(date);
 }
 

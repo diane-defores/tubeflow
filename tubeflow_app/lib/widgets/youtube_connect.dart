@@ -1,13 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:tubeflow_app/app/router.dart';
-import 'package:tubeflow_app/auth/clerk_service.dart';
-import 'package:tubeflow_app/auth/clerk_web_bridge.dart';
+import 'package:tubeflow_app/auth/auth_service.dart';
 import 'package:tubeflow_app/providers/mutations.dart';
 import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
@@ -205,40 +207,23 @@ Future<void> _launchYoutubeConnect(
 
   try {
     final container = _providerContainer(context);
-    if (kIsWeb) {
-      var prepared = await clerkWebPrepareSessionCookie();
-      if (!prepared) {
-        final sessionId = container
-            .read(clerkServiceProvider)
-            .authState
-            ?.session
-            ?.id;
-        if (sessionId != null && sessionId.isNotEmpty) {
-          prepared = await clerkWebPrepareSessionCookieForSessionId(sessionId);
-          if (prepared) {
-            AppLogger.instance.log(
-              'Prepared YouTube OAuth session cookie from ClerkAuthState session fallback',
-              source: 'YoutubeConnect',
-            );
-          }
-        }
-      }
-      if (!prepared) {
-        if (!context.mounted) return;
-        final routeAfterSignIn = _currentRouterRoute(preferredRoute: returnTo);
-        AppLogger.instance.log(
-          'Cannot start YouTube OAuth because Clerk JS has no active session; routing to sign-in',
-          source: 'YoutubeConnect',
-          level: LogLevel.warning,
-        );
-        context.go(
-          Uri(
-            path: Routes.signIn,
-            queryParameters: {'tf_redirect': routeAfterSignIn},
-          ).toString(),
-        );
-        return;
-      }
+    final auth = container.read(authServiceProvider);
+    final firebaseIdToken = await auth.getConvexToken(forceRefresh: true);
+    if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+      if (!context.mounted) return;
+      final routeAfterSignIn = _currentRouterRoute(preferredRoute: returnTo);
+      AppLogger.instance.log(
+        'Cannot start YouTube OAuth because Firebase Auth has no active token; routing to sign-in',
+        source: 'YoutubeConnect',
+        level: LogLevel.warning,
+      );
+      context.go(
+        Uri(
+          path: Routes.signIn,
+          queryParameters: {'tf_redirect': routeAfterSignIn},
+        ).toString(),
+      );
+      return;
     }
 
     final target = Uri.parse(origin)
@@ -249,12 +234,31 @@ Future<void> _launchYoutubeConnect(
           },
         );
 
+    final response = await http.get(
+      target,
+      headers: {'Authorization': 'Bearer $firebaseIdToken'},
+    );
+    if (response.statusCode != 200) {
+      throw StateError(
+        'YouTube OAuth start failed (${response.statusCode}): ${response.body}',
+      );
+    }
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final authUrl = body['authUrl'] as String?;
+    if (authUrl == null || authUrl.isEmpty) {
+      throw StateError('YouTube OAuth start returned no authUrl.');
+    }
+
     AppLogger.instance.log(
-      'Redirecting to YouTube OAuth: $target',
+      'Redirecting to YouTube OAuth',
       source: 'YoutubeConnect',
     );
 
-    final launched = await launchUrl(target, webOnlyWindowName: '_self');
+    final launched = await launchUrl(
+      Uri.parse(authUrl),
+      webOnlyWindowName: '_self',
+    );
     if (!launched && context.mounted) {
       showErrorSnackBar(
         context,
@@ -712,7 +716,7 @@ class _YoutubeOAuthFeedbackBannerState
 // Persistent banner (used in AppShell)
 // ---------------------------------------------------------------------------
 
-/// Slim banner shown above navigation when the user is signed into Clerk but
+/// Slim banner shown above navigation when the user is signed in but
 /// has not yet connected YouTube. Hides itself when already connected or when
 /// the connection status is still loading.
 class YoutubeConnectBanner extends ConsumerWidget {

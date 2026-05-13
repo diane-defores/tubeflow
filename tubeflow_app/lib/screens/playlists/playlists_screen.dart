@@ -27,8 +27,9 @@ class PlaylistsScreen extends ConsumerWidget {
     final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
     final youtubeConnected =
         youtubeConnectionAsync.asData?.value?['connected'] == true;
-    final playlistsAsync =
-        youtubeConnected ? ref.watch(playlistsProvider) : null;
+    final playlistsAsync = youtubeConnected
+        ? ref.watch(playlistsProvider)
+        : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -60,11 +61,7 @@ class PlaylistsScreen extends ConsumerWidget {
                 }
               } catch (e) {
                 if (context.mounted) {
-                  showErrorSnackBar(
-                    context,
-                    error: e,
-                    prefix: 'Sync failed',
-                  );
+                  showErrorSnackBar(context, error: e, prefix: 'Sync failed');
                 }
               }
             },
@@ -170,7 +167,10 @@ class PlaylistsScreen extends ConsumerWidget {
   }
 
   Widget _buildPlaylistCard(
-      BuildContext context, WidgetRef ref, YouTubePlaylist playlist) {
+    BuildContext context,
+    WidgetRef ref,
+    YouTubePlaylist playlist,
+  ) {
     final color = playlist.color != null
         ? _parseColor(playlist.color!)
         : Colors.purple;
@@ -209,10 +209,7 @@ class PlaylistsScreen extends ConsumerWidget {
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    child: Container(
-                      width: 4,
-                      color: color,
-                    ),
+                    child: Container(width: 4, color: color),
                   ),
                 ],
               ),
@@ -227,8 +224,8 @@ class PlaylistsScreen extends ConsumerWidget {
                     Text(
                       playlist.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -242,9 +239,9 @@ class PlaylistsScreen extends ConsumerWidget {
                       playlist.cachedAt > 0
                           ? 'Updated ${formatDate(playlist.cachedAt)}'
                           : '',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.grey,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: Colors.grey),
                     ),
                   ],
                 ),
