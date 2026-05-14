@@ -1,4 +1,4 @@
-# TubeFlow App
+# ReplayGlowz App
 
 Flutter app for watching YouTube videos, taking timestamped notes, and tracking viewing history. Built for web deployment on Vercel, backed by Convex and authenticated via Firebase Auth.
 
@@ -14,10 +14,10 @@ flutter run -d chrome \
   --dart-define=FIREBASE_PROJECT_ID=... \
   --dart-define=FIREBASE_MESSAGING_SENDER_ID=... \
   --dart-define=FIREBASE_APP_ID=... \
-  --dart-define=TUBEFLOW_APP_URL=https://app.tubeflow.winflowz.com
+  --dart-define=REPLAYGLOWZ_APP_URL=https://app.example.com
 
 # Production build
-CONVEX_URL=... FIREBASE_API_KEY=... FIREBASE_PROJECT_ID=... FIREBASE_MESSAGING_SENDER_ID=... FIREBASE_APP_ID=... TUBEFLOW_APP_URL=https://app.tubeflow.winflowz.com bash build.sh
+CONVEX_URL=... FIREBASE_API_KEY=... FIREBASE_PROJECT_ID=... FIREBASE_MESSAGING_SENDER_ID=... FIREBASE_APP_ID=... REPLAYGLOWZ_APP_URL=https://app.example.com bash build.sh
 ```
 
 The `build.sh` script wraps `flutter build web` and passes the required `--dart-define` values. Vercel runs it via `vercel.json`.
@@ -35,18 +35,18 @@ The Flutter values are required at **build time** (`--dart-define`), not runtime
 | `FIREBASE_STORAGE_BUCKET` | Optional Firebase storage bucket. |
 | `FIREBASE_MESSAGING_SENDER_ID` | Firebase web messaging sender ID. |
 | `FIREBASE_APP_ID` | Firebase web app ID. |
-| `TUBEFLOW_APP_URL` | Web app origin used for the YouTube OAuth callback URLs (current deployment: `https://app.tubeflow.winflowz.com`). |
+| `REPLAYGLOWZ_APP_URL` | Web app origin used for the YouTube OAuth callback URLs. |
 | `BUILD_COMMIT_SHA` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_GIT_COMMIT_SHA` or the local Git short SHA in `build.sh`. |
 | `BUILD_ENVIRONMENT` | Optional build metadata shown in diagnostics. Defaults to `VERCEL_ENV` or `local` in `build.sh`. |
 | `BUILD_TIMESTAMP` | Optional build metadata shown in diagnostics. Defaults to the current UTC timestamp in `build.sh`. |
 | `SENTRY_DSN` | Optional Sentry DSN for Flutter error capture. When missing, Sentry stays disabled. |
 | `SENTRY_ENVIRONMENT` | Optional Sentry environment. Defaults to `BUILD_ENVIRONMENT` in `build.sh`. |
-| `SENTRY_RELEASE` | Optional Sentry release. Defaults to `tubeflow_app@BUILD_COMMIT_SHA` in `build.sh`. |
+| `SENTRY_RELEASE` | Optional Sentry release. Defaults to `replayglowz_app@BUILD_COMMIT_SHA` in `build.sh`. |
 | `SENTRY_TRACES_SAMPLE_RATE` | Optional Sentry performance tracing sample rate. Defaults to `0` (off). |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID used for the YouTube consent screen. |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret used to exchange the YouTube authorization code for tokens. |
 
-See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` and the older `TUBEFLOW_WEB_URL` as compatibility fallbacks. The OAuth handlers also accept `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` as compatibility fallbacks.
+See `.env.example`. Use the exact variable names above; alternative environment variable names are not supported.
 
 Convex deployment variables used by backend features:
 

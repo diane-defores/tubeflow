@@ -124,18 +124,18 @@ Future<void> _configureSentryScope() async {
     await scope.setTag('build_commit', buildCommitSha);
     await scope.setTag('build_environment', buildEnvironment);
     await scope.setTag('build_mode', buildModeLabel());
-    await scope.setContexts('tubeflow_build', {
+    await scope.setContexts('replayglowz_build', {
       'commit': buildCommitSha,
       'environment': buildEnvironment,
       'timestamp': buildTimestamp,
       'mode': buildModeLabel(),
-      'app_url_host': hostForUrl(tubeFlowAppUrl),
+      'app_url_host': hostForUrl(replayGlowzAppUrl),
       'firebase_project_id': firebaseProjectId,
       'sentry_traces_sample_rate': sentryTracesSampleRate,
     });
     if (kIsWeb) {
       await scope.setTag('current_host', Uri.base.host);
-      await scope.setContexts('tubeflow_web', {
+      await scope.setContexts('replayglowz_web', {
         'origin': Uri.base.origin,
         'path': Uri.base.path,
         'fragment_path': Uri.base.fragment,
@@ -272,7 +272,7 @@ class _ConfigFallbackScreen extends StatelessWidget {
 
   Future<void> _copyDiagnostics(BuildContext context) async {
     final lines = <String>[
-      'TubeFlow bootstrap diagnostics',
+      'ReplayGlowz bootstrap diagnostics',
       'Build commit: $buildCommitSha',
       'Build environment: $buildEnvironment',
       'Build timestamp: $buildTimestamp',
@@ -282,8 +282,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
       'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}',
       'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}',
-      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
-      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'REPLAYGLOWZ_APP_URL: ${replayGlowzAppUrl.isNotEmpty ? replayGlowzAppUrl : '(missing)'}',
+      'REPLAYGLOWZ_APP_URL host match: ${hostMatchLabel(replayGlowzAppUrl)}',
       'SENTRY: ${sentryStatusLabel()}',
       'Bootstrap error: ${bootstrapError ?? 'none'}',
       '',
@@ -323,7 +323,7 @@ class _ConfigFallbackScreen extends StatelessWidget {
                         Icon(Icons.settings_rounded, size: 28),
                         SizedBox(width: 12),
                         Text(
-                          'TubeFlow configuration required',
+                          'ReplayGlowz configuration required',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -361,8 +361,8 @@ class _ConfigFallbackScreen extends StatelessWidget {
                       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}\n'
                       'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}\n'
                       'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}\n'
-                      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}\n'
-                      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}\n'
+                      'REPLAYGLOWZ_APP_URL: ${replayGlowzAppUrl.isNotEmpty ? replayGlowzAppUrl : '(missing)'}\n'
+                      'REPLAYGLOWZ_APP_URL host match: ${hostMatchLabel(replayGlowzAppUrl)}\n'
                       'SENTRY: ${sentryStatusLabel()}',
                     ),
                     const SizedBox(height: 12),

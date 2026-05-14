@@ -668,7 +668,7 @@ class _DiagnosticsCard extends ConsumerWidget {
     }
 
     return [
-      'TubeFlow preferences diagnostics',
+      'ReplayGlowz preferences diagnostics',
       'Build commit: $buildCommitSha',
       'Build environment: $buildEnvironment',
       'Build timestamp: $buildTimestamp',
@@ -678,8 +678,8 @@ class _DiagnosticsCard extends ConsumerWidget {
       'CONVEX_URL: ${convexUrl.isNotEmpty ? convexUrl : '(missing)'}',
       'FIREBASE_PROJECT_ID: ${firebaseProjectId.isNotEmpty ? firebaseProjectId : '(missing)'}',
       'FIREBASE_APP_ID: ${firebaseAppId.isNotEmpty ? maskValue(firebaseAppId) : '(missing)'}',
-      'TUBEFLOW_APP_URL: ${tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)'}',
-      'TUBEFLOW_APP_URL host match: ${hostMatchLabel(tubeFlowAppUrl)}',
+      'REPLAYGLOWZ_APP_URL: ${replayGlowzAppUrl.isNotEmpty ? replayGlowzAppUrl : '(missing)'}',
+      'REPLAYGLOWZ_APP_URL host match: ${hostMatchLabel(replayGlowzAppUrl)}',
       'SENTRY: ${sentryStatusLabel()}',
       'Firebase Auth initialised: ${auth.isInitialised ? 'yes' : 'no'}',
       'Auth state: $authLabel',
@@ -734,16 +734,16 @@ class _DiagnosticsCard extends ConsumerWidget {
         ok: buildEnvironment != 'unknown',
       ),
       (
-        key: 'TUBEFLOW_APP_URL',
-        value: tubeFlowAppUrl.isNotEmpty ? tubeFlowAppUrl : '(missing)',
-        ok: tubeFlowAppUrl.isNotEmpty,
+        key: 'REPLAYGLOWZ_APP_URL',
+        value: replayGlowzAppUrl.isNotEmpty ? replayGlowzAppUrl : '(missing)',
+        ok: replayGlowzAppUrl.isNotEmpty,
       ),
       (
         key: 'APP_URL host match',
-        value: hostMatchLabel(tubeFlowAppUrl),
+        value: hostMatchLabel(replayGlowzAppUrl),
         ok:
-            hostMatchLabel(tubeFlowAppUrl) == 'yes' ||
-            hostMatchLabel(tubeFlowAppUrl) == 'not-web',
+            hostMatchLabel(replayGlowzAppUrl) == 'yes' ||
+            hostMatchLabel(replayGlowzAppUrl) == 'not-web',
       ),
       (
         key: 'Firebase Auth initialised',

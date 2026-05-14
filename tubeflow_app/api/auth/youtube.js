@@ -31,10 +31,7 @@ module.exports = async function handler(req, res) {
   const firebaseIdToken = authHeader.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length).trim()
     : '';
-  const googleClientId = getEnv(
-    'GOOGLE_CLIENT_ID',
-    'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
-  );
+  const googleClientId = getEnv('GOOGLE_CLIENT_ID');
 
   if (!googleClientId) {
     sendJsonError(

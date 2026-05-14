@@ -15,17 +15,9 @@ import 'package:tubeflow_app/providers/providers.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 import 'package:tubeflow_app/widgets/error_feedback.dart';
 
-/// Legacy build-time origin fallback kept for compatibility with older
-/// deployments. On the web we prefer the current browser origin, because the
-/// Vercel YouTube OAuth functions now live alongside the Flutter bundle.
-const _legacyYoutubeConnectOrigin = String.fromEnvironment(
-  'TUBEFLOW_WEB_URL',
-  defaultValue: '',
-);
-
 const _youtubeConnectOrigin = String.fromEnvironment(
-  'TUBEFLOW_APP_URL',
-  defaultValue: _legacyYoutubeConnectOrigin,
+  'REPLAYGLOWZ_APP_URL',
+  defaultValue: '',
 );
 
 const _youtubeConnectPath = '/api/auth/youtube';

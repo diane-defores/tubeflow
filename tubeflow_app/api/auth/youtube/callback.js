@@ -119,12 +119,9 @@ module.exports = async function handler(req, res) {
   const returnTo = cookies.youtube_oauth_return_to;
   const firebaseIdToken = cookies.tubeflow_youtube_firebase_id_token;
 
-  const googleClientId = getEnv(
-    'GOOGLE_CLIENT_ID',
-    'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
-  );
+  const googleClientId = getEnv('GOOGLE_CLIENT_ID');
   const googleClientSecret = getEnv('GOOGLE_CLIENT_SECRET');
-  const convexUrl = getEnv('CONVEX_URL', 'NEXT_PUBLIC_CONVEX_URL');
+  const convexUrl = getEnv('CONVEX_URL');
 
   const cleanupCookies = [
     serializeCookie('youtube_oauth_state', '', {

@@ -106,7 +106,7 @@ Flutter build-time variables:
 - `FIREBASE_STORAGE_BUCKET`
 - `FIREBASE_MESSAGING_SENDER_ID`
 - `FIREBASE_APP_ID`
-- `TUBEFLOW_APP_URL`
+- `REPLAYGLOWZ_APP_URL`
 - `BUILD_COMMIT_SHA`
 - `BUILD_ENVIRONMENT`
 - `BUILD_TIMESTAMP`
@@ -122,7 +122,7 @@ Backend-only variables documented in `README.md`, such as `FEEDBACK_ADMIN_EMAILS
 
 ```bash
 flutter pub get
-flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=TUBEFLOW_APP_URL=...
+flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=REPLAYGLOWZ_APP_URL=...
 dart analyze lib/
 bash build.sh
 dart run tool/check_shared_backend_contract.dart
