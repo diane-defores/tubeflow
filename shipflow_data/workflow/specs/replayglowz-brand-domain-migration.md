@@ -328,6 +328,7 @@ None. Decisions captured for this spec: implement the global migration on `main`
 | 2026-05-14 21:33:40 UTC | sf-verify | GPT-5 Codex | Re-ran local validation: metadata lint, OAuth helper tests, `bash -n`, `flutter analyze`, `flutter build web`, Astro build, Python compile, and residual-reference audit. | Passed locally. Hosted OAuth/Firebase/Vercel evidence remains post-ship. | `/sf-end ReplayGlowz brand and domain migration` |
 | 2026-05-14 21:33:40 UTC | sf-end | GPT-5 Codex | Closed the main-branch migration scope with documentation and changelog updates already included in app/site/worker changes. | Closed for bounded ship; `previewdev` reconciliation remains deferred. | `/sf-ship ReplayGlowz brand and domain migration` |
 | 2026-05-14 21:35:00 UTC | sf-ship | GPT-5 Codex | Committed and pushed the bounded migration scope to `origin/main` as `b50ffbf`; excluded non-product `claude/` capture artifacts from staging. | Shipped to `main`; hosted Vercel/OAuth/Firebase evidence still requires post-push validation. | `/sf-prod ReplayGlowz app/site deployments` |
+| 2026-05-14 21:45:00 UTC | sf-prod | GPT-5 Codex | Checked Vercel deployment status through GitHub statuses plus Vercel CLI inspect for `replayglowz_app` deployments `replayglowz-qrnvfko8n` and `replayglowz-kdik4oi3s`. | Partial proof: Vercel deployments are Ready, but public `curl` returns 401, so browser/OAuth/Firebase flow validation remains unproven. | `/sf-auth-debug` or `/sf-browser` on an accessible deployment URL after access policy is confirmed |
 
 ## Current Chantier Flow
 
@@ -338,6 +339,6 @@ None. Decisions captured for this spec: implement the global migration on `main`
 | sf-start | implemented | Implementation completed locally through `sf-build`; changes remain unshipped. |
 | sf-verify | passed | Local checks passed; residual legacy references are allowlisted as directory/package/import identity, compatibility fallbacks, historical specs/changelogs, or explicit migration notes. |
 | sf-end | closed | Main-branch migration scope closed locally; hosted validation remains post-ship. |
-| sf-ship | shipped | Commit `b50ffbf` pushed to `origin/main`; remote reported repository move to `diane-defores/replayglowz.git` but accepted the push. |
+| sf-ship | shipped | Commits `b50ffbf` and `60c1dd2` pushed to `origin/main`; remote reported repository move to `diane-defores/replayglowz.git` but accepted the push. |
 
-Next command: `/sf-prod ReplayGlowz app/site deployments`
+Next command: `/sf-auth-debug` or `/sf-browser` on an accessible deployment URL after access policy is confirmed
