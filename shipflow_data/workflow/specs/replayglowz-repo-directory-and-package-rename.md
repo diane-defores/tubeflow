@@ -33,7 +33,7 @@ evidence:
   - "User selected full rename option on 2026-05-14 after the brand/domain migration shipped."
   - "Current repo directories are `replayglowz_app`, `replayglowz_site`, and `replayglowz_lab`."
   - "`replayglowz_app/pubspec.yaml` still declares `name: replayglowz_app`, driving `package:replayglowz_app/...` imports."
-next_step: "/sf-ship ReplayGlowz repo directory and package rename"
+next_step: "/sf-auth-debug https://app.replayglowz.com YouTube OAuth ReplayGlowz"
 ---
 
 # ReplayGlowz Repo Directory And Package Rename
@@ -85,6 +85,7 @@ The monorepo should use `replayglowz_app`, `replayglowz_site`, and `replayglowz_
 | 2026-05-14 21:59:15 UTC | sf-start | GPT-5 Codex | Renamed active monorepo directories to `replayglowz_app`, `replayglowz_site`, and `replayglowz_lab`; renamed Flutter package/import namespace and active app type/bridge names. | Implemented locally. | `/sf-verify ReplayGlowz repo directory and package rename` |
 | 2026-05-14 21:59:15 UTC | sf-verify | GPT-5 Codex | Ran metadata lint, Python compile, OAuth helper tests, Flutter analyze/build, Astro build, diff check, and residual path audit. | Passed locally; residual old path mentions are changelog documentation only. | `/sf-end ReplayGlowz repo directory and package rename` |
 | 2026-05-14 21:59:15 UTC | sf-end | GPT-5 Codex | Updated subproject changelogs and chantier state for the structure rename. | Closed locally, ready to ship. | `/sf-ship ReplayGlowz repo directory and package rename` |
+| 2026-05-14 22:07:58 UTC | sf-ship | GPT-5 Codex | Committed and pushed `309cbfc` to `origin/main`. Initial Vercel deploy failed because project Root Directory still pointed at `tubeflow_app`; updated Vercel project `replayglowz_app` Root Directory to `replayglowz_app` and redeployed. | Shipped. Redeploy `replayglowz-dfpiic665` is Ready and `https://app.replayglowz.com/` returns 200 with ReplayGlowz metadata. | `/sf-auth-debug https://app.replayglowz.com YouTube OAuth ReplayGlowz` |
 
 ## Current Chantier Flow
 
@@ -95,6 +96,6 @@ The monorepo should use `replayglowz_app`, `replayglowz_site`, and `replayglowz_
 | sf-start | implemented | Directories, package namespace, docs, scripts, and active code references renamed. |
 | sf-verify | passed | Local validation passed; residual old path hits are changelog entries documenting the rename. |
 | sf-end | closed | Changelogs and spec state updated. |
-| sf-ship | ready | Pending commit and push. |
+| sf-ship | shipped | Commit `309cbfc` pushed; Vercel app Root Directory updated and production redeploy is Ready. |
 
-Next command: `/sf-ship ReplayGlowz repo directory and package rename`
+Next command: `/sf-auth-debug https://app.replayglowz.com YouTube OAuth ReplayGlowz`
