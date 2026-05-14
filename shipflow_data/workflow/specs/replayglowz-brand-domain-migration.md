@@ -327,6 +327,7 @@ None. Decisions captured for this spec: implement the global migration on `main`
 | 2026-05-14 21:06:33 UTC | sf-build | GPT-5 Codex | Implemented the main-branch ReplayGlowz rename across root governance docs, Flutter app branding/env/OAuth/storage, Astro SEO/i18n/content, worker labels/docs, and changelogs; ran local validation and residual audit. | Implemented locally; validation passed. `previewdev` reconciliation remains intentionally deferred until after main is shipped. | `/sf-verify ReplayGlowz brand and domain migration` |
 | 2026-05-14 21:33:40 UTC | sf-verify | GPT-5 Codex | Re-ran local validation: metadata lint, OAuth helper tests, `bash -n`, `flutter analyze`, `flutter build web`, Astro build, Python compile, and residual-reference audit. | Passed locally. Hosted OAuth/Firebase/Vercel evidence remains post-ship. | `/sf-end ReplayGlowz brand and domain migration` |
 | 2026-05-14 21:33:40 UTC | sf-end | GPT-5 Codex | Closed the main-branch migration scope with documentation and changelog updates already included in app/site/worker changes. | Closed for bounded ship; `previewdev` reconciliation remains deferred. | `/sf-ship ReplayGlowz brand and domain migration` |
+| 2026-05-14 21:35:00 UTC | sf-ship | GPT-5 Codex | Committed and pushed the bounded migration scope to `origin/main` as `b50ffbf`; excluded non-product `claude/` capture artifacts from staging. | Shipped to `main`; hosted Vercel/OAuth/Firebase evidence still requires post-push validation. | `/sf-prod ReplayGlowz app/site deployments` |
 
 ## Current Chantier Flow
 
@@ -337,6 +338,6 @@ None. Decisions captured for this spec: implement the global migration on `main`
 | sf-start | implemented | Implementation completed locally through `sf-build`; changes remain unshipped. |
 | sf-verify | passed | Local checks passed; residual legacy references are allowlisted as directory/package/import identity, compatibility fallbacks, historical specs/changelogs, or explicit migration notes. |
 | sf-end | closed | Main-branch migration scope closed locally; hosted validation remains post-ship. |
-| sf-ship | ready | Ship `main` first; handle `previewdev` after explicit operator approval. |
+| sf-ship | shipped | Commit `b50ffbf` pushed to `origin/main`; remote reported repository move to `diane-defores/replayglowz.git` but accepted the push. |
 
-Next command: `/sf-ship ReplayGlowz brand and domain migration`
+Next command: `/sf-prod ReplayGlowz app/site deployments`
