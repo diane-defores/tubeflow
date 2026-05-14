@@ -19,9 +19,9 @@ docs_impact: "yes"
 security_impact: "unknown"
 evidence:
   - "README.md"
-  - "tubeflow_app/BUSINESS.md"
-  - "tubeflow_site/BUSINESS.md"
-  - "tubeflow_lab/BUSINESS.md"
+  - "tubeflow_app/shipflow_data/business/business.md"
+  - "tubeflow_site/shipflow_data/business/business.md"
+  - "tubeflow_lab/shipflow_data/business/business.md"
 depends_on:
   - "shipflow_data/business/product.md"
 supersedes: []

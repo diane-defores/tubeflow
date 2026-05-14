@@ -475,6 +475,7 @@ None.
 | 2026-05-11 13:57:33 UTC | sf-deps | GPT-5 Codex | Re-audited `tubeflow_app` Pub graph with Flutter 3.41.7 / Dart 3.11.5, OSV batch query, license pass, import usage checks, and `flutter analyze`. | B-: no advisories; medium follow-ups remain for Clerk beta patch, unused codegen deps, and Sentry/lints major lanes. | Decide whether to patch Clerk beta and remove unused codegen packages in a bounded app dependency pass. |
 | 2026-05-11 14:20:00 UTC | direct deps pass | GPT-5 Codex | Removed beta Clerk Flutter SDKs, disabled sign-in with no-op auth facade, removed unused codegen deps, upgraded direct non-beta deps, fixed new lints, and regenerated plugin registrants. | A-: direct deps current; no beta packages in lock/package config; `flutter analyze` and `flutter build web` pass. | Choose a stable auth provider before restoring protected app flows. |
 | 2026-05-13 08:47:57 UTC | sf-ship | GPT-5 Codex | Shipped stable Firebase Auth replacement for the beta-Clerk removal follow-up, Vercel Firebase envs, and Convex Firebase auth config. | Shipped with hosted auth/OAuth validation pending. | /sf-prod tubeflow_app |
+| 2026-05-14 10:59:44 UTC | sf-prod | GPT-5 Codex | Checked Vercel production deployment for commit `09c3749`, live app assets, OAuth start handler, runtime logs, and Convex prod deploy readiness. | Partial: Vercel ready and app envs baked; Convex prod deploy dry-run still reports missing `FIREBASE_PROJECT_ID` for auth config. | Set/verify `FIREBASE_PROJECT_ID` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then run `/sf-prod tubeflow_app` again. |
 
 # Current Chantier Flow
 
@@ -486,5 +487,6 @@ None.
 | sf-verify | partial | Local validation passed; Docker image build could not run because Docker is unavailable. |
 | sf-end | skipped | User requested direct `sf-ship end` after Firebase and Convex env configuration. |
 | sf-ship | shipped | Stable Firebase Auth replacement shipped with deployed auth/OAuth validation pending behind `/sf-prod`. |
+| sf-prod | partial | Vercel production deployment is ready and static/API surface responds; Convex prod deploy readiness is blocked by `FIREBASE_PROJECT_ID` not being accepted during deploy dry-run. |
 
-Next command: `/sf-prod tubeflow_app`
+Next command: set/verify `FIREBASE_PROJECT_ID=winflowz-dev` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then `/sf-prod tubeflow_app`

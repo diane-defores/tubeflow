@@ -25,8 +25,8 @@ proof_points:
 docs_impact: "yes"
 security_impact: "unknown"
 evidence:
-  - "tubeflow_site/GTM.md"
-  - "tubeflow_app/GTM.md"
+  - "tubeflow_site/shipflow_data/business/gtm.md"
+  - "tubeflow_app/shipflow_data/business/gtm.md"
   - "tubeflow_site/src/pages/pricing.astro"
   - "tubeflow_site/src/pages/compare.astro"
 depends_on:

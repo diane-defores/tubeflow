@@ -14,9 +14,9 @@ risk_level: "medium"
 docs_impact: "yes"
 security_impact: "yes"
 evidence:
-  - "tubeflow_app/GUIDELINES.md"
-  - "tubeflow_site/GUIDELINES.md"
-  - "tubeflow_lab/GUIDELINES.md"
+  - "tubeflow_app/shipflow_data/technical/guidelines.md"
+  - "tubeflow_site/shipflow_data/technical/guidelines.md"
+  - "tubeflow_lab/shipflow_data/technical/guidelines.md"
   - "tubeflow_app/pubspec.yaml"
   - "tubeflow_site/package.json"
   - "tubeflow_lab/requirements.txt"
@@ -48,7 +48,7 @@ next_step: "/sf-docs technical audit"
 ## Flutter App
 
 - Use build-time `--dart-define` values for Flutter web configuration.
-- Keep Clerk session handling and Convex JWT minting aligned with `tubeflow_app/README.md` and `tubeflow_app/ARCHITECTURE.md`.
+- Keep Clerk session handling and Convex JWT minting aligned with `tubeflow_app/README.md` and `tubeflow_app/shipflow_data/technical/architecture.md`.
 - Treat the shared Convex backend as external unless `TUBEFLOW_BACKEND_ROOT` points to a local checkout.
 
 ## Astro Site

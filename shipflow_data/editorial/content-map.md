@@ -55,10 +55,10 @@ This file maps TubeFlow content surfaces at monorepo level and routes public-con
 | Surface | Canonical path | Purpose | Source of truth | Update when |
 | --- | --- | --- | --- | --- |
 | Root README | `README.md` | Monorepo orientation and deployment model | Repository layout and deployment state | Subproject layout or deployment ownership changes. |
-| App docs | `tubeflow_app/README.md` and app contracts | Product and implementation truth for the Flutter app | `tubeflow_app/PRODUCT.md`, `tubeflow_app/ARCHITECTURE.md` | App behavior, auth, OAuth, Convex, deployment, or env changes. |
+| App docs | `tubeflow_app/README.md` and app contracts | Product and implementation truth for the Flutter app | `tubeflow_app/shipflow_data/business/product.md`, `tubeflow_app/shipflow_data/technical/architecture.md` | App behavior, auth, OAuth, Convex, deployment, or env changes. |
 | Public site pages | `tubeflow_site/src/pages/**` | Acquisition, product education, pricing, comparison, legal/trust | Business, product, brand, GTM contracts | Public claims, CTA, route intent, pricing, or legal/trust changes. |
 | Blog | `tubeflow_site/src/content/blog/**` | Editorial education and SEO content | Astro schema, page intent, claim register | Blog content, collection schema, topic strategy, or claims change. |
-| Worker docs | `tubeflow_lab/README.md` and worker contracts | Transcript worker setup, deployment, API, operations | `tubeflow_lab/PRODUCT.md`, `tubeflow_lab/ARCHITECTURE.md` | Worker API, env, provider, queue, health, or deployment changes. |
+| Worker docs | `tubeflow_lab/README.md` and worker contracts | Transcript worker setup, deployment, API, operations | `tubeflow_lab/shipflow_data/business/product.md`, `tubeflow_lab/shipflow_data/technical/architecture.md` | Worker API, env, provider, queue, health, or deployment changes. |
 | Editorial governance | `shipflow_data/editorial/**` | Public surface map, claim register, page intent, update gate, runtime schema policy | This content map and contracts | Public surfaces, claims, routes, or content schemas change. |
 
 ## Semantic Architecture

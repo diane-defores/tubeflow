@@ -18,9 +18,9 @@ non_goals: "Entertainment discovery, creator publishing infrastructure, a generi
 docs_impact: "yes"
 security_impact: "unknown"
 evidence:
-  - "tubeflow_app/PRODUCT.md"
-  - "tubeflow_site/PRODUCT.md"
-  - "tubeflow_lab/PRODUCT.md"
+  - "tubeflow_app/shipflow_data/business/product.md"
+  - "tubeflow_site/shipflow_data/business/product.md"
+  - "tubeflow_lab/shipflow_data/business/product.md"
 depends_on: []
 supersedes: []
 next_review: "2026-06-10"

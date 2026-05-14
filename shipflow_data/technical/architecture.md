@@ -15,9 +15,9 @@ docs_impact: "yes"
 security_impact: "yes"
 evidence:
   - "README.md"
-  - "tubeflow_app/ARCHITECTURE.md"
-  - "tubeflow_site/ARCHITECTURE.md"
-  - "tubeflow_lab/ARCHITECTURE.md"
+  - "tubeflow_app/shipflow_data/technical/architecture.md"
+  - "tubeflow_site/shipflow_data/technical/architecture.md"
+  - "tubeflow_lab/shipflow_data/technical/architecture.md"
 linked_systems:
   - "Flutter Web"
   - "Vercel"

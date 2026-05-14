@@ -16,8 +16,8 @@ trust_posture: "Conservative claims; sensitive security, pricing, AI, automation
 docs_impact: "yes"
 security_impact: "none"
 evidence:
-  - "tubeflow_app/BRANDING.md"
-  - "tubeflow_site/BRANDING.md"
+  - "tubeflow_app/shipflow_data/business/branding.md"
+  - "tubeflow_site/shipflow_data/business/branding.md"
 depends_on:
   - "shipflow_data/business/business.md"
 supersedes: []

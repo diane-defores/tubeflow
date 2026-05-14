@@ -27,9 +27,9 @@ depends_on:
   - "shipflow_data/business/gtm.md"
 supersedes: []
 evidence:
-  - "tubeflow_app/PRODUCT.md"
-  - "tubeflow_site/PRODUCT.md"
-  - "tubeflow_lab/PRODUCT.md"
+  - "tubeflow_app/shipflow_data/business/product.md"
+  - "tubeflow_site/shipflow_data/business/product.md"
+  - "tubeflow_lab/shipflow_data/business/product.md"
 next_review: "2026-06-10"
 next_step: "/sf-docs editorial audit"
 ---
