@@ -14,9 +14,9 @@ risk_level: "medium"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "tubeflow_app"
-  - "tubeflow_site"
-  - "tubeflow_lab"
+  - "replayglowz_app"
+  - "replayglowz_site"
+  - "replayglowz_lab"
 depends_on:
   - "shipflow_data/technical/architecture.md"
   - "shipflow_data/technical/guidelines.md"
@@ -37,13 +37,13 @@ Route changed paths to the technical docs and validation commands that must be c
 
 | Path pattern | Subsystem | Primary doc | Validation | Docs update trigger |
 | --- | --- | --- | --- | --- |
-| `tubeflow_app/lib/**` | Flutter app | `tubeflow_app/shipflow_data/technical/architecture.md` | `(cd tubeflow_app && flutter analyze)` | Auth, routing, Convex client, screens, models, providers, i18n, or widget behavior changes. |
-| `tubeflow_app/api/**` | Vercel YouTube OAuth handlers | `tubeflow_app/shipflow_data/technical/architecture.md` | `(cd tubeflow_app && node --test api/auth/_youtube.test.js)` | OAuth request/return flow, cookie handling, token exchange, Clerk, or Convex mutation behavior changes. |
-| `tubeflow_app/build.sh`, `tubeflow_app/vercel.json`, `tubeflow_app/.env.example` | Flutter app deployment | `tubeflow_app/README.md` | `(cd tubeflow_app && bash -n build.sh)` | Build variables, Vercel routing, install/build commands, or deployment headers change. |
-| `tubeflow_site/src/pages/**`, `tubeflow_site/src/components/**`, `tubeflow_site/src/i18n/**` | Astro public site | `tubeflow_site/shipflow_data/technical/architecture.md` | `(cd tubeflow_site && npm run build)` | Public route, CTA, pricing, claim, i18n, layout, or component changes. |
-| `tubeflow_site/src/content.config.ts`, `tubeflow_site/src/content/**` | Astro runtime content | `shipflow_data/editorial/astro-content-schema-policy.md` | `(cd tubeflow_site && npm run build)` | Content schema or blog frontmatter changes. |
-| `tubeflow_lab/server.py`, `tubeflow_lab/main.py` | Transcript worker | `tubeflow_lab/shipflow_data/technical/architecture.md` | `(cd tubeflow_lab && python -m py_compile main.py server.py)` | API contract, auth, limits, providers, queueing, media handling, or health behavior changes. |
-| `tubeflow_lab/.env.example`, `tubeflow_lab/Dockerfile`, `tubeflow_lab/ecosystem.config.cjs` | Worker deployment | `tubeflow_lab/README.md` | `(cd tubeflow_lab && python -m py_compile main.py server.py)` | Runtime variables, container, PM2, or worker deployment model changes. |
+| `replayglowz_app/lib/**` | Flutter app | `replayglowz_app/shipflow_data/technical/architecture.md` | `(cd replayglowz_app && flutter analyze)` | Auth, routing, Convex client, screens, models, providers, i18n, or widget behavior changes. |
+| `replayglowz_app/api/**` | Vercel YouTube OAuth handlers | `replayglowz_app/shipflow_data/technical/architecture.md` | `(cd replayglowz_app && node --test api/auth/_youtube.test.js)` | OAuth request/return flow, cookie handling, token exchange, Clerk, or Convex mutation behavior changes. |
+| `replayglowz_app/build.sh`, `replayglowz_app/vercel.json`, `replayglowz_app/.env.example` | Flutter app deployment | `replayglowz_app/README.md` | `(cd replayglowz_app && bash -n build.sh)` | Build variables, Vercel routing, install/build commands, or deployment headers change. |
+| `replayglowz_site/src/pages/**`, `replayglowz_site/src/components/**`, `replayglowz_site/src/i18n/**` | Astro public site | `replayglowz_site/shipflow_data/technical/architecture.md` | `(cd replayglowz_site && npm run build)` | Public route, CTA, pricing, claim, i18n, layout, or component changes. |
+| `replayglowz_site/src/content.config.ts`, `replayglowz_site/src/content/**` | Astro runtime content | `shipflow_data/editorial/astro-content-schema-policy.md` | `(cd replayglowz_site && npm run build)` | Content schema or blog frontmatter changes. |
+| `replayglowz_lab/server.py`, `replayglowz_lab/main.py` | Transcript worker | `replayglowz_lab/shipflow_data/technical/architecture.md` | `(cd replayglowz_lab && python -m py_compile main.py server.py)` | API contract, auth, limits, providers, queueing, media handling, or health behavior changes. |
+| `replayglowz_lab/.env.example`, `replayglowz_lab/Dockerfile`, `replayglowz_lab/ecosystem.config.cjs` | Worker deployment | `replayglowz_lab/README.md` | `(cd replayglowz_lab && python -m py_compile main.py server.py)` | Runtime variables, container, PM2, or worker deployment model changes. |
 | `README.md`, `AGENT.md`, `shipflow_data/**` | Monorepo governance | `shipflow_data/technical/README.md` | `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data` | Repository layout, governance, source-of-truth, or cross-project routing changes. |
 
 ## Non-Coverage

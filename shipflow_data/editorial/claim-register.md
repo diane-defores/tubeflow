@@ -19,17 +19,17 @@ content_surfaces:
 claim_register: "shipflow_data/editorial/claim-register.md"
 page_intent: "shipflow_data/editorial/page-intent-map.md"
 linked_systems:
-  - "tubeflow_site/src/pages"
-  - "tubeflow_app"
-  - "tubeflow_lab"
+  - "replayglowz_site/src/pages"
+  - "replayglowz_app"
+  - "replayglowz_lab"
 depends_on:
   - "shipflow_data/business/product.md"
   - "shipflow_data/business/gtm.md"
 supersedes: []
 evidence:
-  - "tubeflow_app/shipflow_data/business/product.md"
-  - "tubeflow_site/shipflow_data/business/product.md"
-  - "tubeflow_lab/shipflow_data/business/product.md"
+  - "replayglowz_app/shipflow_data/business/product.md"
+  - "replayglowz_site/shipflow_data/business/product.md"
+  - "replayglowz_lab/shipflow_data/business/product.md"
 next_review: "2026-06-10"
 next_step: "/sf-docs editorial audit"
 ---
@@ -38,10 +38,10 @@ next_step: "/sf-docs editorial audit"
 
 | Claim area | Safe status | Evidence | Rule |
 | --- | --- | --- | --- |
-| Timestamped notes | supported | `tubeflow_app/README.md`, app screens/models | May be described as current product behavior. |
-| Playlists and viewing workflows | supported | `tubeflow_app/README.md`, app providers/screens | May be described as current product behavior. |
-| YouTube OAuth connect | supported with constraints | `tubeflow_app/api/auth/**`, app OAuth spec | Mention web redirect behavior only when aligned with implementation. |
-| Transcript worker | internal/backend capability | `tubeflow_lab/server.py`, worker README | Do not market as a user-facing guarantee without app integration evidence. |
+| Timestamped notes | supported | `replayglowz_app/README.md`, app screens/models | May be described as current product behavior. |
+| Playlists and viewing workflows | supported | `replayglowz_app/README.md`, app providers/screens | May be described as current product behavior. |
+| YouTube OAuth connect | supported with constraints | `replayglowz_app/api/auth/**`, app OAuth spec | Mention web redirect behavior only when aligned with implementation. |
+| Transcript worker | internal/backend capability | `replayglowz_lab/server.py`, worker README | Do not market as a user-facing guarantee without app integration evidence. |
 | AI automation | needs proof | No root-level reviewed proof in this update | Avoid present-tense public claims unless implemented and documented. |
 | Time savings or productivity gains | needs proof | No quantified evidence in reviewed contracts | Use qualitative wording; avoid numeric gains. |
 | Security/compliance/privacy | sensitive | Privacy/terms pages and implementation | Do not strengthen without legal and implementation evidence. |

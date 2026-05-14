@@ -1,0 +1,53 @@
+name: replayglowz_app
+description: ReplayGlowz - Video Note-Taking App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Authentication
+  # Clerk Flutter SDKs were removed because the available packages are beta.
+  # Keep sign-in disabled until a stable auth provider is integrated.
+
+  # Convex backend
+  convex_flutter: ^3.0.1
+
+  # Routing
+  go_router: ^17.2.3
+
+  # State management
+  flutter_riverpod: ^3.3.1
+
+  # YouTube player
+  youtube_player_flutter: ^9.1.0
+
+  # UI components
+  cached_network_image: ^3.4.0
+  shimmer: ^3.0.0
+  just_audio: ^0.10.5
+
+  # Storage
+  path_provider: ^2.1.5
+  shared_preferences: ^2.3.0
+
+  # Utilities
+  intl: ^0.20.2
+  http: ^1.6.0
+  record: ^6.2.0
+  url_launcher: ^6.3.0
+  sentry_flutter: ^9.20.0
+  firebase_core: ^4.7.0
+  firebase_auth: ^6.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

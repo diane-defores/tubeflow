@@ -25,10 +25,10 @@ security_impact: "unknown"
 docs_impact: "yes"
 evidence:
   - "README.md"
-  - "tubeflow_site/src/pages"
-  - "tubeflow_site/src/content/blog"
-  - "tubeflow_app/README.md"
-  - "tubeflow_lab/README.md"
+  - "replayglowz_site/src/pages"
+  - "replayglowz_site/src/content/blog"
+  - "replayglowz_app/README.md"
+  - "replayglowz_lab/README.md"
 linked_artifacts:
   - "shipflow_data/editorial/README.md"
   - "shipflow_data/editorial/public-surface-map.md"
@@ -55,18 +55,18 @@ This file maps ReplayGlowz content surfaces at monorepo level and routes public-
 | Surface | Canonical path | Purpose | Source of truth | Update when |
 | --- | --- | --- | --- | --- |
 | Root README | `README.md` | Monorepo orientation and deployment model | Repository layout and deployment state | Subproject layout or deployment ownership changes. |
-| App docs | `tubeflow_app/README.md` and app contracts | Product and implementation truth for the Flutter app | `tubeflow_app/shipflow_data/business/product.md`, `tubeflow_app/shipflow_data/technical/architecture.md` | App behavior, auth, OAuth, Convex, deployment, or env changes. |
-| Public site pages | `tubeflow_site/src/pages/**` | Acquisition, product education, pricing, comparison, legal/trust | Business, product, brand, GTM contracts | Public claims, CTA, route intent, pricing, or legal/trust changes. |
-| Blog | `tubeflow_site/src/content/blog/**` | Editorial education and SEO content | Astro schema, page intent, claim register | Blog content, collection schema, topic strategy, or claims change. |
-| Worker docs | `tubeflow_lab/README.md` and worker contracts | Transcript worker setup, deployment, API, operations | `tubeflow_lab/shipflow_data/business/product.md`, `tubeflow_lab/shipflow_data/technical/architecture.md` | Worker API, env, provider, queue, health, or deployment changes. |
+| App docs | `replayglowz_app/README.md` and app contracts | Product and implementation truth for the Flutter app | `replayglowz_app/shipflow_data/business/product.md`, `replayglowz_app/shipflow_data/technical/architecture.md` | App behavior, auth, OAuth, Convex, deployment, or env changes. |
+| Public site pages | `replayglowz_site/src/pages/**` | Acquisition, product education, pricing, comparison, legal/trust | Business, product, brand, GTM contracts | Public claims, CTA, route intent, pricing, or legal/trust changes. |
+| Blog | `replayglowz_site/src/content/blog/**` | Editorial education and SEO content | Astro schema, page intent, claim register | Blog content, collection schema, topic strategy, or claims change. |
+| Worker docs | `replayglowz_lab/README.md` and worker contracts | Transcript worker setup, deployment, API, operations | `replayglowz_lab/shipflow_data/business/product.md`, `replayglowz_lab/shipflow_data/technical/architecture.md` | Worker API, env, provider, queue, health, or deployment changes. |
 | Editorial governance | `shipflow_data/editorial/**` | Public surface map, claim register, page intent, update gate, runtime schema policy | This content map and contracts | Public surfaces, claims, routes, or content schemas change. |
 
 ## Semantic Architecture
 
 | Cluster | Pillar page | Supporting pages | Target intent | Status |
 | --- | --- | --- | --- | --- |
-| Video learning workflow | `tubeflow_site/src/pages/index.astro` | `features.astro`, blog posts | Product education and conversion | live |
-| Pricing and offer | `tubeflow_site/src/pages/pricing.astro` | `compare.astro` | Commercial evaluation | live |
+| Video learning workflow | `replayglowz_site/src/pages/index.astro` | `features.astro`, blog posts | Product education and conversion | live |
+| Pricing and offer | `replayglowz_site/src/pages/pricing.astro` | `compare.astro` | Commercial evaluation | live |
 | Trust and policy | `privacy.astro`, `terms.astro` | Root and app README references | Trust and compliance basics | live |
 | Learning content | `blog/index.astro` | `src/content/blog/*.md` | SEO and education | live |
 

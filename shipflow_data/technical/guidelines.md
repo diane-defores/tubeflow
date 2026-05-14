@@ -14,12 +14,12 @@ risk_level: "medium"
 docs_impact: "yes"
 security_impact: "yes"
 evidence:
-  - "tubeflow_app/shipflow_data/technical/guidelines.md"
-  - "tubeflow_site/shipflow_data/technical/guidelines.md"
-  - "tubeflow_lab/shipflow_data/technical/guidelines.md"
-  - "tubeflow_app/pubspec.yaml"
-  - "tubeflow_site/package.json"
-  - "tubeflow_lab/requirements.txt"
+  - "replayglowz_app/shipflow_data/technical/guidelines.md"
+  - "replayglowz_site/shipflow_data/technical/guidelines.md"
+  - "replayglowz_lab/shipflow_data/technical/guidelines.md"
+  - "replayglowz_app/pubspec.yaml"
+  - "replayglowz_site/package.json"
+  - "replayglowz_lab/requirements.txt"
 linked_systems:
   - "Flutter"
   - "Dart"
@@ -48,12 +48,12 @@ next_step: "/sf-docs technical audit"
 ## Flutter App
 
 - Use build-time `--dart-define` values for Flutter web configuration.
-- Keep Clerk session handling and Convex JWT minting aligned with `tubeflow_app/README.md` and `tubeflow_app/shipflow_data/technical/architecture.md`.
-- Treat the shared Convex backend as external unless `TUBEFLOW_BACKEND_ROOT` points to a local checkout.
+- Keep Clerk session handling and Convex JWT minting aligned with `replayglowz_app/README.md` and `replayglowz_app/shipflow_data/technical/architecture.md`.
+- Treat the shared Convex backend as external unless `REPLAYGLOWZ_BACKEND_ROOT` points to a local checkout.
 
 ## Astro Site
 
-- Route URLs, CTA destinations, and public domains through `tubeflow_site/src/config/site.ts`.
+- Route URLs, CTA destinations, and public domains through `replayglowz_site/src/config/site.ts`.
 - Preserve Astro content collection schemas before editing blog frontmatter.
 - Keep English and French public promises aligned.
 

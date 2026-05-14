@@ -15,9 +15,9 @@ docs_impact: "yes"
 security_impact: "yes"
 evidence:
   - "README.md"
-  - "tubeflow_app/shipflow_data/technical/architecture.md"
-  - "tubeflow_site/shipflow_data/technical/architecture.md"
-  - "tubeflow_lab/shipflow_data/technical/architecture.md"
+  - "replayglowz_app/shipflow_data/technical/architecture.md"
+  - "replayglowz_site/shipflow_data/technical/architecture.md"
+  - "replayglowz_lab/shipflow_data/technical/architecture.md"
 linked_systems:
   - "Flutter Web"
   - "Vercel"
@@ -37,7 +37,7 @@ external_dependencies:
   - "ffmpeg"
 invariants:
   - "AGENTS.md remains a compatibility symlink to AGENT.md."
-  - "Astro runtime content frontmatter follows tubeflow_site/src/content.config.ts."
+  - "Astro runtime content frontmatter follows replayglowz_site/src/content.config.ts."
   - "Public site claims stay bounded by app/product contracts and the claim register."
 depends_on:
   - "shipflow_data/technical/guidelines.md"
@@ -50,9 +50,9 @@ next_step: "/sf-docs technical audit"
 
 ## System Map
 
-- `tubeflow_app`: Flutter web client with Riverpod, go_router, Clerk auth, Convex client state, Vercel static deployment, and Vercel API handlers for YouTube OAuth.
-- `tubeflow_site`: Astro static marketing site with English/French routes, blog content collection, public pricing/comparison/trust pages, and app CTA routing through `src/config/site.ts`.
-- `tubeflow_lab`: FastAPI transcript worker for media download, normalization, provider transcription, health checks, and operational deployment.
+- `replayglowz_app`: Flutter web client with Riverpod, go_router, Clerk auth, Convex client state, Vercel static deployment, and Vercel API handlers for YouTube OAuth.
+- `replayglowz_site`: Astro static marketing site with English/French routes, blog content collection, public pricing/comparison/trust pages, and app CTA routing through `src/config/site.ts`.
+- `replayglowz_lab`: FastAPI transcript worker for media download, normalization, provider transcription, health checks, and operational deployment.
 
 ## Integration Boundaries
 
@@ -64,5 +64,5 @@ next_step: "/sf-docs technical audit"
 ## Invariants
 
 - `AGENTS.md`, when present, is a compatibility symlink to `AGENT.md`.
-- Astro runtime content frontmatter follows `tubeflow_site/src/content.config.ts`.
+- Astro runtime content frontmatter follows `replayglowz_site/src/content.config.ts`.
 - YouTube OAuth callback behavior must stay aligned across Flutter app routes and Vercel handlers.

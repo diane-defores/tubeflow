@@ -2,7 +2,7 @@
 artifact: spec
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 created_at: "2026-05-10 21:05:58 UTC"
 updated: "2026-05-11"
@@ -18,9 +18,9 @@ risk_level: "medium"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "tubeflow_app"
-  - "tubeflow_site"
-  - "tubeflow_lab"
+  - "replayglowz_app"
+  - "replayglowz_site"
+  - "replayglowz_lab"
   - "GitHub Actions"
   - "Vercel"
   - "Docker"
@@ -44,12 +44,12 @@ depends_on:
 supersedes: []
 evidence:
   - "2026-05-10 sf-deps audit: overall dependency score C with 0 critical, 0 high, 3 moderate security findings and 5 medium hygiene/config follow-ups."
-  - "tubeflow_site/npm audit --json reports GHSA-j687-52p2-xcff for astro <6.1.6 and GHSA-qx2v-qp2m-jg93 for postcss <8.5.10."
+  - "replayglowz_site/npm audit --json reports GHSA-j687-52p2-xcff for astro <6.1.6 and GHSA-qx2v-qp2m-jg93 for postcss <8.5.10."
   - "GitHub Advisory Database: https://github.com/advisories/GHSA-j687-52p2-xcff"
   - "GitHub Advisory Database: https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
-  - "tubeflow_lab/pip-audit -r requirements.txt --no-deps --disable-pip -f json reports CVE-2026-25645 / GHSA-gc5v-m9x4-r6x2 for requests==2.32.5, fixed in 2.33.0."
+  - "replayglowz_lab/pip-audit -r requirements.txt --no-deps --disable-pip -f json reports CVE-2026-25645 / GHSA-gc5v-m9x4-r6x2 for requests==2.32.5, fixed in 2.33.0."
   - "Requests vendor advisory: https://github.com/psf/requests/security/advisories/GHSA-gc5v-m9x4-r6x2"
-  - "tubeflow_app/flutter pub outdated --json reports no current pub advisories but multiple patch/minor/major upgrade lanes."
+  - "replayglowz_app/flutter pub outdated --json reports no current pub advisories but multiple patch/minor/major upgrade lanes."
   - "No .github/dependabot.yml, renovate.json, .node-version, .nvmrc, .python-version, pyproject.toml, uv.lock, Pipfile.lock, poetry.lock, or Python hash lockfile is present."
 next_step: "/sf-ship TubeFlow dependency stabilization --bounded-scope"
 ---
@@ -72,12 +72,12 @@ When dependency maintenance is triggered from this spec, the system updates only
 
 # Success Behavior
 
-- Starting from the current audit state, `tubeflow_site` upgrades within the Astro 6 and PostCSS 8 lines so `npm audit --json` no longer reports GHSA-j687-52p2-xcff or GHSA-qx2v-qp2m-jg93.
-- `tubeflow_site/package-lock.json` remains the committed npm lockfile, `npm run build` succeeds, and public SEO/i18n content behavior remains unchanged.
-- `tubeflow_lab` upgrades `requests` to at least `2.33.0` and uses a deterministic install path for the worker, preferably `requirements.in` plus a generated hash-checked lock file installed by Docker and documented for operators.
-- `tubeflow_lab` keeps the `/transcribe` response contract: `entries`, `fullText`, `estimatedCostUsd`, `warnings`.
-- `tubeflow_app` preserves its current app behavior while adding a repeatable dependency audit/update path and pinning the Flutter toolchain used by deployment and Android CI.
-- `.github/dependabot.yml` covers npm for `tubeflow_site`, pip or pip-compile for `tubeflow_lab`, pub for `tubeflow_app`, GitHub Actions, and Docker base image updates, with review-friendly cadence and no silent automerge.
+- Starting from the current audit state, `replayglowz_site` upgrades within the Astro 6 and PostCSS 8 lines so `npm audit --json` no longer reports GHSA-j687-52p2-xcff or GHSA-qx2v-qp2m-jg93.
+- `replayglowz_site/package-lock.json` remains the committed npm lockfile, `npm run build` succeeds, and public SEO/i18n content behavior remains unchanged.
+- `replayglowz_lab` upgrades `requests` to at least `2.33.0` and uses a deterministic install path for the worker, preferably `requirements.in` plus a generated hash-checked lock file installed by Docker and documented for operators.
+- `replayglowz_lab` keeps the `/transcribe` response contract: `entries`, `fullText`, `estimatedCostUsd`, `warnings`.
+- `replayglowz_app` preserves its current app behavior while adding a repeatable dependency audit/update path and pinning the Flutter toolchain used by deployment and Android CI.
+- `.github/dependabot.yml` covers npm for `replayglowz_site`, pip or pip-compile for `replayglowz_lab`, pub for `replayglowz_app`, GitHub Actions, and Docker base image updates, with review-friendly cadence and no silent automerge.
 - Documentation names the exact commands maintainers should run after future dependency updates.
 
 # Error Behavior
@@ -98,7 +98,7 @@ Source-de-chantier intake preserved from `sf-deps`:
 - Titre propose: TubeFlow dependency stabilization
 - Raison: cross-project dependency/security work spans the site, Flutter app, Python worker, CI/deploy tooling, and update automation.
 - Severite: P2
-- Scope: `tubeflow_site`, `tubeflow_app`, `tubeflow_lab`, CI/deploy dependency policy
+- Scope: `replayglowz_site`, `replayglowz_app`, `replayglowz_lab`, CI/deploy dependency policy
 - Spec recommandee: `/sf-spec TubeFlow dependency stabilization: patch Astro/PostCSS and requests advisories, add update automation, pin package/tool versions, and add reproducible Python locking/auditing`
 
 # Solution
@@ -107,12 +107,12 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 
 # Scope In
 
-- Patch `tubeflow_site` Astro/PostCSS advisories by updating `package.json` and `package-lock.json` within compatible major ranges.
-- Patch `tubeflow_lab` Requests advisory by updating the worker dependency to `requests>=2.33.0,<3`.
+- Patch `replayglowz_site` Astro/PostCSS advisories by updating `package.json` and `package-lock.json` within compatible major ranges.
+- Patch `replayglowz_lab` Requests advisory by updating the worker dependency to `requests>=2.33.0,<3`.
 - Add a reproducible Python lock strategy for the worker using `pip-tools` with a `requirements.in` direct-dependency source and a generated hash-checked lock file used by Docker and local install docs.
 - Add a dependency audit command path for npm, pip, and pub.
 - Add Dependabot configuration for `npm`, `pip`, `pub`, `github-actions`, and `docker` ecosystems.
-- Pin or document the Node/npm package manager used by `tubeflow_site`.
+- Pin or document the Node/npm package manager used by `replayglowz_site`.
 - Pin the Flutter SDK channel/version used by Vercel and Android GitHub Actions so app deploys are not bound to a moving `stable`.
 - Review likely unused Flutter dependencies and remove them only after import/usage verification and `flutter analyze` succeeds.
 - Update README/AGENT/docs that describe install, dependency update, scan, or deploy commands.
@@ -129,9 +129,9 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 # Constraints
 
 - Preserve the repository guidance in `AGENT.md`: subproject contracts are source evidence, Astro runtime content frontmatter must not receive ShipFlow metadata, and unrelated dirty files must not be touched.
-- Preserve `tubeflow_app` boundaries: backend schema/functions stay out of this repo, Convex transport remains in `lib/convex/`, and build-time values stay `String.fromEnvironment(...)` backed.
-- Preserve `tubeflow_site` SEO behavior: canonical URLs, `hreflang`, Open Graph tags, JSON-LD, and content collection schema must remain valid.
-- Preserve `tubeflow_lab` worker contract: `POST /transcribe` returns `entries`, `fullText`, `estimatedCostUsd`, and `warnings`; `youtube_captions` remains out of worker scope.
+- Preserve `replayglowz_app` boundaries: backend schema/functions stay out of this repo, Convex transport remains in `lib/convex/`, and build-time values stay `String.fromEnvironment(...)` backed.
+- Preserve `replayglowz_site` SEO behavior: canonical URLs, `hreflang`, Open Graph tags, JSON-LD, and content collection schema must remain valid.
+- Preserve `replayglowz_lab` worker contract: `POST /transcribe` returns `entries`, `fullText`, `estimatedCostUsd`, and `warnings`; `youtube_captions` remains out of worker scope.
 - Do not weaken security controls, scanner visibility, lockfile integrity, or review gates.
 - No major dependency upgrades without an explicit `/sf-migrate` lane.
 - Python full transitive vulnerability proof requires a lock or a virtualenv-capable environment; direct `pip-audit --no-deps --disable-pip` is not enough to close the proof gap.
@@ -142,9 +142,9 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 - Local Flutter/Dart: Flutter `3.41.7`, Dart `3.11.5`.
 - Local Python: Python `3.12.3`; Docker worker image is aligned to `python:3.12-slim`.
 - Local scanner: `pip-audit 2.10.0`.
-- `tubeflow_site`: npm, Astro 6, Tailwind CSS 4, `package-lock.json`.
-- `tubeflow_lab`: FastAPI, Uvicorn, Requests, yt-dlp, faster-whisper, OpenAI Python SDK, FunASR, Docker.
-- `tubeflow_app`: Flutter, Dart pub, Clerk beta packages, Convex, Riverpod, GoRouter.
+- `replayglowz_site`: npm, Astro 6, Tailwind CSS 4, `package-lock.json`.
+- `replayglowz_lab`: FastAPI, Uvicorn, Requests, yt-dlp, faster-whisper, OpenAI Python SDK, FunASR, Docker.
+- `replayglowz_app`: Flutter, Dart pub, Clerk beta packages, Convex, Riverpod, GoRouter.
 - Fresh external docs checked:
   - GitHub Advisory Database for Astro GHSA-j687-52p2-xcff: affected `<6.1.6`, patched `6.1.6`, moderate CWE-79 XSS.
   - GitHub Advisory Database for PostCSS GHSA-qx2v-qp2m-jg93: affected `<8.5.10`, patched `8.5.10`, moderate XSS.
@@ -165,26 +165,26 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 
 # Links & Consequences
 
-- `tubeflow_site/package.json` and `tubeflow_site/package-lock.json`: patch Astro/PostCSS and add package manager metadata.
-- `tubeflow_site/README.md` and `tubeflow_site/CLAUDE.md`: align install commands to `npm ci` when lockfile-based installs are expected, plus audit/update commands.
-- `tubeflow_lab/requirements.txt`: either becomes generated lock output or remains direct pins only if a separate lock file is introduced and Docker uses it.
-- `tubeflow_lab/requirements.in`: direct worker dependencies source if pip-tools is adopted.
-- `tubeflow_lab/requirements.lock` or generated `requirements.txt`: transitive hash-checked lock consumed by Docker and CI.
-- `tubeflow_lab/Dockerfile`: install from the locked/hash-checked file and keep `ffmpeg` install behavior.
-- `tubeflow_lab/README.md`: update local, Docker, and PM2 setup commands for the lock/audit strategy.
-- `tubeflow_app/pubspec.yaml` and `tubeflow_app/pubspec.lock`: remove unused deps only after verification, and keep direct/runtime deps correctly placed.
-- `tubeflow_app/vercel.json`: replace `git clone -b stable` with a pinned Flutter SDK strategy or an explicit documented stable version source.
-- `tubeflow_app/.github/workflows/android-apk.yml`: pin Flutter action input beyond floating `stable` when feasible.
+- `replayglowz_site/package.json` and `replayglowz_site/package-lock.json`: patch Astro/PostCSS and add package manager metadata.
+- `replayglowz_site/README.md` and `replayglowz_site/CLAUDE.md`: align install commands to `npm ci` when lockfile-based installs are expected, plus audit/update commands.
+- `replayglowz_lab/requirements.txt`: either becomes generated lock output or remains direct pins only if a separate lock file is introduced and Docker uses it.
+- `replayglowz_lab/requirements.in`: direct worker dependencies source if pip-tools is adopted.
+- `replayglowz_lab/requirements.lock` or generated `requirements.txt`: transitive hash-checked lock consumed by Docker and CI.
+- `replayglowz_lab/Dockerfile`: install from the locked/hash-checked file and keep `ffmpeg` install behavior.
+- `replayglowz_lab/README.md`: update local, Docker, and PM2 setup commands for the lock/audit strategy.
+- `replayglowz_app/pubspec.yaml` and `replayglowz_app/pubspec.lock`: remove unused deps only after verification, and keep direct/runtime deps correctly placed.
+- `replayglowz_app/vercel.json`: replace `git clone -b stable` with a pinned Flutter SDK strategy or an explicit documented stable version source.
+- `replayglowz_app/.github/workflows/android-apk.yml`: pin Flutter action input beyond floating `stable` when feasible.
 - `.github/dependabot.yml`: new root automation config with multiple directory entries.
 - Root `README.md`, `AGENT.md`, `shipflow_data/workflow/TASKS.md`: docs only if implementation changes command expectations; `sf-spec` itself does not update tasks.
 - Downstream product consequences: fewer public XSS exposures on the marketing site, lower worker supply-chain drift, more predictable Flutter web/app builds, and less manual security monitoring.
 
 # Documentation Coherence
 
-- Update `tubeflow_site/README.md` if the preferred install command becomes `npm ci` and if dependency scanning commands are added.
-- Update `tubeflow_lab/README.md` wherever it currently says `pip install -r requirements.txt`; it must name the authoritative locked install file and how to regenerate it.
-- Update `tubeflow_lab/AGENT.md` only if the source-of-truth dependency file changes from `requirements.txt` to `requirements.in` plus lock.
-- Update `tubeflow_app/README.md`, `tubeflow_app/AGENT.md`, or `tubeflow_app/CLAUDE.md` only if Flutter SDK pinning changes local/deploy commands.
+- Update `replayglowz_site/README.md` if the preferred install command becomes `npm ci` and if dependency scanning commands are added.
+- Update `replayglowz_lab/README.md` wherever it currently says `pip install -r requirements.txt`; it must name the authoritative locked install file and how to regenerate it.
+- Update `replayglowz_lab/AGENT.md` only if the source-of-truth dependency file changes from `requirements.txt` to `requirements.in` plus lock.
+- Update `replayglowz_app/README.md`, `replayglowz_app/AGENT.md`, or `replayglowz_app/CLAUDE.md` only if Flutter SDK pinning changes local/deploy commands.
 - Update root `README.md` or `AGENT.md` only if monorepo-level dependency maintenance commands are added.
 - Changelog entry is required if the implementation changes dependency versions, Docker install behavior, or CI automation.
 
@@ -203,106 +203,106 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 
 - [x] Task 1: Add dependency automation scaffold
   - File: `.github/dependabot.yml`
-  - Action: Create Dependabot v2 config covering `npm` in `/tubeflow_site`, `pip` in `/tubeflow_lab`, `pub` in `/tubeflow_app`, `github-actions` in `/`, and `docker` in `/tubeflow_lab`; use weekly or grouped schedules and no automerge.
+  - Action: Create Dependabot v2 config covering `npm` in `/replayglowz_site`, `pip` in `/replayglowz_lab`, `pub` in `/replayglowz_app`, `github-actions` in `/`, and `docker` in `/replayglowz_lab`; use weekly or grouped schedules and no automerge.
   - User story link: Future security fixes are surfaced automatically.
   - Depends on: None.
   - Validate with: `python3 - <<'PY'\nimport yaml\nprint(yaml.safe_load(open('.github/dependabot.yml'))['version'])\nPY` if PyYAML exists, otherwise visually validate YAML plus `git diff --check`.
   - Notes: Use exact supported ecosystem values from GitHub Docs: `npm`, `pip`, `pub`, `github-actions`, `docker`.
 
 - [x] Task 2: Patch Astro/PostCSS advisories within current majors
-  - File: `tubeflow_site/package.json`
+  - File: `replayglowz_site/package.json`
   - Action: Keep Astro on major 6 and Tailwind on major 4; if needed, raise direct ranges so lockfile resolution reaches `astro>=6.1.6` and `postcss>=8.5.10` without forcing unrelated major upgrades.
   - User story link: Public site dependency vulnerabilities are closed.
   - Depends on: Task 1 can be independent, but do this before final validation.
-  - Validate with: `cd tubeflow_site && npm install && npm audit --json && npm run build`.
+  - Validate with: `cd replayglowz_site && npm install && npm audit --json && npm run build`.
   - Notes: If npm proposes a major upgrade, stop and route to `/sf-migrate`.
 
 - [x] Task 3: Commit the site lockfile result
-  - File: `tubeflow_site/package-lock.json`
+  - File: `replayglowz_site/package-lock.json`
   - Action: Update lockfile through npm so resolved `astro` and `postcss` versions are patched and integrity fields remain present.
   - User story link: Clean installs reproduce the patched site.
   - Depends on: Task 2.
-  - Validate with: `cd tubeflow_site && npm ci && npm audit --json && npm run build`.
+  - Validate with: `cd replayglowz_site && npm ci && npm audit --json && npm run build`.
   - Notes: Do not manually edit lockfile internals except through npm.
 
 - [x] Task 4: Add Node/npm package-manager pin for the site
-  - File: `tubeflow_site/package.json`
+  - File: `replayglowz_site/package.json`
   - Action: Add `packageManager` matching the committed lockfile and local npm line, for example `npm@11.14.1`, unless implementation verifies Vercel requires a different supported npm version.
   - User story link: Site installs use a predictable package manager.
   - Depends on: Task 3.
-  - Validate with: `cd tubeflow_site && npm ci && npm run build`.
+  - Validate with: `cd replayglowz_site && npm ci && npm run build`.
   - Notes: Keep `engines.node` compatible with current `>=22.12.0`.
 
 - [x] Task 5: Separate Python direct requirements from generated lock input
-  - File: `tubeflow_lab/requirements.in`
+  - File: `replayglowz_lab/requirements.in`
   - Action: Create a direct dependency source from current top-level worker requirements, with `requests>=2.33.0,<3` and existing top-level pins or compatible constraints for FastAPI, Uvicorn, yt-dlp, faster-whisper, OpenAI, and FunASR.
   - User story link: Worker dependencies become understandable and reproducible.
   - Depends on: None.
-  - Validate with: `cd tubeflow_lab && python3 -m pip install pip-tools && pip-compile --generate-hashes --output-file requirements.lock requirements.in`.
+  - Validate with: `cd replayglowz_lab && python3 -m pip install pip-tools && pip-compile --generate-hashes --output-file requirements.lock requirements.in`.
   - Notes: If local Python cannot install tooling, use the same Python version as Docker or a managed tool environment and document it.
 
 - [x] Task 6: Generate and use Python hash lock
-  - File: `tubeflow_lab/requirements.lock`
+  - File: `replayglowz_lab/requirements.lock`
   - Action: Generate transitive, pinned, hash-checked worker dependencies with pip-tools and include `requests>=2.33.0`.
   - User story link: Docker and audits install what was reviewed.
   - Depends on: Task 5.
-  - Validate with: `cd tubeflow_lab && python3 -m pip install --require-hashes -r requirements.lock` in a disposable environment.
+  - Validate with: `cd replayglowz_lab && python3 -m pip install --require-hashes -r requirements.lock` in a disposable environment.
   - Notes: If package hashes fail for the Docker target, regenerate using the target platform or document why hash mode cannot be adopted and keep a lock file plus explicit proof gap.
 
 - [x] Task 7: Switch worker Docker install to locked dependencies
-  - File: `tubeflow_lab/Dockerfile`
+  - File: `replayglowz_lab/Dockerfile`
   - Action: Copy `requirements.lock` and install with `pip install --no-cache-dir --require-hashes -r requirements.lock`; keep `ffmpeg` install and `server.py` entrypoint unchanged.
   - User story link: Worker image builds reproducibly.
   - Depends on: Task 6.
-  - Validate with: `cd tubeflow_lab && docker build -t tubeflow-transcript-worker-deps-test .` when Docker is available; otherwise run Python import and compile checks locally.
+  - Validate with: `cd replayglowz_lab && docker build -t replayglowz-transcript-worker-deps-test .` when Docker is available; otherwise run Python import and compile checks locally.
   - Notes: If Docker is unavailable, mark Docker build as a proof gap in final verification.
 
 - [x] Task 8: Update worker docs for lock and audit workflow
-  - File: `tubeflow_lab/README.md`
+  - File: `replayglowz_lab/README.md`
   - Action: Replace install snippets that imply direct `requirements.txt` is authoritative; document `requirements.in`, lock regeneration, locked install, `pip-audit` command, and Docker behavior.
   - User story link: Operators can reproduce the audited worker environment.
   - Depends on: Tasks 5-7.
-  - Validate with: `rg -n "requirements\\.(txt|in|lock)|pip-audit|pip-compile" tubeflow_lab/README.md`.
+  - Validate with: `rg -n "requirements\\.(txt|in|lock)|pip-audit|pip-compile" replayglowz_lab/README.md`.
   - Notes: Update `.env.example` only if no dependency-only changes require it; otherwise leave env untouched.
 
 - [x] Task 9: Add or update worker agent guidance if source files change
-  - File: `tubeflow_lab/AGENT.md`
+  - File: `replayglowz_lab/AGENT.md`
   - Action: If implementation introduces `requirements.in` and `requirements.lock`, name their roles in the source-of-truth and safe-change sections.
   - User story link: Future agents do not regress dependency reproducibility.
   - Depends on: Tasks 5-8.
-  - Validate with: `/home/claude/shipflow/tools/shipflow_metadata_lint.py tubeflow_lab/AGENT.md`.
+  - Validate with: `/home/claude/shipflow/tools/shipflow_metadata_lint.py replayglowz_lab/AGENT.md`.
   - Notes: Do not rewrite unrelated agent guidance.
 
 - [x] Task 10: Pin Flutter SDK/deploy toolchain
-  - File: `tubeflow_app/vercel.json`
+  - File: `replayglowz_app/vercel.json`
   - Action: Replace the moving `git clone --depth 1 -b stable` install with a pinned Flutter version, commit SHA, or documented version-management command that installs Flutter `3.41.7` or another explicit chosen version.
   - User story link: App deploys are reproducible.
   - Depends on: None.
-  - Validate with: `cd tubeflow_app && flutter --version && flutter pub get && flutter analyze`.
+  - Validate with: `cd replayglowz_app && flutter --version && flutter pub get && flutter analyze`.
   - Notes: If Vercel cannot support the pinned approach, stop and document the deployment constraint.
 
 - [x] Task 11: Pin Android CI Flutter version
-  - File: `tubeflow_app/.github/workflows/android-apk.yml`
+  - File: `replayglowz_app/.github/workflows/android-apk.yml`
   - Action: Configure `subosito/flutter-action` with an explicit Flutter version or otherwise align it with the Vercel pin; keep Java 17 and existing secrets unchanged.
   - User story link: Android builds match the audited Flutter dependency state.
   - Depends on: Task 10.
-  - Validate with: `cd tubeflow_app && flutter pub get && flutter analyze`; workflow validation by GitHub Actions on branch if available.
+  - Validate with: `cd replayglowz_app && flutter pub get && flutter analyze`; workflow validation by GitHub Actions on branch if available.
   - Notes: Do not change build-time secrets or Convex/Clerk defines.
 
 - [x] Task 12: Verify and clean likely unused Flutter dependencies
-  - File: `tubeflow_app/pubspec.yaml`
+  - File: `replayglowz_app/pubspec.yaml`
   - Action: For each of `flutter_slidable`, `google_fonts`, `riverpod_annotation`, `build_runner`, and `riverpod_generator`, verify imports/generated usage; remove only packages with no runtime, generated, or documented near-term use.
   - User story link: App attack surface and update noise are reduced without breaking features.
   - Depends on: Tasks 10-11 preferred so validation uses pinned Flutter.
-  - Validate with: `cd tubeflow_app && flutter pub get && flutter analyze`.
+  - Validate with: `cd replayglowz_app && flutter pub get && flutter analyze`.
   - Notes: Do not remove packages used by generated Riverpod code if generation is about to be restored under another active chantier.
 
 - [x] Task 13: Update Flutter dependency docs only where commands change
-  - File: `tubeflow_app/README.md`
+  - File: `replayglowz_app/README.md`
   - Action: Document pinned Flutter version and dependency audit commands if implementation changes current install/build expectations.
   - User story link: Maintainers can reproduce app dependency checks.
   - Depends on: Tasks 10-12.
-  - Validate with: `rg -n "Flutter|flutter pub|get|outdated|analyze" tubeflow_app/README.md tubeflow_app/AGENT.md`.
+  - Validate with: `rg -n "Flutter|flutter pub|get|outdated|analyze" replayglowz_app/README.md replayglowz_app/AGENT.md`.
   - Notes: Keep docs concise and avoid hardcoding secrets.
 
 - [x] Task 14: Add monorepo dependency maintenance docs
@@ -318,13 +318,13 @@ Stabilize dependencies in three layers: first patch the known security advisorie
   - Action: Run focused checks for all changed subprojects and record any proof gaps.
   - User story link: Dependency stabilization is proven rather than assumed.
   - Depends on: Tasks 1-14.
-  - Validate with: `cd tubeflow_site && npm audit --json && npm run build`; `cd tubeflow_lab && pip-audit -r requirements.lock --require-hashes -f json && python -m py_compile main.py server.py`; `cd tubeflow_app && flutter pub outdated --json && flutter analyze`; `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`.
+  - Validate with: `cd replayglowz_site && npm audit --json && npm run build`; `cd replayglowz_lab && pip-audit -r requirements.lock --require-hashes -f json && python -m py_compile main.py server.py`; `cd replayglowz_app && flutter pub outdated --json && flutter analyze`; `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`.
   - Notes: If Docker is available, include `docker build` for the worker; if not, list Docker as unverified.
 
 # Acceptance Criteria
 
-- [x] CA 1: Given the current `tubeflow_site` audit findings, when compatible npm updates are applied, then `npm audit --json` no longer reports GHSA-j687-52p2-xcff or GHSA-qx2v-qp2m-jg93.
-- [x] CA 2: Given the updated site lockfile, when `npm ci` and `npm run build` run in `tubeflow_site`, then the production Astro build succeeds.
+- [x] CA 1: Given the current `replayglowz_site` audit findings, when compatible npm updates are applied, then `npm audit --json` no longer reports GHSA-j687-52p2-xcff or GHSA-qx2v-qp2m-jg93.
+- [x] CA 2: Given the updated site lockfile, when `npm ci` and `npm run build` run in `replayglowz_site`, then the production Astro build succeeds.
 - [x] CA 3: Given the worker dependency source, when the Python lock is regenerated, then the locked output includes `requests>=2.33.0` and pinned transitive dependencies.
 - [x] CA 4: Given a clean worker install from the lock file, when `pip-audit` runs against the locked requirements, then it reports no Requests CVE-2026-25645 finding.
 - [ ] CA 5: Given the updated worker Dockerfile, when a worker image is built, then it installs locked dependencies and still starts `server.py` on port `8090`.
@@ -336,14 +336,14 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 
 # Verification Notes
 
-- `npm ci`, `npm audit --json`, and `npm run build` passed in `tubeflow_site`; audit metadata reports zero vulnerabilities.
-- `tubeflow_lab` lock resolves `requests==2.33.1`, `fastapi==0.124.4`, and `starlette==0.50.0`; fallback audit of the disposable locked install reported no known vulnerabilities.
+- `npm ci`, `npm audit --json`, and `npm run build` passed in `replayglowz_site`; audit metadata reports zero vulnerabilities.
+- `replayglowz_lab` lock resolves `requests==2.33.1`, `fastapi==0.124.4`, and `starlette==0.50.0`; fallback audit of the disposable locked install reported no known vulnerabilities.
 - `pip-audit -r requirements.lock` remains host-sensitive because this machine lacks Python `venv`/`ensurepip`; docs now include the `pip-audit --path` fallback used for verification.
-- `python -m py_compile main.py server.py` passed for `tubeflow_lab`.
-- `flutter pub get`, `flutter pub outdated --json`, and `flutter analyze` passed in `tubeflow_app`; `flutter pub outdated` reported no current advisory or retraction flags.
+- `python -m py_compile main.py server.py` passed for `replayglowz_lab`.
+- `flutter pub get`, `flutter pub outdated --json`, and `flutter analyze` passed in `replayglowz_app`; `flutter pub outdated` reported no current advisory or retraction flags.
 - `git ls-remote --tags https://github.com/flutter/flutter.git refs/tags/3.41.7` confirmed the pinned Flutter tag exists.
 - `.github/dependabot.yml` parsed as YAML and covers `npm`, `pip`, `pub`, `github-actions`, and `docker`.
-- `tubeflow_site/CHANGELOG.md`, `tubeflow_lab/CHANGELOG.md`, and `tubeflow_app/CHANGELOG.md` record the dependency, Docker, and CI changes.
+- `replayglowz_site/CHANGELOG.md`, `replayglowz_lab/CHANGELOG.md`, and `replayglowz_app/CHANGELOG.md` record the dependency, Docker, and CI changes.
 - ShipFlow metadata lint passed for root governance docs, the spec, and changed worker docs.
 - `git diff --check` passed.
 - CA 5 remains a proof gap at image level because `docker` is not installed on this host; Dockerfile now installs `requirements.lock` with `--require-hashes` and uses `python:3.12-slim` to match the generated lock.
@@ -351,19 +351,19 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 # Test Strategy
 
 - Node/site:
-  - `cd tubeflow_site && npm ci`
-  - `cd tubeflow_site && npm audit --json`
-  - `cd tubeflow_site && npm run build`
+  - `cd replayglowz_site && npm ci`
+  - `cd replayglowz_site && npm audit --json`
+  - `cd replayglowz_site && npm run build`
 - Python/worker:
-  - `cd tubeflow_lab && pip-compile --generate-hashes --output-file requirements.lock requirements.in`
-  - `cd tubeflow_lab && python -m pip install --require-hashes -r requirements.lock` in a disposable environment
-  - `cd tubeflow_lab && pip-audit -r requirements.lock --require-hashes -f json`
-  - `cd tubeflow_lab && python -m py_compile main.py server.py`
-  - `cd tubeflow_lab && docker build -t tubeflow-transcript-worker-deps-test .` when Docker is available
+  - `cd replayglowz_lab && pip-compile --generate-hashes --output-file requirements.lock requirements.in`
+  - `cd replayglowz_lab && python -m pip install --require-hashes -r requirements.lock` in a disposable environment
+  - `cd replayglowz_lab && pip-audit -r requirements.lock --require-hashes -f json`
+  - `cd replayglowz_lab && python -m py_compile main.py server.py`
+  - `cd replayglowz_lab && docker build -t replayglowz-transcript-worker-deps-test .` when Docker is available
 - Flutter/app:
-  - `cd tubeflow_app && flutter pub get`
-  - `cd tubeflow_app && flutter pub outdated --json`
-  - `cd tubeflow_app && flutter analyze`
+  - `cd replayglowz_app && flutter pub get`
+  - `cd replayglowz_app && flutter pub outdated --json`
+  - `cd replayglowz_app && flutter analyze`
 - Governance/docs:
   - `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`
   - `git diff --check`
@@ -382,13 +382,13 @@ Stabilize dependencies in three layers: first patch the known security advisorie
 
 - Read first:
   - `AGENT.md`
-  - `tubeflow_site/package.json`
-  - `tubeflow_site/package-lock.json`
-  - `tubeflow_lab/requirements.txt`
-  - `tubeflow_lab/Dockerfile`
-  - `tubeflow_app/vercel.json`
-  - `tubeflow_app/.github/workflows/android-apk.yml`
-  - `tubeflow_app/pubspec.yaml`
+  - `replayglowz_site/package.json`
+  - `replayglowz_site/package-lock.json`
+  - `replayglowz_lab/requirements.txt`
+  - `replayglowz_lab/Dockerfile`
+  - `replayglowz_app/vercel.json`
+  - `replayglowz_app/.github/workflows/android-apk.yml`
+  - `replayglowz_app/pubspec.yaml`
 - Implementation order:
   1. Add automation config.
   2. Patch npm advisories and verify site.
@@ -398,11 +398,11 @@ Stabilize dependencies in three layers: first patch the known security advisorie
   6. Update docs.
   7. Run final cross-project checks.
 - Packages allowed:
-  - Use npm for `tubeflow_site` because `package-lock.json` is committed.
+  - Use npm for `replayglowz_site` because `package-lock.json` is committed.
   - Use pip-tools for Python lock generation unless implementation proves another already-supported project tool exists.
   - Use Dependabot for first-pass automation because GitHub Docs list all required ecosystems for this repo.
 - Packages or moves to avoid:
-  - Do not introduce pnpm/yarn to `tubeflow_site`.
+  - Do not introduce pnpm/yarn to `replayglowz_site`.
   - Do not switch the worker to Poetry/uv as part of this chantier unless pip-tools is blocked and the decision is documented.
   - Do not move app dependencies across Flutter packages without import proof.
   - Do not edit Astro content frontmatter.
@@ -425,35 +425,35 @@ These batches authorize spec-gated parallelism only after `sf-ready` marks this 
 
 ## Batch A: Site Dependencies
 
-- Write ownership: `tubeflow_site/package.json`, `tubeflow_site/package-lock.json`, `tubeflow_site/README.md`, and site-local dependency notes only.
-- Forbidden files: `tubeflow_app/**`, `tubeflow_lab/**`, root `README.md`, `.github/**`, `bugs/**`, and `specs/**`.
+- Write ownership: `replayglowz_site/package.json`, `replayglowz_site/package-lock.json`, `replayglowz_site/README.md`, and site-local dependency notes only.
+- Forbidden files: `replayglowz_app/**`, `replayglowz_lab/**`, root `README.md`, `.github/**`, `bugs/**`, and `specs/**`.
 - Tasks covered: Tasks 2, 3, 4, and the site portion of Task 14 only as notes for the integrator.
 - Dependency order: Can run after readiness; independent from B and C.
-- Per-batch validation: `(cd tubeflow_site && npm ci)`, `(cd tubeflow_site && npm audit --json)`, `(cd tubeflow_site && npm run build)`, and `git diff --check -- tubeflow_site`.
+- Per-batch validation: `(cd replayglowz_site && npm ci)`, `(cd replayglowz_site && npm audit --json)`, `(cd replayglowz_site && npm run build)`, and `git diff --check -- replayglowz_site`.
 - Integration owner: `sf-build` integrator.
 
 ## Batch B: Worker Python Locking
 
-- Write ownership: `tubeflow_lab/requirements.txt`, `tubeflow_lab/requirements.in`, `tubeflow_lab/requirements.lock`, `tubeflow_lab/Dockerfile`, `tubeflow_lab/README.md`, and `tubeflow_lab/AGENT.md`.
-- Forbidden files: `tubeflow_app/**`, `tubeflow_site/**`, root `README.md`, `.github/**`, `bugs/**`, and `specs/**`.
+- Write ownership: `replayglowz_lab/requirements.txt`, `replayglowz_lab/requirements.in`, `replayglowz_lab/requirements.lock`, `replayglowz_lab/Dockerfile`, `replayglowz_lab/README.md`, and `replayglowz_lab/AGENT.md`.
+- Forbidden files: `replayglowz_app/**`, `replayglowz_site/**`, root `README.md`, `.github/**`, `bugs/**`, and `specs/**`.
 - Tasks covered: Tasks 5, 6, 7, 8, and 9.
 - Dependency order: Can run after readiness; independent from A and C.
-- Per-batch validation: `(cd tubeflow_lab && python -m py_compile main.py server.py)`, a disposable locked install when feasible, `pip-audit -r requirements.lock -f json` or documented audit fallback, optional Docker build when Docker is available, and `git diff --check -- tubeflow_lab`.
+- Per-batch validation: `(cd replayglowz_lab && python -m py_compile main.py server.py)`, a disposable locked install when feasible, `pip-audit -r requirements.lock -f json` or documented audit fallback, optional Docker build when Docker is available, and `git diff --check -- replayglowz_lab`.
 - Integration owner: `sf-build` integrator.
 
 ## Batch C: App Toolchain And Dependency Hygiene
 
-- Write ownership: `tubeflow_app/vercel.json`, `tubeflow_app/.github/workflows/android-apk.yml`, `tubeflow_app/pubspec.yaml`, `tubeflow_app/pubspec.lock`, `tubeflow_app/README.md`, and app-local dependency notes only.
-- Forbidden files: `tubeflow_app/lib/auth/auth_gate.dart`, other unrelated dirty app source files, `tubeflow_site/**`, `tubeflow_lab/**`, root `README.md`, root `.github/**`, `bugs/**`, and `specs/**`.
+- Write ownership: `replayglowz_app/vercel.json`, `replayglowz_app/.github/workflows/android-apk.yml`, `replayglowz_app/pubspec.yaml`, `replayglowz_app/pubspec.lock`, `replayglowz_app/README.md`, and app-local dependency notes only.
+- Forbidden files: `replayglowz_app/lib/auth/auth_gate.dart`, other unrelated dirty app source files, `replayglowz_site/**`, `replayglowz_lab/**`, root `README.md`, root `.github/**`, `bugs/**`, and `specs/**`.
 - Tasks covered: Tasks 10, 11, 12, and 13.
 - Dependency order: Can run after readiness; independent from A and B.
-- Per-batch validation: import/usage search for candidate dependency removals, `(cd tubeflow_app && flutter pub get)`, `(cd tubeflow_app && flutter pub outdated --json)`, `(cd tubeflow_app && flutter analyze)`, and `git diff --check -- tubeflow_app`.
+- Per-batch validation: import/usage search for candidate dependency removals, `(cd replayglowz_app && flutter pub get)`, `(cd replayglowz_app && flutter pub outdated --json)`, `(cd replayglowz_app && flutter analyze)`, and `git diff --check -- replayglowz_app`.
 - Integration owner: `sf-build` integrator.
 
 ## Batch D: Automation, Shared Docs, And Final Integration
 
 - Write ownership: `.github/dependabot.yml`, root `README.md`, `shipflow_data/workflow/specs/tubeflow-dependency-stabilization.md`, and final integration notes only.
-- Forbidden files: `bugs/**`, `tubeflow_app/lib/auth/auth_gate.dart`, and any subproject files already owned by active Batch A, B, or C workers.
+- Forbidden files: `bugs/**`, `replayglowz_app/lib/auth/auth_gate.dart`, and any subproject files already owned by active Batch A, B, or C workers.
 - Tasks covered: Task 1, Task 14, Task 15, status/checklist updates, and final docs coherence.
 - Dependency order: Start after A, B, and C have returned, unless only `.github/dependabot.yml` is edited before the wave with no overlap.
 - Per-batch validation: YAML parse for `.github/dependabot.yml` when PyYAML is available, ShipFlow metadata lint, full targeted cross-project checks from Task 15, and `git diff --check`.
@@ -472,10 +472,10 @@ None.
 | 2026-05-10 21:39:16 UTC | sf-start | GPT-5.5 medium subagents + GPT-5 Codex | Implemented dependency patches, automation, toolchain pins, Python hash lock, changelogs, and docs through safe batches A-D. | Implemented with Docker proof gap. | /sf-verify TubeFlow dependency stabilization |
 | 2026-05-10 21:39:16 UTC | sf-verify | GPT-5 Codex | Ran site, worker, app, metadata, YAML, audit, and diff validations against the spec. | Partial: local checks pass; Docker image build unavailable. | /sf-ship TubeFlow dependency stabilization --bounded-scope |
 | 2026-05-10 21:39:16 UTC | sf-build | GPT-5 Codex | Orchestrated readiness, spec-gated parallel implementation, integration, changelogs, and final local verification. | Partial: ship blocked by Docker proof gap and unrelated dirty files. | Confirm bounded ship scope or run Docker build where available. |
-| 2026-05-11 13:57:33 UTC | sf-deps | GPT-5 Codex | Re-audited `tubeflow_app` Pub graph with Flutter 3.41.7 / Dart 3.11.5, OSV batch query, license pass, import usage checks, and `flutter analyze`. | B-: no advisories; medium follow-ups remain for Clerk beta patch, unused codegen deps, and Sentry/lints major lanes. | Decide whether to patch Clerk beta and remove unused codegen packages in a bounded app dependency pass. |
+| 2026-05-11 13:57:33 UTC | sf-deps | GPT-5 Codex | Re-audited `replayglowz_app` Pub graph with Flutter 3.41.7 / Dart 3.11.5, OSV batch query, license pass, import usage checks, and `flutter analyze`. | B-: no advisories; medium follow-ups remain for Clerk beta patch, unused codegen deps, and Sentry/lints major lanes. | Decide whether to patch Clerk beta and remove unused codegen packages in a bounded app dependency pass. |
 | 2026-05-11 14:20:00 UTC | direct deps pass | GPT-5 Codex | Removed beta Clerk Flutter SDKs, disabled sign-in with no-op auth facade, removed unused codegen deps, upgraded direct non-beta deps, fixed new lints, and regenerated plugin registrants. | A-: direct deps current; no beta packages in lock/package config; `flutter analyze` and `flutter build web` pass. | Choose a stable auth provider before restoring protected app flows. |
-| 2026-05-13 08:47:57 UTC | sf-ship | GPT-5 Codex | Shipped stable Firebase Auth replacement for the beta-Clerk removal follow-up, Vercel Firebase envs, and Convex Firebase auth config. | Shipped with hosted auth/OAuth validation pending. | /sf-prod tubeflow_app |
-| 2026-05-14 10:59:44 UTC | sf-prod | GPT-5 Codex | Checked Vercel production deployment for commit `09c3749`, live app assets, OAuth start handler, runtime logs, and Convex prod deploy readiness. | Partial: Vercel ready and app envs baked; Convex prod deploy dry-run still reports missing `FIREBASE_PROJECT_ID` for auth config. | Set/verify `FIREBASE_PROJECT_ID` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then run `/sf-prod tubeflow_app` again. |
+| 2026-05-13 08:47:57 UTC | sf-ship | GPT-5 Codex | Shipped stable Firebase Auth replacement for the beta-Clerk removal follow-up, Vercel Firebase envs, and Convex Firebase auth config. | Shipped with hosted auth/OAuth validation pending. | /sf-prod replayglowz_app |
+| 2026-05-14 10:59:44 UTC | sf-prod | GPT-5 Codex | Checked Vercel production deployment for commit `09c3749`, live app assets, OAuth start handler, runtime logs, and Convex prod deploy readiness. | Partial: Vercel ready and app envs baked; Convex prod deploy dry-run still reports missing `FIREBASE_PROJECT_ID` for auth config. | Set/verify `FIREBASE_PROJECT_ID` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then run `/sf-prod replayglowz_app` again. |
 
 # Current Chantier Flow
 
@@ -489,4 +489,4 @@ None.
 | sf-ship | shipped | Stable Firebase Auth replacement shipped with deployed auth/OAuth validation pending behind `/sf-prod`. |
 | sf-prod | partial | Vercel production deployment is ready and static/API surface responds; Convex prod deploy readiness is blocked by `FIREBASE_PROJECT_ID` not being accepted during deploy dry-run. |
 
-Next command: set/verify `FIREBASE_PROJECT_ID=winflowz-dev` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then `/sf-prod tubeflow_app`
+Next command: set/verify `FIREBASE_PROJECT_ID=winflowz-dev` on Convex prod deployment `joyous-chipmunk-990`, deploy Convex, then `/sf-prod replayglowz_app`

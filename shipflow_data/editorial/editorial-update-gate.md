@@ -20,7 +20,7 @@ content_surfaces:
 claim_register: "shipflow_data/editorial/claim-register.md"
 page_intent: "shipflow_data/editorial/page-intent-map.md"
 linked_systems:
-  - "tubeflow_site/src/pages"
+  - "replayglowz_site/src/pages"
 depends_on:
   - "shipflow_data/editorial/claim-register.md"
   - "shipflow_data/editorial/page-intent-map.md"

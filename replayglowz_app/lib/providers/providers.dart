@@ -1,0 +1,977 @@
+import 'dart:convert';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:replayglowz_app/auth/auth_state.dart';
+import 'package:replayglowz_app/auth/auth_service.dart';
+import 'package:replayglowz_app/convex/convex_client.dart';
+import 'package:replayglowz_app/convex/convex_errors.dart';
+import 'package:replayglowz_app/convex/convex_provider.dart';
+import 'package:replayglowz_app/models/models.dart';
+import 'package:replayglowz_app/utils/app_logger.dart';
+
+// =============================================================================
+// Typed Convex providers for the ReplayGlowz app.
+//
+// Each provider maps a Convex function path to a strongly-typed Dart model.
+//
+// * StreamProvider  — backed by ConvexService.subscribe (real-time).
+// * FutureProvider  — backed by ConvexService.query   (one-shot).
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Decodes a raw Convex response (JSON string or pre-decoded value) into a
+/// [List<Map<String, dynamic>>].
+///
+/// Returns an empty list when the response is `null` or `"null"`.
+List<Map<String, dynamic>> _decodeList(dynamic raw) {
+  if (raw == null) return [];
+  List<dynamic> list;
+  if (raw is String) {
+    if (raw == 'null' || raw.isEmpty) return [];
+    list = jsonDecode(raw) as List<dynamic>;
+  } else if (raw is List) {
+    list = raw;
+  } else {
+    return [];
+  }
+  return list.whereType<Map<String, dynamic>>().toList(growable: false);
+}
+
+/// Decodes a raw Convex response into a single [Map<String, dynamic>], or
+/// `null` if the response is empty / null.
+Map<String, dynamic>? _decodeMap(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is Map<String, dynamic>) return raw;
+  if (raw is String) {
+    if (raw == 'null' || raw.isEmpty) return null;
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) return decoded;
+    return null;
+  }
+  return null;
+}
+
+Map<String, dynamic>? _normalizeTranscriptMap(Map<String, dynamic>? raw) {
+  if (raw == null) return null;
+
+  final entriesRaw = raw['entries'];
+  final entries = <Map<String, dynamic>>[];
+  if (entriesRaw is List) {
+    for (final item in entriesRaw) {
+      if (item is! Map) continue;
+      final start = (item['start'] as num?)?.toDouble();
+      final duration = (item['duration'] as num?)?.toDouble();
+      final text = item['text']?.toString() ?? '';
+      if (start == null || duration == null || text.trim().isEmpty) {
+        continue;
+      }
+      entries.add(<String, dynamic>{
+        'start': start,
+        'duration': duration,
+        'text': text.trim(),
+        if (item['speaker'] != null) 'speaker': item['speaker'].toString(),
+      });
+    }
+  }
+
+  return <String, dynamic>{...raw, 'entries': entries};
+}
+
+Map<String, dynamic> _normalizeSettingsMap(
+  Map<String, dynamic>? raw,
+  AuthUser user,
+) {
+  final json = <String, dynamic>{...?raw};
+  json['_id'] ??= 'settings:${user.id}';
+  json['userId'] ??= user.id;
+  json['theme'] ??= 'system';
+  json['language'] ??= 'en';
+  json['notifications'] ??= <String, dynamic>{
+    'email': true,
+    'push': true,
+    'newComments': true,
+    'newLikes': false,
+    'newVideos': true,
+    'feedRefreshIntervalMinutes': 60,
+  };
+  json['playback'] ??= <String, dynamic>{
+    'autoplay': true,
+    'defaultQuality': 'auto',
+    'defaultSpeed': 1,
+    'mobileControlsPosition': 'bottom',
+    'captionsEnabled': false,
+    'autoMarkWatchedThreshold': 0.9,
+  };
+  json['notes'] ??= <String, dynamic>{
+    'defaultTimestamped': true,
+    'sortOrder': 'asc',
+  };
+  json['channelSync'] ??= <String, dynamic>{
+    'autoSyncOnVisit': false,
+    'syncIntervalMinutes': 0,
+  };
+  json['transcripts'] ??= <String, dynamic>{
+    'defaultLanguage': 'en',
+    'autoAttemptYoutubeCaptions': true,
+    'autoAttemptLocalFallback': true,
+    'sortBy': 'recommended',
+  };
+  return json;
+}
+
+Map<String, dynamic> _normalizeSubscriptionMap(
+  Map<String, dynamic>? raw,
+  AuthUser user,
+) {
+  final json = <String, dynamic>{...?raw};
+  json['_id'] ??= 'subscription:${user.id}';
+  json['userId'] ??= user.id;
+  json['plan'] ??= 'free';
+  json['status'] ??= 'active';
+  json['features'] ??= <String, dynamic>{
+    'maxVideos': 10,
+    'maxNotesPerVideo': 50,
+    'maxPlaylists': 3,
+    'aiSummaries': false,
+    'exportNotes': false,
+  };
+  json['cancelAtPeriodEnd'] ??= false;
+  json['createdAt'] ??= 0;
+  json['updatedAt'] ??= 0;
+  return json;
+}
+
+class PreferencesData {
+  const PreferencesData({
+    required this.settings,
+    required this.subscription,
+    required this.user,
+  });
+
+  final UserSettings settings;
+  final UserSubscription subscription;
+  final ReplayGlowzUser? user;
+}
+
+ReplayGlowzUser _fallbackUserFromAuth(AuthUser user) {
+  return ReplayGlowzUser(
+    id: 'user:${user.id}',
+    clerkId: user.id,
+    email: user.email,
+    name: user.displayName,
+    avatarUrl: user.imageUrl,
+    youtubeConnected: false,
+    createdAt: 0,
+    updatedAt: 0,
+  );
+}
+
+Future<dynamic> _queryWithTimeout(
+  ConvexService service,
+  String path,
+  Map<String, dynamic> args,
+) async {
+  return service.query<dynamic>(path, args).timeout(const Duration(seconds: 8));
+}
+
+Future<dynamic> _mutateWithTimeout(
+  ConvexService service,
+  String path,
+  Map<String, dynamic> args,
+) async {
+  return service
+      .mutate<dynamic>(path, args)
+      .timeout(const Duration(seconds: 8));
+}
+
+PreferencesData _localPreferencesData(AuthUser user) {
+  return PreferencesData(
+    settings: UserSettings.fromJson(_normalizeSettingsMap(null, user)),
+    subscription: UserSubscription.fromJson(
+      _normalizeSubscriptionMap(null, user),
+    ),
+    user: _fallbackUserFromAuth(user),
+  );
+}
+
+Future<bool> _waitForConvexAuthReady(
+  Ref ref, {
+  required String consumer,
+}) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return false;
+  }
+
+  final auth = ref.read(authServiceProvider);
+  final ready = await auth.waitForConvexTokenReady();
+  if (!ready) {
+    AppLogger.instance.log(
+      '[convex_auth_not_ready] $consumer is using local fallbacks until '
+      'Convex auth is ready for ${authState.user.id}',
+      source: 'ConvexAuth',
+      level: LogLevel.warning,
+    );
+  }
+  return ready;
+}
+
+void _logFunctionMissing(
+  String path, {
+  required String consumer,
+  String? fallback,
+}) {
+  final suffix = fallback == null ? '' : '; $fallback';
+  AppLogger.instance.log(
+    "[function_missing] $consumer could not call '$path'$suffix",
+    source: 'ConvexContract',
+    level: LogLevel.warning,
+  );
+}
+
+void _logUnauthorizedFallback(
+  String consumer, {
+  required Object error,
+  StackTrace? stackTrace,
+  String? fallback,
+}) {
+  final suffix = fallback == null ? '' : '; $fallback';
+  AppLogger.instance.log(
+    '[convex_unauthorized] $consumer received an unauthenticated Convex '
+    'response$suffix',
+    source: 'ConvexAuth',
+    level: LogLevel.warning,
+    error: error,
+    stackTrace: stackTrace,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 1. videosProvider
+// ---------------------------------------------------------------------------
+
+/// Arguments for [videosProvider].
+class VideosArgs {
+  const VideosArgs({this.sortOrder = 'newest', this.includeWatched = true});
+
+  final String sortOrder;
+  final bool includeWatched;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideosArgs &&
+          sortOrder == other.sortOrder &&
+          includeWatched == other.includeWatched;
+
+  @override
+  int get hashCode => Object.hash(sortOrder, includeWatched);
+}
+
+/// Subscribes to `youtube:getAllVideos` and emits a typed
+/// `List<YouTubeVideo>` on every server-side change.
+final videosProvider = StreamProvider.family<List<YouTubeVideo>, VideosArgs>((
+  ref,
+  args,
+) async* {
+  final service = ref.watch(convexServiceProvider);
+  if (!await _waitForConvexAuthReady(ref, consumer: 'videosProvider')) {
+    yield const <YouTubeVideo>[];
+    return;
+  }
+
+  yield* service
+      .subscribe<dynamic>('youtube:getAllVideos', {
+        'sortOrder': args.sortOrder,
+        'includeWatched': args.includeWatched,
+      })
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => YouTubeVideo.fromJson(json)).toList(growable: false),
+      );
+});
+
+// ---------------------------------------------------------------------------
+// 2. playlistsProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `youtube:getYoutubePlaylists` — real-time playlist list.
+final playlistsProvider = StreamProvider<List<YouTubePlaylist>>((ref) async* {
+  final service = ref.watch(convexServiceProvider);
+  if (!await _waitForConvexAuthReady(ref, consumer: 'playlistsProvider')) {
+    yield const <YouTubePlaylist>[];
+    return;
+  }
+
+  yield* service
+      .subscribe<dynamic>('youtube:getYoutubePlaylists', {})
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => YouTubePlaylist.fromJson(json)).toList(growable: false),
+      );
+});
+
+// ---------------------------------------------------------------------------
+// 3. notesProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notes:getNotes` — all notes for the current user.
+final notesProvider = StreamProvider<List<Note>>((ref) async* {
+  final service = ref.watch(convexServiceProvider);
+  if (!await _waitForConvexAuthReady(ref, consumer: 'notesProvider')) {
+    yield const <Note>[];
+    return;
+  }
+
+  yield* service
+      .subscribe<dynamic>('notes:getNotes', {})
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => Note.fromJson(json)).toList(growable: false),
+      );
+});
+
+// ---------------------------------------------------------------------------
+// 4. settingsProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `settings:getSettings` — current user's settings.
+///
+/// Emits `null` when no settings document exists yet (new user).
+final settingsProvider = StreamProvider<UserSettings?>((ref) {
+  final service = ref.watch(convexServiceProvider);
+  return service.subscribe<dynamic>('settings:getSettings', {}).map((raw) {
+    final json = _decodeMap(raw);
+    return json != null ? UserSettings.fromJson(json) : null;
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5. subscriptionProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `subscriptions:getSubscription` — user's billing subscription.
+///
+/// Emits `null` when no subscription document exists (defaults to free).
+final subscriptionProvider = StreamProvider<UserSubscription?>((ref) {
+  final service = ref.watch(convexServiceProvider);
+  return service.subscribe<dynamic>('subscriptions:getSubscription', {}).map((
+    raw,
+  ) {
+    final json = _decodeMap(raw);
+    return json != null ? UserSubscription.fromJson(json) : null;
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 6. currentUserProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `users:getCurrentUser` — the currently authenticated user.
+///
+/// Emits `null` when the user is not authenticated.
+final currentUserProvider = StreamProvider<ReplayGlowzUser?>((ref) {
+  final service = ref.watch(convexServiceProvider);
+  return service.subscribe<dynamic>('users:getCurrentUser', {}).map((raw) {
+    final json = _decodeMap(raw);
+    return json != null ? ReplayGlowzUser.fromJson(json) : null;
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. youtubeConnectionProvider
+// ---------------------------------------------------------------------------
+
+/// One-shot query for `youtube:getYoutubeConnectionStatus`.
+///
+/// This intentionally uses [ConvexService.query] instead of a websocket
+/// subscription because the web app already has a more reliable HTTP path for
+/// one-shot reads than for auth-sensitive realtime subscriptions.
+final youtubeConnectionProvider = FutureProvider<Map<String, dynamic>?>((
+  ref,
+) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return <String, dynamic>{
+      'hasTokens': false,
+      'connected': false,
+      'authReady': false,
+    };
+  }
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'youtubeConnectionProvider',
+  )) {
+    return <String, dynamic>{
+      'hasTokens': false,
+      'connected': false,
+      'authReady': false,
+    };
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>(
+    'youtube:getYoutubeConnectionStatus',
+    {},
+  );
+  final status = _decodeMap(raw);
+  if (status == null) return null;
+
+  final hasTokens = status['hasTokens'] == true;
+  final connected = status['connected'] == true || hasTokens;
+
+  return <String, dynamic>{
+    ...status,
+    'hasTokens': hasTokens,
+    'connected': connected,
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Preferences data provider
+// ---------------------------------------------------------------------------
+
+/// Loads the Preferences screen data in a robust, one-shot flow:
+/// 1. ensure the Convex user exists
+/// 2. fetch settings, subscription, and current user
+///
+/// This intentionally uses queries instead of subscriptions to avoid the
+/// "infinite shimmer" case when a real-time subscription is established before
+/// Convex auth is fully ready.
+final preferencesDataProvider = FutureProvider<PreferencesData?>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return null;
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  final authUser = authState.user;
+
+  AppLogger.instance.log(
+    'preferencesDataProvider start for ${authUser.id}',
+    source: 'PreferencesData',
+  );
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'preferencesDataProvider',
+  )) {
+    return _localPreferencesData(authUser);
+  }
+
+  try {
+    await _mutateWithTimeout(service, 'users:ensureUser', {
+      'email': authUser.email,
+      if (authUser.displayName != null) 'name': authUser.displayName,
+      if (authUser.imageUrl != null) 'avatarUrl': authUser.imageUrl,
+    });
+    AppLogger.instance.log(
+      'users:ensureUser succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'users:ensureUser failed; falling back to local defaults',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  dynamic settingsRaw;
+  dynamic subscriptionRaw;
+  dynamic currentUserRaw;
+
+  try {
+    settingsRaw = await _queryWithTimeout(service, 'settings:getSettings', {});
+    AppLogger.instance.log(
+      'settings:getSettings succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'settings:getSettings failed; using defaults',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  try {
+    subscriptionRaw = await _queryWithTimeout(
+      service,
+      'subscriptions:getSubscription',
+      {},
+    );
+    AppLogger.instance.log(
+      'subscriptions:getSubscription succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'subscriptions:getSubscription failed; using free plan fallback',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  try {
+    currentUserRaw = await _queryWithTimeout(
+      service,
+      'users:getCurrentUser',
+      {},
+    );
+    AppLogger.instance.log(
+      'users:getCurrentUser succeeded',
+      source: 'PreferencesData',
+    );
+  } catch (e, st) {
+    AppLogger.instance.log(
+      'users:getCurrentUser failed; using auth fallback user',
+      source: 'PreferencesData',
+      level: LogLevel.warning,
+      error: e,
+      stackTrace: st,
+    );
+  }
+
+  final settings = UserSettings.fromJson(
+    _normalizeSettingsMap(_decodeMap(settingsRaw), authUser),
+  );
+  final subscription = UserSubscription.fromJson(
+    _normalizeSubscriptionMap(_decodeMap(subscriptionRaw), authUser),
+  );
+  final userJson = _decodeMap(currentUserRaw);
+  final user = userJson != null
+      ? ReplayGlowzUser.fromJson(userJson)
+      : _fallbackUserFromAuth(authUser);
+
+  return PreferencesData(
+    settings: settings,
+    subscription: subscription,
+    user: user,
+  );
+});
+
+class FeedbackAdminListArgs {
+  const FeedbackAdminListArgs({this.status, this.type});
+
+  final FeedbackEntryStatus? status;
+  final FeedbackEntryType? type;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FeedbackAdminListArgs &&
+          status == other.status &&
+          type == other.type;
+
+  @override
+  int get hashCode => Object.hash(status, type);
+}
+
+class TranscriptArgs {
+  const TranscriptArgs({required this.youtubeVideoId, this.language = 'en'});
+
+  final String youtubeVideoId;
+  final String language;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TranscriptArgs &&
+          youtubeVideoId == other.youtubeVideoId &&
+          language == other.language;
+
+  @override
+  int get hashCode => Object.hash(youtubeVideoId, language);
+}
+
+/// One-shot query for `feedback:isAdmin`.
+final feedbackIsAdminProvider = FutureProvider<bool>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return false;
+  }
+
+  if (!await _waitForConvexAuthReady(
+    ref,
+    consumer: 'feedbackIsAdminProvider',
+  )) {
+    return false;
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  try {
+    final raw = await service.query<dynamic>('feedback:isAdmin', {});
+    return raw == true;
+  } catch (e, st) {
+    if (isMissingPublicConvexFunctionError(e, path: 'feedback:isAdmin')) {
+      _logFunctionMissing(
+        'feedback:isAdmin',
+        consumer: 'feedbackIsAdminProvider',
+        fallback: 'returning false',
+      );
+      return false;
+    }
+    if (isConvexUnauthorizedError(e)) {
+      _logUnauthorizedFallback(
+        'feedbackIsAdminProvider',
+        error: e,
+        stackTrace: st,
+        fallback: 'returning false',
+      );
+      return false;
+    }
+    rethrow;
+  }
+});
+
+/// One-shot query for `feedback:listAdmin`.
+final feedbackAdminEntriesProvider =
+    FutureProvider.family<List<FeedbackEntry>, FeedbackAdminListArgs>((
+      ref,
+      args,
+    ) async {
+      if (!await _waitForConvexAuthReady(
+        ref,
+        consumer: 'feedbackAdminEntriesProvider',
+      )) {
+        throw StateError('Feedback admin is not ready yet.');
+      }
+
+      final service = ref.watch(convexServiceProvider);
+      try {
+        final raw = await service.query<dynamic>('feedback:listAdmin', {
+          if (args.status != null) 'status': args.status!.jsonValue,
+          if (args.type != null) 'type': args.type!.name,
+        });
+        return _decodeList(
+          raw,
+        ).map((json) => FeedbackEntry.fromJson(json)).toList(growable: false);
+      } catch (e) {
+        if (isMissingPublicConvexFunctionError(e, path: 'feedback:listAdmin')) {
+          _logFunctionMissing(
+            'feedback:listAdmin',
+            consumer: 'feedbackAdminEntriesProvider',
+          );
+          throw StateError(
+            'Feedback admin is unavailable on the current backend deployment.',
+          );
+        }
+        rethrow;
+      }
+    });
+
+/// One-shot query for the active transcript for a video.
+///
+/// Primary source is `transcripts:getActiveTranscript`. If that function is
+/// missing on the connected backend, this provider falls back to legacy
+/// `youtube:getTranscript`.
+final activeTranscriptProvider =
+    FutureProvider.family<Map<String, dynamic>?, TranscriptArgs>((
+      ref,
+      args,
+    ) async {
+      if (args.youtubeVideoId.trim().isEmpty) {
+        return null;
+      }
+
+      final service = ref.watch(convexServiceProvider);
+
+      Future<Map<String, dynamic>?> queryTranscript(
+        String path,
+        Map<String, dynamic> queryArgs,
+      ) async {
+        final raw = await service.query<dynamic>(path, queryArgs);
+        return _normalizeTranscriptMap(_decodeMap(raw));
+      }
+
+      try {
+        final active = await queryTranscript(
+          'transcripts:getActiveTranscript',
+          {'youtubeVideoId': args.youtubeVideoId, 'language': args.language},
+        );
+        if (active != null) {
+          return active;
+        }
+      } catch (e, st) {
+        if (isMissingPublicConvexFunctionError(
+          e,
+          path: 'transcripts:getActiveTranscript',
+        )) {
+          _logFunctionMissing(
+            'transcripts:getActiveTranscript',
+            consumer: 'activeTranscriptProvider',
+            fallback: 'falling back to youtube:getTranscript',
+          );
+        } else if (isConvexUnauthorizedError(e)) {
+          _logUnauthorizedFallback(
+            'activeTranscriptProvider',
+            error: e,
+            stackTrace: st,
+            fallback: 'returning null',
+          );
+          return null;
+        } else {
+          rethrow;
+        }
+      }
+
+      try {
+        return await queryTranscript('youtube:getTranscript', {
+          'youtubeVideoId': args.youtubeVideoId,
+          'language': args.language,
+        });
+      } catch (e, st) {
+        if (isMissingPublicConvexFunctionError(
+          e,
+          path: 'youtube:getTranscript',
+        )) {
+          _logFunctionMissing(
+            'youtube:getTranscript',
+            consumer: 'activeTranscriptProvider',
+            fallback: 'returning null',
+          );
+          return null;
+        }
+        if (isConvexUnauthorizedError(e)) {
+          _logUnauthorizedFallback(
+            'activeTranscriptProvider',
+            error: e,
+            stackTrace: st,
+            fallback: 'returning null',
+          );
+          return null;
+        }
+        rethrow;
+      }
+    });
+
+// ---------------------------------------------------------------------------
+// 8. hiddenItemsProvider
+// ---------------------------------------------------------------------------
+
+/// One-shot query for `hidden:getHiddenItems`.
+final hiddenItemsProvider = FutureProvider<List<HiddenItem>>((ref) async {
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>('hidden:getHiddenItems', {});
+  return _decodeList(
+    raw,
+  ).map((json) => HiddenItem.fromJson(json)).toList(growable: false);
+});
+
+// ---------------------------------------------------------------------------
+// 9. watchedVideosProvider
+// ---------------------------------------------------------------------------
+
+/// One-shot query for `watched:getWatchedVideos`.
+final watchedVideosProvider = FutureProvider<List<WatchedVideo>>((ref) async {
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>('watched:getWatchedVideos', {});
+  return _decodeList(
+    raw,
+  ).map((json) => WatchedVideo.fromJson(json)).toList(growable: false);
+});
+
+// ---------------------------------------------------------------------------
+// 10. videoProgressProvider(videoId)
+// ---------------------------------------------------------------------------
+
+/// One-shot query for `progress:getProgress` for a single video.
+///
+/// Returns `null` when no progress has been saved for this video.
+final videoProgressProvider = FutureProvider.family<VideoProgress?, String>((
+  ref,
+  videoId,
+) async {
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>('progress:getProgress', {
+    'youtubeVideoId': videoId,
+  });
+  final json = _decodeMap(raw);
+  return json != null ? VideoProgress.fromJson(json) : null;
+});
+
+// ---------------------------------------------------------------------------
+// 11. quotaUsageProvider
+// ---------------------------------------------------------------------------
+
+/// One-shot query for `metrics:getTodayQuotaUsage`.
+///
+/// Returns the raw map which typically includes `{ used: int, limit: int }`.
+final quotaUsageProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final service = ref.watch(convexServiceProvider);
+  final raw = await service.query<dynamic>('metrics:getTodayQuotaUsage', {});
+  return _decodeMap(raw);
+});
+
+// ---------------------------------------------------------------------------
+// 12. playlistVideosProvider(playlistId)
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `youtube:getPlaylistVideos` for a specific playlist.
+final playlistVideosProvider =
+    StreamProvider.family<List<YouTubeVideo>, String>((ref, playlistId) {
+      final service = ref.watch(convexServiceProvider);
+      return service
+          .subscribe<dynamic>('youtube:getPlaylistVideos', {
+            'playlistId': playlistId,
+          })
+          .map(
+            (raw) => _decodeList(raw)
+                .map((json) => YouTubeVideo.fromJson(json))
+                .toList(growable: false),
+          );
+    });
+
+// ---------------------------------------------------------------------------
+// 13. notificationsProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notifications:getNotifications` — current user's notifications.
+final notificationsProvider = StreamProvider<List<AppNotification>>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return Stream.value(const <AppNotification>[]);
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  return () async* {
+    if (!await _waitForConvexAuthReady(
+      ref,
+      consumer: 'notificationsProvider',
+    )) {
+      yield const <AppNotification>[];
+      return;
+    }
+
+    try {
+      yield* service
+          .subscribe<dynamic>('notifications:getNotifications', {})
+          .map(
+            (raw) => _decodeList(raw)
+                .map((json) => AppNotification.fromJson(json))
+                .toList(growable: false),
+          );
+    } catch (e, st) {
+      if (isMissingPublicConvexFunctionError(
+        e,
+        path: 'notifications:getNotifications',
+      )) {
+        _logFunctionMissing(
+          'notifications:getNotifications',
+          consumer: 'notificationsProvider',
+          fallback: 'returning an empty list',
+        );
+        yield const <AppNotification>[];
+        return;
+      }
+      if (isConvexUnauthorizedError(e)) {
+        _logUnauthorizedFallback(
+          'notificationsProvider',
+          error: e,
+          stackTrace: st,
+          fallback: 'returning an empty list',
+        );
+        yield const <AppNotification>[];
+        return;
+      }
+      rethrow;
+    }
+  }();
+});
+
+// ---------------------------------------------------------------------------
+// 14. unreadNotificationCountProvider
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notifications:getUnreadCount` — unread notification count.
+final unreadNotificationCountProvider = StreamProvider<int>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState is! AuthAuthenticated) {
+    return Stream.value(0);
+  }
+
+  final service = ref.watch(convexServiceProvider);
+  return () async* {
+    if (!await _waitForConvexAuthReady(
+      ref,
+      consumer: 'unreadNotificationCountProvider',
+    )) {
+      yield 0;
+      return;
+    }
+
+    try {
+      yield* service.subscribe<dynamic>('notifications:getUnreadCount', {}).map(
+        (raw) {
+          if (raw is int) return raw;
+          if (raw is String) {
+            final parsed = int.tryParse(raw);
+            return parsed ?? 0;
+          }
+          if (raw is num) return raw.toInt();
+          return 0;
+        },
+      );
+    } catch (e, st) {
+      if (isMissingPublicConvexFunctionError(
+        e,
+        path: 'notifications:getUnreadCount',
+      )) {
+        _logFunctionMissing(
+          'notifications:getUnreadCount',
+          consumer: 'unreadNotificationCountProvider',
+          fallback: 'returning 0',
+        );
+        yield 0;
+        return;
+      }
+      if (isConvexUnauthorizedError(e)) {
+        _logUnauthorizedFallback(
+          'unreadNotificationCountProvider',
+          error: e,
+          stackTrace: st,
+          fallback: 'returning 0',
+        );
+        yield 0;
+        return;
+      }
+      rethrow;
+    }
+  }();
+});
+
+// ---------------------------------------------------------------------------
+// 15. videoNotesProvider(videoId)
+// ---------------------------------------------------------------------------
+
+/// Subscribes to `notes:getNotesByYoutubeVideo` for a specific video.
+final videoNotesProvider = StreamProvider.family<List<Note>, String>((
+  ref,
+  videoId,
+) {
+  final service = ref.watch(convexServiceProvider);
+  return service
+      .subscribe<dynamic>('notes:getNotesByYoutubeVideo', {
+        'youtubeVideoId': videoId,
+      })
+      .map(
+        (raw) => _decodeList(
+          raw,
+        ).map((json) => Note.fromJson(json)).toList(growable: false),
+      );
+});

@@ -2,7 +2,7 @@
 artifact: spec
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-14"
 created_at: "2026-05-14 16:40:28 UTC"
 updated: "2026-05-14"
@@ -18,9 +18,9 @@ risk_level: "high"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "tubeflow_app"
-  - "tubeflow_site"
-  - "tubeflow_lab"
+  - "replayglowz_app"
+  - "replayglowz_site"
+  - "replayglowz_lab"
   - "Vercel"
   - "Firebase Auth"
   - "Google YouTube OAuth"
@@ -52,9 +52,9 @@ supersedes: []
 evidence:
   - "Branch `main` is clean and aligned with `origin/main` after commit `ad88665`."
   - "Branch `previewdev` currently diverges from `main` with app-only commits `ec9ed53` and `2883a3a`; it must not be the source of truth for the global migration."
-  - "`tubeflow_site/src/config/site.ts` defaults to `https://tubeflow.winflowz.com` and `https://app.tubeflow.winflowz.com`."
-  - "`tubeflow_app/build.sh`, `.env.example`, OAuth handlers, PWA files, and diagnostics still expose `TUBEFLOW_*`, `TubeFlow`, and `tubeflow_*` names."
-  - "`tubeflow_lab/server.py`, Docker/PM2 docs, and worker docs still expose TubeFlow/tubeflow names."
+  - "`replayglowz_site/src/config/site.ts` defaults to `https://tubeflow.winflowz.com` and `https://app.tubeflow.winflowz.com`."
+  - "`replayglowz_app/build.sh`, `.env.example`, OAuth handlers, PWA files, and diagnostics still expose `TUBEFLOW_*`, `TubeFlow`, and `tubeflow_*` names."
+  - "`replayglowz_lab/server.py`, Docker/PM2 docs, and worker docs still expose TubeFlow/tubeflow names."
   - "Official Vercel monorepo docs consulted: https://vercel.com/docs/monorepos/"
   - "Official Vercel environment docs consulted: https://vercel.com/docs/environment-variables"
   - "Official Astro environment variable docs consulted: https://docs.astro.build/en/guides/environment-variables/"
@@ -80,7 +80,7 @@ When a user, crawler, operator, or deployment reads any public app surface, mark
 ## Success Behavior
 
 - Preconditions: work starts on clean `main`, not `previewdev`; `previewdev` may exist but is not used as the global rename source.
-- Trigger: implementation of this spec updates brand, URL, SEO, i18n, docs, deployment config, and worker labels across `tubeflow_app`, `tubeflow_site`, `tubeflow_lab`, and root `shipflow_data`.
+- Trigger: implementation of this spec updates brand, URL, SEO, i18n, docs, deployment config, and worker labels across `replayglowz_app`, `replayglowz_site`, `replayglowz_lab`, and root `shipflow_data`.
 - User-visible result: app UI, PWA metadata, marketing pages, legal pages, blog metadata, EN/FR copy, and diagnostics say ReplayGlowz except where a legacy compatibility note is deliberate.
 - Operator-visible result: README/AGENT/CLAUDE docs, env examples, worker docs, Sentry release labels, Vercel config notes, and branch guidance align on ReplayGlowz naming and domains.
 - System effect: app/site defaults point to `https://replayglowz.com` and `https://app.replayglowz.com`; OAuth origin/callback behavior stays same-domain safe; old local storage or cookie keys are migrated or retained as read fallbacks before being removed.
@@ -115,8 +115,8 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 
 - Do not implement feature changes unrelated to the rename.
 - Do not change Convex schema, backend functions, YouTube OAuth scope, Firebase auth provider semantics, or transcript worker HTTP request/response contracts.
-- Do not rename the `tubeflow_app`, `tubeflow_site`, or `tubeflow_lab` directories in this pass unless a later explicit repo-structure decision is made.
-- Do not rename the Dart package/import namespace `package:tubeflow_app/...` in this pass; that is a higher-risk package identity refactor.
+- Do not rename the `replayglowz_app`, `replayglowz_site`, or `replayglowz_lab` directories in this pass unless a later explicit repo-structure decision is made.
+- Do not rename the Dart package/import namespace `package:replayglowz_app/...` in this pass; that is a higher-risk package identity refactor.
 - Do not delete remote `origin/previewdev` during implementation. Recreate/reset preview branch only after `main` is migrated and shipped.
 - Do not include the previously mentioned `apps/web/src/app/layout.tsx` dynamic-import/static-import change in this spec. That file is not present in this monorepo; if it exists in another repo, it needs a separate spec because it is behavioral, not a brand rename.
 
@@ -125,7 +125,7 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 - Work from clean `main`; do not use `previewdev` as the base for implementation.
 - Preserve build/runtime compatibility for legacy env names during the migration: `TUBEFLOW_APP_URL`, `TUBEFLOW_WEB_URL`, `NEXT_PUBLIC_APP_URL`, and current OAuth compatibility names may remain as fallback inputs while preferred ReplayGlowz names are introduced.
 - Preserve OAuth state validation, return URL sanitization, cookie cleanup, Firebase token handling, and Convex mutation behavior.
-- Preserve Astro content frontmatter schema; do not add ShipFlow metadata to `tubeflow_site/src/content/**`.
+- Preserve Astro content frontmatter schema; do not add ShipFlow metadata to `replayglowz_site/src/content/**`.
 - Keep user-facing French copy natural and accented where edited.
 - Treat historical changelog/spec names as possible allowlisted legacy references rather than blindly rewriting past evidence.
 - Use ASCII in new technical docs unless existing content requires non-ASCII for user-facing French.
@@ -151,8 +151,8 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 
 ## Links & Consequences
 
-- Vercel app project should use `tubeflow_app` as Root Directory until directory renaming is explicitly scoped.
-- Vercel site project should use `tubeflow_site` as Root Directory if connected; its canonical URL defaults move to ReplayGlowz.
+- Vercel app project should use `replayglowz_app` as Root Directory until directory renaming is explicitly scoped.
+- Vercel site project should use `replayglowz_site` as Root Directory if connected; its canonical URL defaults move to ReplayGlowz.
 - Google OAuth redirect URIs must include the active app domain callback: `https://app.replayglowz.com/api/auth/youtube/callback`.
 - Firebase authorized domains must include `app.replayglowz.com` before hosted auth validation.
 - Convex auth/env config must remain compatible with Firebase token issuer and deployment envs.
@@ -163,9 +163,9 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 ## Documentation Coherence
 
 - Update root `README.md`, `AGENT.md`, and `shipflow_data/**` for ReplayGlowz naming, domains, branch policy, and source-of-truth guidance.
-- Update `tubeflow_app/README.md`, `AGENT.md`, `CLAUDE.md`, `.env.example`, and app-local ShipFlow docs for preferred `REPLAYGLOWZ_*` env names with `TUBEFLOW_*` fallbacks documented.
-- Update `tubeflow_site/README.md`, `AGENT.md`, `CLAUDE.md`, site config docs, public copy, i18n, blog metadata, pricing, compare, privacy, and terms.
-- Update `tubeflow_lab/README.md`, `AGENT.md`, `CLAUDE.md`, and worker-local ShipFlow docs for ReplayGlowz naming while preserving the worker contract.
+- Update `replayglowz_app/README.md`, `AGENT.md`, `CLAUDE.md`, `.env.example`, and app-local ShipFlow docs for preferred `REPLAYGLOWZ_*` env names with `TUBEFLOW_*` fallbacks documented.
+- Update `replayglowz_site/README.md`, `AGENT.md`, `CLAUDE.md`, site config docs, public copy, i18n, blog metadata, pricing, compare, privacy, and terms.
+- Update `replayglowz_lab/README.md`, `AGENT.md`, `CLAUDE.md`, and worker-local ShipFlow docs for ReplayGlowz naming while preserving the worker contract.
 - Update changelogs only if implementation changes shipped behavior or operator setup commands; do not rewrite historical release entries unless they are active docs.
 
 ## Edge Cases
@@ -198,59 +198,59 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
   - Notes: Preserve stable section headings and frontmatter keys.
 
 - [x] Task 3: Update Flutter app brand-visible metadata and copy.
-  - File: `tubeflow_app/web/manifest.json`, `tubeflow_app/web/index.html`, `tubeflow_app/lib/main.dart`, `tubeflow_app/lib/app/theme.dart`, `tubeflow_app/lib/i18n/en.dart`, `tubeflow_app/lib/i18n/fr.dart`, `tubeflow_app/lib/screens/**`, `tubeflow_app/lib/widgets/**`
+  - File: `replayglowz_app/web/manifest.json`, `replayglowz_app/web/index.html`, `replayglowz_app/lib/main.dart`, `replayglowz_app/lib/app/theme.dart`, `replayglowz_app/lib/i18n/en.dart`, `replayglowz_app/lib/i18n/fr.dart`, `replayglowz_app/lib/screens/**`, `replayglowz_app/lib/widgets/**`
   - Action: Replace user-visible TubeFlow strings with ReplayGlowz and update diagnostics labels that are visible to operators.
   - User story link: Users and operators see the active product brand.
   - Depends on: Task 1.
-  - Validate with: `cd tubeflow_app && flutter analyze`.
+  - Validate with: `cd replayglowz_app && flutter analyze`.
   - Notes: Do not rename Dart classes/package imports unless necessary for visible copy.
 
 - [x] Task 4: Introduce ReplayGlowz app URL env names with fallbacks.
-  - File: `tubeflow_app/build.sh`, `tubeflow_app/lib/app/build_info.dart`, `tubeflow_app/lib/widgets/youtube_connect.dart`, `tubeflow_app/.env.example`, `tubeflow_app/README.md`, `tubeflow_app/AGENT.md`, `tubeflow_app/CLAUDE.md`
+  - File: `replayglowz_app/build.sh`, `replayglowz_app/lib/app/build_info.dart`, `replayglowz_app/lib/widgets/youtube_connect.dart`, `replayglowz_app/.env.example`, `replayglowz_app/README.md`, `replayglowz_app/AGENT.md`, `replayglowz_app/CLAUDE.md`
   - Action: Prefer `REPLAYGLOWZ_APP_URL` or a clearly chosen new name while continuing to accept `TUBEFLOW_APP_URL` and `TUBEFLOW_WEB_URL` as compatibility fallbacks; update default app URL to `https://app.replayglowz.com`.
   - User story link: Deployment config moves to ReplayGlowz without breaking existing Vercel envs.
   - Depends on: Task 3.
-  - Validate with: `cd tubeflow_app && bash -n build.sh && flutter analyze`.
+  - Validate with: `cd replayglowz_app && bash -n build.sh && flutter analyze`.
   - Notes: Keep `NEXT_PUBLIC_*` fallbacks only where currently supported and documented.
 
 - [x] Task 5: Update OAuth cookie/storage compatibility.
-  - File: `tubeflow_app/api/auth/_youtube.js`, `tubeflow_app/api/auth/youtube.js`, `tubeflow_app/api/auth/youtube/callback.js`, `tubeflow_app/lib/screens/feedback/feedback_service.dart`
+  - File: `replayglowz_app/api/auth/_youtube.js`, `replayglowz_app/api/auth/youtube.js`, `replayglowz_app/api/auth/youtube/callback.js`, `replayglowz_app/lib/screens/feedback/feedback_service.dart`
   - Action: Rename preferred cookie/storage keys to ReplayGlowz names while reading/clearing legacy TubeFlow keys during the migration window.
   - User story link: Existing users and OAuth flows survive the brand migration.
   - Depends on: Task 4.
-  - Validate with: `cd tubeflow_app && node --test api/auth/_youtube.test.js` if present, otherwise run targeted syntax/import checks plus `flutter analyze`.
+  - Validate with: `cd replayglowz_app && node --test api/auth/_youtube.test.js` if present, otherwise run targeted syntax/import checks plus `flutter analyze`.
   - Notes: Do not log Firebase ID tokens or OAuth tokens. Preserve SameSite, HttpOnly, Secure, Max-Age, state validation, and return URL sanitization.
 
 - [x] Task 6: Update app observability and technical labels.
-  - File: `tubeflow_app/lib/app/build_info.dart`, `tubeflow_app/lib/main.dart`, `tubeflow_app/lib/convex/convex_client.dart`, `tubeflow_app/web/convex_bridge.js`
+  - File: `replayglowz_app/lib/app/build_info.dart`, `replayglowz_app/lib/main.dart`, `replayglowz_app/lib/convex/convex_client.dart`, `replayglowz_app/web/convex_bridge.js`
   - Action: Update Sentry release default, Sentry context keys, Convex client ID, script IDs, and operator diagnostics to ReplayGlowz names where safe.
   - User story link: Operator tooling and logs no longer imply the old product brand.
   - Depends on: Task 4.
-  - Validate with: `cd tubeflow_app && flutter analyze && flutter build web`.
+  - Validate with: `cd replayglowz_app && flutter analyze && flutter build web`.
   - Notes: Preserve bridge behavior and generated Flutter web assumptions.
 
 - [x] Task 7: Update Astro site URLs, SEO, i18n, and content.
-  - File: `tubeflow_site/src/config/site.ts`, `tubeflow_site/src/layouts/Layout.astro`, `tubeflow_site/src/i18n/*.ts`, `tubeflow_site/src/components/*.astro`, `tubeflow_site/src/pages/**/*.astro`, `tubeflow_site/src/pages/blog/feed.xml.ts`, `tubeflow_site/src/content/blog/*.md`
+  - File: `replayglowz_site/src/config/site.ts`, `replayglowz_site/src/layouts/Layout.astro`, `replayglowz_site/src/i18n/*.ts`, `replayglowz_site/src/components/*.astro`, `replayglowz_site/src/pages/**/*.astro`, `replayglowz_site/src/pages/blog/feed.xml.ts`, `replayglowz_site/src/content/blog/*.md`
   - Action: Replace TubeFlow public copy with ReplayGlowz, update default canonical/app URLs to `https://replayglowz.com` and `https://app.replayglowz.com`, update JSON-LD/Open Graph/RSS/legal/blog metadata, and rename compare-page internal keys from `tubeflow` to `replayglowz` where they are not external contracts.
   - User story link: Public SEO and acquisition surfaces match the active product.
   - Depends on: Task 1.
-  - Validate with: `cd tubeflow_site && npm run build`.
+  - Validate with: `cd replayglowz_site && npm run build`.
   - Notes: Preserve Astro content frontmatter schema.
 
 - [x] Task 8: Update Astro site docs and package metadata.
-  - File: `tubeflow_site/package.json`, `tubeflow_site/README.md`, `tubeflow_site/AGENT.md`, `tubeflow_site/CLAUDE.md`, `tubeflow_site/shipflow_data/**`
+  - File: `replayglowz_site/package.json`, `replayglowz_site/README.md`, `replayglowz_site/AGENT.md`, `replayglowz_site/CLAUDE.md`, `replayglowz_site/shipflow_data/**`
   - Action: Rename package/docs/project copy to ReplayGlowz where safe, document `PUBLIC_SITE_URL=https://replayglowz.com` and `PUBLIC_APP_URL=https://app.replayglowz.com`.
   - User story link: Operators configure the site with the correct domains.
   - Depends on: Task 7.
-  - Validate with: `cd tubeflow_site && npm run build`.
+  - Validate with: `cd replayglowz_site && npm run build`.
   - Notes: Keep directory names unchanged.
 
 - [x] Task 9: Update transcript worker labels and docs.
-  - File: `tubeflow_lab/server.py`, `tubeflow_lab/ecosystem.config.cjs`, `tubeflow_lab/README.md`, `tubeflow_lab/AGENT.md`, `tubeflow_lab/CLAUDE.md`, `tubeflow_lab/shipflow_data/**`
+  - File: `replayglowz_lab/server.py`, `replayglowz_lab/ecosystem.config.cjs`, `replayglowz_lab/README.md`, `replayglowz_lab/AGENT.md`, `replayglowz_lab/CLAUDE.md`, `replayglowz_lab/shipflow_data/**`
   - Action: Rename app name, logger/temp prefixes where safe, Docker image examples, PM2 labels, and docs from TubeFlow to ReplayGlowz.
   - User story link: Backend worker operations match the active product.
   - Depends on: Task 1.
-  - Validate with: `cd tubeflow_lab && python -m py_compile main.py server.py`.
+  - Validate with: `cd replayglowz_lab && python -m py_compile main.py server.py`.
   - Notes: Preserve `/transcribe` request/response contract and provider names such as `youtube_captions`.
 
 - [ ] Task 10: Reconcile `previewdev` branch after `main` ships.
@@ -285,10 +285,10 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 ## Test Strategy
 
 - Root governance: `/home/claude/shipflow/tools/shipflow_metadata_lint.py AGENT.md shipflow_data`.
-- Flutter app: `cd tubeflow_app && bash -n build.sh && flutter analyze && flutter build web`.
+- Flutter app: `cd replayglowz_app && bash -n build.sh && flutter analyze && flutter build web`.
 - OAuth helper: run `node --test api/auth/_youtube.test.js` if the test exists; otherwise use targeted source review plus hosted OAuth validation after deployment.
-- Astro site: `cd tubeflow_site && npm run build`.
-- Worker: `cd tubeflow_lab && python -m py_compile main.py server.py`.
+- Astro site: `cd replayglowz_site && npm run build`.
+- Worker: `cd replayglowz_lab && python -m py_compile main.py server.py`.
 - Residual audit: `rg -n "TubeFlow|tubeflow|TUBEFLOW|tubeflow\\.winflowz\\.com|app\\.tubeflow\\.winflowz\\.com" .` plus allowlist review.
 - Branch verification: `git status --short`, `git branch --show-current`, and branch graph comparison before touching `previewdev`.
 - Hosted validation after ship: Vercel deployment checks for app/site domains, OAuth start/callback behavior, Firebase authorized domain, Google OAuth redirect URI, and Convex env readiness.
@@ -305,7 +305,7 @@ Perform the global rename on `main` in ordered passes: establish naming/domain c
 
 ## Execution Notes
 
-- Read first: `tubeflow_site/src/config/site.ts`, `tubeflow_app/build.sh`, `tubeflow_app/lib/app/build_info.dart`, `tubeflow_app/api/auth/_youtube.js`, `tubeflow_lab/server.py`.
+- Read first: `replayglowz_site/src/config/site.ts`, `replayglowz_app/build.sh`, `replayglowz_app/lib/app/build_info.dart`, `replayglowz_app/api/auth/_youtube.js`, `replayglowz_lab/server.py`.
 - Implementation order: docs/constants and allowlist, app visible/env/OAuth compatibility, site SEO/i18n/content, worker labels/docs, root and subproject ShipFlow docs, validation and residual audit.
 - Use structured code changes and existing constants/helpers. Avoid a blind repository-wide replacement.
 - Keep legacy fallbacks for env/cookie/storage keys during this migration. Prefer adding new ReplayGlowz names and reading old names as fallback.
