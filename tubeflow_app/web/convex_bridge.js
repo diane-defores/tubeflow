@@ -1,6 +1,6 @@
 (function () {
   let loadPromise = null;
-  const CONVEX_SCRIPT_ID = 'tubeflow-convex-js';
+  const CONVEX_SCRIPT_ID = 'replayglowz-convex-js';
   const CONVEX_BUNDLE_SRC =
     'https://unpkg.com/convex@1.29.3/dist/browser.bundle.js';
 

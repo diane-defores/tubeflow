@@ -69,7 +69,7 @@ class _AuthSignInPageState extends ConsumerState<AuthSignInPage> {
                   color: theme.colorScheme.primary,
                 ),
                 const SizedBox(height: 16),
-                Text('TubeFlow', style: theme.textTheme.headlineMedium),
+                Text('ReplayGlowz', style: theme.textTheme.headlineMedium),
                 const SizedBox(height: 12),
                 Text(
                   'Sign in with Google to sync videos, playlists, notes, and '

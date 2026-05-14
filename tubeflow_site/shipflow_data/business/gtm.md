@@ -2,7 +2,7 @@
 artifact: gtm_context
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-26"
 updated: "2026-04-27"
 status: reviewed
@@ -47,7 +47,7 @@ next_step: "/sf-docs audit shipflow_data/business/gtm.md"
 
 ## GTM Scope
 
-This repository is the acquisition and conversion layer for TubeFlow. Canonical product truth is maintained in `tubeflow_app`.
+This repository is the acquisition and conversion layer for ReplayGlowz. Canonical product truth is maintained in `tubeflow_app`.
 
 GTM claims in this file are reviewed for marketing use, not for implementation proof.
 
@@ -78,14 +78,14 @@ Operational expression:
 
 ## Positioning
 
-TubeFlow is positioned between:
+ReplayGlowz is positioned between:
 
 1. Algorithm-first video platforms optimized for watch time.
 2. Generic notes tools that break source context.
 
 Positioning line:
 
-`TubeFlow is a learning layer for video, not a replacement video platform.`
+`ReplayGlowz is a learning layer for video, not a replacement video platform.`
 
 ## Channels
 
@@ -123,10 +123,10 @@ Evidence-backed channels:
 
 | Objection | Response direction supported by the repo |
 |---|---|
-| "Why not just use YouTube?" | YouTube is for discovery and entertainment; TubeFlow is for intentional learning and retrieval |
-| "Why not use YouTube plus a notes app?" | External notes lose source context; TubeFlow keeps timestamps connected |
+| "Why not just use YouTube?" | YouTube is for discovery and entertainment; ReplayGlowz is for intentional learning and retrieval |
+| "Why not use YouTube plus a notes app?" | External notes lose source context; ReplayGlowz keeps timestamps connected |
 | "Is this only for students?" | No; copy also addresses creators, educators, and professionals |
-| "Does this replace YouTube?" | No; TubeFlow is complementary |
+| "Does this replace YouTube?" | No; ReplayGlowz is complementary |
 
 ## GTM Discipline
 

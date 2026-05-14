@@ -2,7 +2,7 @@
 artifact: brand_context
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-25"
 updated: "2026-04-27"
 status: "reviewed"
@@ -37,11 +37,11 @@ next_step: "Apply these voice rules to homepage, features, compare, pricing, and
 
 ## Brand Idea
 
-TubeFlow should feel like a focused learning workspace layered on top of video usage. The brand should emphasize practical control, retrieval speed, and low-distraction execution.
+ReplayGlowz should feel like a focused learning workspace layered on top of video usage. The brand should emphasize practical control, retrieval speed, and low-distraction execution.
 
 ## Name
 
-TubeFlow combines:
+ReplayGlowz combines:
 
 - `Tube`: a direct reference to online video
 - `Flow`: continuity, focus, and forward motion while learning

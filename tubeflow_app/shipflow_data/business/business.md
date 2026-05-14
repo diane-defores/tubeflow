@@ -36,7 +36,7 @@ next_step: "Align pricing and entitlement implementation details with this busin
 
 ## Mission
 
-TubeFlow App helps users turn YouTube watch time into structured productivity and learning outcomes.
+ReplayGlowz App helps users turn YouTube watch time into structured productivity and learning outcomes.
 
 The core mission is to keep watching, timestamped note-taking, playlist organization, and retrieval in one authenticated workflow, with a clear emphasis on individual execution quality and repeatable learning.
 
@@ -44,9 +44,9 @@ The core mission is to keep watching, timestamped note-taking, playlist organiza
 
 YouTube is strong for discovery and playback, but weak as a structured personal workspace for notes, timestamps, organization, and retrieval.
 
-TubeFlow's value proposition is to reduce that fragmentation and make learning and reference work more reusable:
+ReplayGlowz's value proposition is to reduce that fragmentation and make learning and reference work more reusable:
 
-"TubeFlow helps you capture what matters while watching, organize it, and come back to it without rebuilding context every time."
+"ReplayGlowz helps you capture what matters while watching, organize it, and come back to it without rebuilding context every time."
 
 ## Target Audience
 
@@ -66,7 +66,7 @@ Language strategy:
 
 ## Positioning
 
-TubeFlow positions itself as a productivity and learning companion for YouTube-heavy workflows:
+ReplayGlowz positions itself as a productivity and learning companion for YouTube-heavy workflows:
 
 - Productivity: reduce friction between watching and execution.
 - Learning and veille: keep useful moments, insights, and references retrievable over time.
@@ -93,10 +93,10 @@ Current and near-term distribution surfaces:
 
 Safe claims:
 
-- TubeFlow is a personal productivity and learning workflow for YouTube.
-- TubeFlow supports timestamped notes, playlist organization, and retrieval.
-- TubeFlow targets solo creators, students, and educators.
-- TubeFlow follows an `LTD + subscription` business direction.
+- ReplayGlowz is a personal productivity and learning workflow for YouTube.
+- ReplayGlowz supports timestamped notes, playlist organization, and retrieval.
+- ReplayGlowz targets solo creators, students, and educators.
+- ReplayGlowz follows an `LTD + subscription` business direction.
 
 Unsafe claims until implemented and documented:
 

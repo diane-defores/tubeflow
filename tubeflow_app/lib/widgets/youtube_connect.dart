@@ -18,14 +18,19 @@ import 'package:tubeflow_app/widgets/error_feedback.dart';
 /// Legacy build-time origin fallback kept for compatibility with older
 /// deployments. On the web we prefer the current browser origin, because the
 /// Vercel YouTube OAuth functions now live alongside the Flutter bundle.
-const _legacyYoutubeConnectOrigin = String.fromEnvironment(
+const _legacyWebOrigin = String.fromEnvironment(
   'TUBEFLOW_WEB_URL',
   defaultValue: '',
 );
 
-const _youtubeConnectOrigin = String.fromEnvironment(
+const _legacyAppOrigin = String.fromEnvironment(
   'TUBEFLOW_APP_URL',
-  defaultValue: _legacyYoutubeConnectOrigin,
+  defaultValue: _legacyWebOrigin,
+);
+
+const _youtubeConnectOrigin = String.fromEnvironment(
+  'REPLAYGLOWZ_APP_URL',
+  defaultValue: _legacyAppOrigin,
 );
 
 const _youtubeConnectPath = '/api/auth/youtube';
@@ -54,7 +59,7 @@ String _formatYoutubeDiagnostics(Map<String, dynamic>? status) {
       .toList();
 
   final lines = <String>[
-    'TubeFlow YouTube diagnostics',
+    'ReplayGlowz YouTube diagnostics',
     'Current URL: ${kIsWeb ? Uri.base.toString() : 'not-web'}',
     'Current host: ${kIsWeb ? Uri.base.host : 'not-web'}',
     'Current path: ${kIsWeb ? Uri.base.path : 'not-web'}',
@@ -199,7 +204,7 @@ Future<void> _launchYoutubeConnect(
     showErrorSnackBar(
       context,
       error:
-          'TubeFlow could not determine the YouTube OAuth origin for this build.',
+          'ReplayGlowz could not determine the YouTube OAuth origin for this build.',
       prefix: 'YouTube connect unavailable',
     );
     return;
@@ -416,8 +421,8 @@ class YoutubeConnectRequiredState extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Text(
                     kIsWeb
-                        ? 'TubeFlow redirects this tab to Google, then brings you back automatically after YouTube authorisation.'
-                        : 'Google opens in this tab, then returns to TubeFlow automatically.',
+                        ? 'ReplayGlowz redirects this tab to Google, then brings you back automatically after YouTube authorisation.'
+                        : 'Google opens in this tab, then returns to ReplayGlowz automatically.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.textTheme.bodySmall?.color?.withValues(
                         alpha: 0.74,
@@ -588,14 +593,14 @@ class _YoutubeOAuthFeedbackBannerState
     final description = isError
         ? oauthError
         : _syncError != null
-        ? 'TubeFlow finished server-side authorisation, but the first refresh did not complete. You can retry from here or from Playlists.'
+        ? 'ReplayGlowz finished server-side authorisation, but the first refresh did not complete. You can retry from here or from Playlists.'
         : hasConnectionDelay
-        ? 'Google authorisation completed, but TubeFlow still cannot confirm the saved connection in Convex. Retry sync in a moment or from Preferences.'
+        ? 'Google authorisation completed, but ReplayGlowz still cannot confirm the saved connection in Convex. Retry sync in a moment or from Preferences.'
         : _syncing
-        ? 'TubeFlow is confirming the server-completed YouTube connection and starting your first playlist sync.'
+        ? 'ReplayGlowz is confirming the server-completed YouTube connection and starting your first playlist sync.'
         : _syncComplete
-        ? 'Your YouTube account is linked. TubeFlow has started refreshing your playlists.'
-        : 'Your YouTube account is linked. TubeFlow is ready to import your playlists.';
+        ? 'Your YouTube account is linked. ReplayGlowz has started refreshing your playlists.'
+        : 'Your YouTube account is linked. ReplayGlowz is ready to import your playlists.';
 
     final surfaceColor = isError
         ? colorScheme.errorContainer
@@ -759,7 +764,7 @@ class YoutubeConnectBanner extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'TubeFlow will import your playlists and refresh them after you return from Google.',
+                      'ReplayGlowz will import your playlists and refresh them after you return from Google.',
                       style: TextStyle(
                         color: colorScheme.onPrimaryContainer.withValues(
                           alpha: 0.82,
@@ -871,7 +876,7 @@ class _YoutubeConnectionSettingsCardState
       await syncAllPlaylists(ref);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('TubeFlow is syncing your playlists.')),
+        const SnackBar(content: Text('ReplayGlowz is syncing your playlists.')),
       );
     });
   }
@@ -893,8 +898,8 @@ class _YoutubeConnectionSettingsCardState
         : Icons.smart_display_rounded;
     final title = connected ? 'YouTube connected' : 'Connect your YouTube';
     final description = connected
-        ? 'TubeFlow can now refresh your playlists and imported videos. Use this card to sync again or disconnect cleanly.'
-        : 'Authorise Google once to import your playlists, watch queue, and future video syncs directly in TubeFlow.';
+        ? 'ReplayGlowz can now refresh your playlists and imported videos. Use this card to sync again or disconnect cleanly.'
+        : 'Authorise Google once to import your playlists, watch queue, and future video syncs directly in ReplayGlowz.';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -1015,7 +1020,7 @@ class _YoutubeConnectionSettingsCardState
                   child: Text(
                     connected
                         ? 'Google authorisation is active for this account.'
-                        : 'TubeFlow can see saved YouTube tokens, but the account is not marked connected yet.',
+                        : 'ReplayGlowz can see saved YouTube tokens, but the account is not marked connected yet.',
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -1045,7 +1050,7 @@ class _YoutubeConnectionSettingsCardState
                     connected
                         ? 'Connection confirmed. Copy recent sync logs if something still looks wrong.'
                         : hasTokens
-                        ? 'TubeFlow sees saved tokens but not a confirmed connected state yet.'
+                        ? 'ReplayGlowz sees saved tokens but not a confirmed connected state yet.'
                         : 'Copy this if YouTube connect stalls or comes back incomplete.',
                     style: theme.textTheme.bodySmall,
                   ),
@@ -1168,7 +1173,7 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'TubeFlow needs Google access once to import your playlists and keep your video library in sync.',
+                'ReplayGlowz needs Google access once to import your playlists and keep your video library in sync.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.textTheme.bodySmall?.color,
                 ),
@@ -1201,8 +1206,8 @@ class _ConnectYoutubeEmptyState extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(
                 kIsWeb
-                    ? 'TubeFlow redirects this tab to Google, then returns you to the same screen after YouTube authorisation.'
-                    : 'Google opens in this tab, then returns to TubeFlow automatically.',
+                    ? 'ReplayGlowz redirects this tab to Google, then returns you to the same screen after YouTube authorisation.'
+                    : 'Google opens in this tab, then returns to ReplayGlowz automatically.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.textTheme.bodySmall?.color?.withValues(
                     alpha: 0.74,

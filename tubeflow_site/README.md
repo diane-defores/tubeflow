@@ -1,14 +1,14 @@
-# TubeFlow Site
+# ReplayGlowz Site
 
-Marketing site for TubeFlow, built with Astro.
+Marketing site for ReplayGlowz, built with Astro.
 
 ## Environment
 
 Copy `.env.example` and override these values when the domains change:
 
 ```bash
-PUBLIC_SITE_URL=https://tubeflow.winflowz.com
-PUBLIC_APP_URL=https://app.tubeflow.winflowz.com
+PUBLIC_SITE_URL=https://replayglowz.com
+PUBLIC_APP_URL=https://app.replayglowz.com
 PUBLIC_EMAIL_DOMAIN=winflowz.com
 ```
 

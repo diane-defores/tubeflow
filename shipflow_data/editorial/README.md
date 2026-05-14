@@ -2,7 +2,7 @@
 artifact: editorial_content_context
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -36,7 +36,7 @@ next_step: "/sf-docs editorial audit"
 
 ## Purpose
 
-This directory governs public TubeFlow content, public claims, page intent, and runtime content schema boundaries.
+This directory governs public ReplayGlowz content, public claims, page intent, and runtime content schema boundaries.
 
 ## Files
 

@@ -89,7 +89,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   return const YoutubeConnectRequiredState(
                     title: 'Connect YouTube to start taking notes',
                     description:
-                        'TubeFlow creates notes while you watch synced YouTube videos. Connect YouTube first, then your notes will appear here.',
+                        'ReplayGlowz creates notes while you watch synced YouTube videos. Connect YouTube first, then your notes will appear here.',
                     returnTo: Routes.notes,
                   );
                 }
@@ -108,7 +108,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
               loading: () => const YoutubeConnectionLoadingState(
                 title: 'Checking your YouTube notes',
                 description:
-                    'TubeFlow is confirming your YouTube connection before loading notes.',
+                    'ReplayGlowz is confirming your YouTube connection before loading notes.',
               ),
               error: (error, stack) => ErrorStateView(
                 error: error,
@@ -165,7 +165,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         return const YoutubeConnectRequiredState(
           title: 'Connect YouTube to start taking notes',
           description:
-              'TubeFlow notes are attached to YouTube playback. Connect YouTube, open a video, and your notes will show up here.',
+              'ReplayGlowz notes are attached to YouTube playback. Connect YouTube, open a video, and your notes will show up here.',
           returnTo: Routes.notes,
         );
       }

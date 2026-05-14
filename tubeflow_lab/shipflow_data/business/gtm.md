@@ -11,7 +11,7 @@ scope: "gtm"
 owner: "Diane"
 confidence: "medium"
 risk_level: "medium"
-target_segment: "Primary: TubeFlow internal builders/operators. Secondary: technical teams needing a dedicated YouTube transcript worker."
+target_segment: "Primary: ReplayGlowz internal builders/operators. Secondary: technical teams needing a dedicated YouTube transcript worker."
 offer: "A focused transcript execution worker that keeps the app layer responsive while handling extraction, normalization, provider execution, and guardrails."
 channels: "README onboarding, deployment runbooks, internal engineering docs, and architecture documentation in parent repos."
 proof_points: "FastAPI API, multiple providers, yt-dlp preflight, concurrency and timeout controls, structured logs, health endpoint, bearer-token protection."
@@ -42,7 +42,7 @@ This GTM artifact is for backend positioning only. User-facing GTM truth belongs
 
 ## Target Segment
 
-- Primary: internal TubeFlow builder/operator maintaining transcript infrastructure.
+- Primary: internal ReplayGlowz builder/operator maintaining transcript infrastructure.
 - Secondary: technical team deploying a dedicated transcript worker for a video workflow.
 
 ## Offer
@@ -56,7 +56,7 @@ This GTM artifact is for backend positioning only. User-facing GTM truth belongs
 - Not a standalone end-user SaaS.
 - Not a generic AI gateway for arbitrary workloads.
 - Not a replacement for the app orchestrator.
-- Best fit: dedicated transcript execution service for TubeFlow pipeline operations.
+- Best fit: dedicated transcript execution service for ReplayGlowz pipeline operations.
 
 ## Channels
 

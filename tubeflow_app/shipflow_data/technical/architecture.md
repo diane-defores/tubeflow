@@ -64,7 +64,7 @@ next_step: "Re-run backend contract review before changes that add or rename Con
 
 ## System role
 
-`tubeflow-app` is the Flutter web frontend for TubeFlow. It is responsible for rendering the authenticated user experience, restoring Clerk sessions in web environments, acquiring Clerk-minted Convex JWTs, reading and mutating app data through a shared Convex backend, and packaging the app as a Vercel deployment.
+`tubeflow-app` is the Flutter web frontend for ReplayGlowz. It is responsible for rendering the authenticated user experience, restoring Clerk sessions in web environments, acquiring Clerk-minted Convex JWTs, reading and mutating app data through a shared Convex backend, and packaging the app as a Vercel deployment.
 
 The repository also owns Vercel Node handlers for the YouTube OAuth browser flow under `api/auth/`. It does not own Convex schema or backend server functions.
 

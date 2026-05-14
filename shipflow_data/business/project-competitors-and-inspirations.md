@@ -15,7 +15,7 @@ security_impact: none
 docs_impact: yes
 evidence:
   - "Initial competitor and inspiration triage captured in legacy root concurrent.md."
-  - "TubeFlow product context targets video learning workflows, notes, playlists, transcripts, and summaries."
+  - "ReplayGlowz product context targets video learning workflows, notes, playlists, transcripts, and summaries."
 depends_on:
   - artifact: "shipflow_data/business/product.md"
     artifact_version: "1.0.0"
@@ -37,11 +37,11 @@ reference_categories:
 source_policy: "Track public sources only; do not copy private positioning, paid assets, credentials, or non-public customer data."
 ---
 
-# Concurrents et inspirations — TubeFlow
+# Concurrents et inspirations — ReplayGlowz
 
 ## Lecture projet
 
-TubeFlow cible les workflows d'apprentissage vidéo: notes horodatées, playlists, transcriptions et synthèses. Les liens utiles concernent audio/voix, résumé, automatisation créateur et intelligence de contenu.
+ReplayGlowz cible les workflows d'apprentissage vidéo: notes horodatées, playlists, transcriptions et synthèses. Les liens utiles concernent audio/voix, résumé, automatisation créateur et intelligence de contenu.
 
 ## Liens prioritaires
 
@@ -58,5 +58,5 @@ TubeFlow cible les workflows d'apprentissage vidéo: notes horodatées, playlist
 
 | Lien | Type | Score | Pourquoi |
 |---|---:|:---:|---|
-| [MemoryPlugin](https://betalist.com/startups/memoryplugin) | Mémoire IA | 5/10 | Mémoire cross-outils intéressante si TubeFlow veut personnaliser apprentissage et rappels. |
+| [MemoryPlugin](https://betalist.com/startups/memoryplugin) | Mémoire IA | 5/10 | Mémoire cross-outils intéressante si ReplayGlowz veut personnaliser apprentissage et rappels. |
 | [Web-Analytics.ai](https://web-analytics.ai/) | Reporting | 5/10 | Résumés simples de l'usage produit pour comprendre les flux d'apprentissage. |

@@ -14,7 +14,7 @@ risk_level: "medium"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "TubeFlow Convex app"
+  - "ReplayGlowz Convex app"
   - "YouTube"
   - "FastAPI"
   - "yt-dlp"
@@ -40,7 +40,7 @@ next_step: "sed -n '1,220p' server.py"
 
 ## Project summary
 
-`tubeflow_lab` is a standalone Python/FastAPI transcript worker for TubeFlow. It exists to offload CPU-heavy and binary-dependent transcription work that should not run inside Convex.
+`tubeflow_lab` is a standalone Python/FastAPI transcript worker for ReplayGlowz. It exists to offload CPU-heavy and binary-dependent transcription work that should not run inside Convex.
 
 ## Core responsibilities
 

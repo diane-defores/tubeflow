@@ -43,9 +43,9 @@ next_step: "/sf-docs audit"
 
 ## Product Definition
 
-TubeFlow App is a Flutter web application for authenticated YouTube viewing workflows. The repository supports a personal productivity use case: watch videos, capture timestamped notes, organize content into playlists, keep history-oriented continuity, manage preferences and notifications, connect YouTube when needed, and submit feedback.
+ReplayGlowz App is a Flutter web application for authenticated YouTube viewing workflows. The repository supports a personal productivity use case: watch videos, capture timestamped notes, organize content into playlists, keep history-oriented continuity, manage preferences and notifications, connect YouTube when needed, and submit feedback.
 
-The defensible product claim is workflow consolidation. TubeFlow brings several actions that usually happen across YouTube, notes apps, bookmarks, and memory into one app context.
+The defensible product claim is workflow consolidation. ReplayGlowz brings several actions that usually happen across YouTube, notes apps, bookmarks, and memory into one app context.
 
 ## Target User
 
@@ -69,7 +69,7 @@ The product addresses a fragmented learning and curation workflow:
 - Playlists and later retrieval live apart from note-taking.
 - Viewing continuity depends on scattered history and bookmarks.
 
-TubeFlow positions itself as the app layer that keeps those actions together.
+ReplayGlowz positions itself as the app layer that keeps those actions together.
 
 ## Desired Outcomes
 
@@ -127,7 +127,7 @@ These are appropriate product signals to validate because they align with eviden
 
 Safe product claims:
 
-- TubeFlow combines YouTube viewing, timestamped notes, playlists, and continuity workflows.
+- ReplayGlowz combines YouTube viewing, timestamped notes, playlists, and continuity workflows.
 - The app is account-backed and built around authenticated persistence.
 - Feedback collection is part of the product loop.
 

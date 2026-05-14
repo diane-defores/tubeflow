@@ -1,4 +1,4 @@
-/// French translations for TubeFlow.
+/// French translations for ReplayGlowz.
 /// TODO: Copy remaining sections from tubeflow/apps/web/src/i18n/fr.ts
 const Map<String, dynamic> fr = {
   'common': {
@@ -122,7 +122,7 @@ const Map<String, dynamic> fr = {
   },
   'preferencesPage': {
     'title': 'Préférences',
-    'subtitle': 'Personnalisez votre expérience TubeFlow',
+    'subtitle': 'Personnalisez votre expérience ReplayGlowz',
     'appearanceTitle': 'Apparence',
     'theme': 'Thème',
     'light': 'Clair',

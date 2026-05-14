@@ -14,7 +14,7 @@ risk_level: "medium"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "TubeFlow"
+  - "ReplayGlowz"
   - "Convex"
   - "YouTube"
 depends_on:
@@ -28,16 +28,16 @@ evidence:
   - "Dockerfile"
   - "ecosystem.config.cjs"
   - ".env.example"
-next_step: "Review assumptions against the main TubeFlow app and production deployment."
+next_step: "Review assumptions against the main ReplayGlowz app and production deployment."
 ---
 
 # CLAUDE.md
 
 ## Repository purpose
 
-`tubeflow_lab` is the TubeFlow transcript worker. It is a standalone FastAPI service that accepts transcript jobs from the main TubeFlow system, downloads and normalizes audio, runs a transcription provider, and returns normalized transcript data.
+`tubeflow_lab` is the ReplayGlowz transcript worker. It is a standalone FastAPI service that accepts transcript jobs from the main ReplayGlowz system, downloads and normalizes audio, runs a transcription provider, and returns normalized transcript data.
 
-This repository is not the full TubeFlow product. Treat it as a narrow infrastructure component with a stable HTTP contract.
+This repository is not the full ReplayGlowz product. Treat it as a narrow infrastructure component with a stable HTTP contract.
 
 ## Runtime shape
 
@@ -78,7 +78,7 @@ Important variables:
 
 ## Editing guardrails
 
-- Preserve the request and response contract used by the main TubeFlow app.
+- Preserve the request and response contract used by the main ReplayGlowz app.
 - Keep secret names and environment variable names stable unless the caller contract is updated too.
 - Do not weaken auth behavior around `TRANSCRIPT_WORKER_SECRET`.
 - Do not silently remove preflight checks, queue limits, or warnings for large jobs.
@@ -100,6 +100,6 @@ Important variables:
 
 ## Known confidence limits
 
-- This repository does not prove TubeFlow pricing, ICP, or customer messaging.
-- The README describes integration with TubeFlow and Convex, but the main application repo was not inspected here.
+- This repository does not prove ReplayGlowz pricing, ICP, or customer messaging.
+- The README describes integration with ReplayGlowz and Convex, but the main application repo was not inspected here.
 - Business and branding artifacts should be treated as working assumptions until confirmed by the product owner.

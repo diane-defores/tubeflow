@@ -2,7 +2,7 @@
 title: "Escape the YouTube Algorithm: Take Control of Your Learning"
 description: "Stop letting algorithms decide what you learn. Discover how intentional video consumption can accelerate your growth."
 date: "2026-01-22"
-author: "TubeFlow Team"
+author: "ReplayGlowz Team"
 tags: ["productivity", "learning", "YouTube"]
 ---
 
@@ -29,7 +29,7 @@ Find educators and channels that consistently deliver value. Make a list of your
 
 ### Create Learning Playlists
 
-Build playlists around specific topics you want to master. TubeFlow lets you organize videos into playlists and track your progress through them.
+Build playlists around specific topics you want to master. ReplayGlowz lets you organize videos into playlists and track your progress through them.
 
 ### Take Notes, Not Just Views
 
@@ -37,7 +37,7 @@ Passive watching rarely leads to retention. When you take notes on what you lear
 
 ## Building Your Personal Learning Library
 
-With TubeFlow, every video you watch becomes part of your searchable learning library. Your notes capture the insights that matter to you, making it easy to revisit key concepts when you need them.
+With ReplayGlowz, every video you watch becomes part of your searchable learning library. Your notes capture the insights that matter to you, making it easy to revisit key concepts when you need them.
 
 Instead of relying on YouTube's algorithm to resurface valuable content, you have your own organized collection of video knowledge.
 
@@ -51,4 +51,4 @@ Be deliberate about your video consumption. Ask yourself before clicking:
 
 ## Take Control Today
 
-Ready to escape the algorithm? TubeFlow helps you build a personal library of video knowledge on your terms.
+Ready to escape the algorithm? ReplayGlowz helps you build a personal library of video knowledge on your terms.

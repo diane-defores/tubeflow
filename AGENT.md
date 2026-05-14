@@ -2,7 +2,7 @@
 artifact: documentation
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -33,7 +33,7 @@ next_step: "/sf-docs audit"
 
 ## Purpose
 
-This repository is the canonical TubeFlow monorepo for the Flutter app, Astro marketing site, and transcript worker.
+This repository is the canonical ReplayGlowz monorepo for the Flutter app, Astro marketing site, and transcript worker.
 
 ## Repository Layout
 

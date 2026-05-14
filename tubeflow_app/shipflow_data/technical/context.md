@@ -101,7 +101,7 @@ The repo also contains Vercel Node handlers for YouTube OAuth under `api/auth/`.
 - `main()` sets Flutter and platform error handlers, logs build/config state, initializes Convex when configured, and mounts `ProviderScope`.
 - `_AppBootstrap` waits for Clerk readiness, wires Convex auth, waits for Convex token readiness for restored sessions, then renders the app or fallback UI.
 - `routerProvider` enforces auth-aware redirects and builds the public/protected route graph.
-- `TubeFlowApp` uses `MaterialApp.router` with light/dark/system theme support.
+- `ReplayGlowzApp` uses `MaterialApp.router` with light/dark/system theme support.
 
 ## Auth and session model
 
@@ -141,7 +141,7 @@ Flutter build-time:
 
 - `CONVEX_URL`
 - `CLERK_PUBLISHABLE_KEY`
-- `TUBEFLOW_APP_URL`
+- `REPLAYGLOWZ_APP_URL`
 - `CLERK_HOSTED_SIGN_IN_URL`
 - `BUILD_COMMIT_SHA`
 - `BUILD_ENVIRONMENT`

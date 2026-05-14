@@ -2,7 +2,7 @@
 artifact: architecture_context
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-26"
 updated: "2026-04-27"
 status: "reviewed"
@@ -34,7 +34,7 @@ external_dependencies:
   - "Astro"
   - "Tailwind CSS"
   - "RSS consumers"
-  - "TubeFlow app public URLs"
+  - "ReplayGlowz app public URLs"
 invariants:
   - "Canonical URLs and CTA targets remain derived from src/config/site.ts."
   - "Blog content remains build-time sourced from astro:content collections."
@@ -49,7 +49,7 @@ next_step: "Reduce EN/FR homepage drift by converging shared section composition
 
 ## Overview
 
-`tubeflow-site` is an Astro-based marketing site. Its architecture is static-first, with minimal client-side enhancement and no visible server-side business logic beyond Astro build-time content generation and an RSS route.
+`replayglowz-site` is an Astro-based marketing site. Its architecture is static-first, with minimal client-side enhancement and no visible server-side business logic beyond Astro build-time content generation and an RSS route.
 
 ## Top-level architecture
 

@@ -2,7 +2,7 @@
 artifact: product_context
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -11,7 +11,7 @@ scope: "product"
 owner: "Diane"
 confidence: "medium"
 risk_level: "medium"
-target_user: "Learning-focused YouTube users who need notes, playlists, retrieval, review, and optional transcript support across TubeFlow surfaces."
+target_user: "Learning-focused YouTube users who need notes, playlists, retrieval, review, and optional transcript support across ReplayGlowz surfaces."
 user_problem: "Video learning becomes fragmented when playback, notes, playlists, feedback, transcripts, and later retrieval live in disconnected tools."
 desired_outcomes: "Capture timestamped notes, organize videos and playlists, reconnect YouTube reliably, submit feedback, and support transcript workflows through a dedicated worker."
 non_goals: "Entertainment discovery, creator publishing infrastructure, a generic video platform, collaboration suite, or unproven AI automation claims."
@@ -31,7 +31,7 @@ next_step: "/sf-docs audit"
 
 ## Product Truth
 
-TubeFlow is an authenticated video-learning workflow centered on YouTube playback, timestamped notes, playlists, history, feedback, and backend-supported transcript operations.
+ReplayGlowz is an authenticated video-learning workflow centered on YouTube playback, timestamped notes, playlists, history, feedback, and backend-supported transcript operations.
 
 ## Core Workflows
 
@@ -44,4 +44,4 @@ TubeFlow is an authenticated video-learning workflow centered on YouTube playbac
 
 ## Non-Goals
 
-Do not describe TubeFlow as a creator publishing platform, generic video platform, entertainment discovery engine, collaboration suite, or AI automation product unless the implementation and reviewed contracts prove that capability.
+Do not describe ReplayGlowz as a creator publishing platform, generic video platform, entertainment discovery engine, collaboration suite, or AI automation product unless the implementation and reviewed contracts prove that capability.

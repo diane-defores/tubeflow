@@ -11,7 +11,7 @@ import 'package:tubeflow_app/models/models.dart';
 import 'package:tubeflow_app/utils/app_logger.dart';
 
 // =============================================================================
-// Typed Convex providers for the TubeFlow app.
+// Typed Convex providers for the ReplayGlowz app.
 //
 // Each provider maps a Convex function path to a strongly-typed Dart model.
 //

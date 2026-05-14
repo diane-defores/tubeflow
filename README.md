@@ -1,6 +1,6 @@
-# TubeFlow Flutter
+# ReplayGlowz Flutter
 
-Canonical monorepo for the TubeFlow Flutter surfaces.
+Canonical monorepo for the ReplayGlowz Flutter surfaces.
 
 ## Repository Layout
 
@@ -10,9 +10,9 @@ Canonical monorepo for the TubeFlow Flutter surfaces.
 
 ## Deployment Model
 
-- GitHub source of truth: `dianedef/tubeflow_flutter`
-- Vercel project `Tubeflow-App` uses `tubeflow_app` as its Root Directory
-- Vercel project `Tubeflow-Site` uses `tubeflow_site` as its Root Directory
+- GitHub source of truth: `diane-defores/replayglowz`
+- Vercel project `ReplayGlowz-App` uses `tubeflow_app` as its Root Directory
+- Vercel project `ReplayGlowz-Site` uses `tubeflow_site` as its Root Directory
 - `tubeflow_lab` is maintained in this monorepo and deployed separately from Vercel
 
 ## Related Repository

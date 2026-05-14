@@ -17,9 +17,9 @@ evidence:
   - "README.md"
   - "server.py"
   - "requirements.txt"
-business_model: "Backend and experimental transcript worker supporting TubeFlow operations; user-facing monetization is owned by tubeflow-app."
-market: "Internal backend capability for TubeFlow transcript processing."
-target_audience: "TubeFlow operators, developers, and experimenters maintaining transcript execution."
+business_model: "Backend and experimental transcript worker supporting ReplayGlowz operations; user-facing monetization is owned by tubeflow-app."
+market: "Internal backend capability for ReplayGlowz transcript processing."
+target_audience: "ReplayGlowz operators, developers, and experimenters maintaining transcript execution."
 value_proposition: "Offload heavy transcript jobs from the app layer while keeping provider flexibility and operational controls."
 depends_on: []
 supersedes: []
@@ -39,7 +39,7 @@ This repository exists to execute transcript workloads that are heavy for orches
 
 ## Primary Internal Customer
 
-- TubeFlow operators who need stable transcript execution in production.
+- ReplayGlowz operators who need stable transcript execution in production.
 - Developers who integrate transcript jobs into the parent product pipeline.
 
 ## Value Delivered By This Repository
@@ -60,4 +60,4 @@ This repository exists to execute transcript workloads that are heavy for orches
 
 - Not a standalone end-user product.
 - Not the source of truth for pricing, GTM, or public product narrative.
-- Not a generic media-processing platform outside TubeFlow transcript needs.
+- Not a generic media-processing platform outside ReplayGlowz transcript needs.

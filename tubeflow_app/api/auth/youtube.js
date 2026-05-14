@@ -9,6 +9,11 @@ const {
   sanitizeReturnTo,
 } = require('./_youtube');
 
+const REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE =
+  'replayglowz_youtube_firebase_id_token';
+const LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE =
+  'tubeflow_youtube_firebase_id_token';
+
 function sendJsonError(res, statusCode, message) {
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -80,12 +85,19 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 600,
     }),
-    serializeCookie('tubeflow_youtube_firebase_id_token', firebaseIdToken, {
+    serializeCookie(REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE, firebaseIdToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
       secure,
       maxAge: 3000,
+    }),
+    serializeCookie(LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE, '', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure,
+      maxAge: 0,
     }),
   ]);
   res.end(JSON.stringify({ authUrl: authUrl.toString() }));

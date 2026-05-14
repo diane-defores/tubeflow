@@ -25,10 +25,10 @@ const jsonLd = [
     url: siteUrl(`/blog/${post.id}`),
     datePublished: post.data.date,
     dateModified: post.data.date,
-    author: { "@type": "Organization", name: post.data.author || "TubeFlow" },
+    author: { "@type": "Organization", name: post.data.author || "ReplayGlowz" },
     publisher: {
       "@type": "Organization",
-      name: "TubeFlow",
+      name: "ReplayGlowz",
       logo: { "@type": "ImageObject", url: siteUrl('/icon-512.png') },
     },
     image: siteUrl('/og-image.png'),
@@ -47,7 +47,7 @@ const jsonLd = [
 ---
 
 <Layout
-  title={`${post.data.title} - TubeFlow`}
+  title={`${post.data.title} - ReplayGlowz`}
   description={post.data.description}
   path={`/blog/${post.id}`}
   jsonLd={jsonLd}
@@ -86,7 +86,7 @@ const jsonLd = [
       <!-- CTA -->
       <div class="mt-16 p-8 rounded-2xl bg-card border border-border text-center">
         <h3 class="text-xl font-bold text-foreground mb-3">Ready to transform how you learn from video?</h3>
-        <p class="text-muted-foreground mb-6">Start taking smarter notes with TubeFlow — free forever.</p>
+        <p class="text-muted-foreground mb-6">Start taking smarter notes with ReplayGlowz — free forever.</p>
         <a href={appUrl('/videos')} class="shimmer-btn inline-flex items-center gap-2 bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-6 py-3 text-sm font-medium transition-colors">
           Get Started Free
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>

@@ -2,7 +2,7 @@
 artifact: content_map
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -48,7 +48,7 @@ next_step: "/sf-docs editorial audit"
 
 ## Purpose
 
-This file maps TubeFlow content surfaces at monorepo level and routes public-content changes through the editorial governance layer.
+This file maps ReplayGlowz content surfaces at monorepo level and routes public-content changes through the editorial governance layer.
 
 ## Content Surfaces
 

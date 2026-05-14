@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final themeModeProvider = Provider<ThemeMode>((ref) => ThemeMode.system);
 
-/// Design tokens for the TubeFlow app.
+/// Design tokens for the ReplayGlowz app.
 ///
 /// All color constants are defined here so they can be referenced
 /// consistently across both light and dark theme configurations.
@@ -41,7 +41,7 @@ abstract final class AppColors {
   static const darkBorder = Color(0xFF27272A);
 }
 
-/// Central theme configuration for TubeFlow.
+/// Central theme configuration for ReplayGlowz.
 ///
 /// Provides fully-specified [ThemeData] for light and dark modes using the
 /// design tokens defined in [AppColors]. Typography uses Inter for body text,

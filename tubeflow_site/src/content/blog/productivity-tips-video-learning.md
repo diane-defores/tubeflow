@@ -2,7 +2,7 @@
 title: "5 Productivity Tips for Video-Based Learning"
 description: "Maximize your learning efficiency with these proven strategies for consuming educational video content."
 date: "2026-01-29"
-author: "TubeFlow Team"
+author: "ReplayGlowz Team"
 tags: ["productivity", "tips", "learning"]
 ---
 
@@ -16,7 +16,7 @@ Most video platforms let you adjust playback speed. This simple feature can dram
 - Slow down to 0.75x for complex material
 - Return to normal speed for key sections
 
-TubeFlow preserves your preferred playback speed, so you don't have to adjust it every time.
+ReplayGlowz preserves your preferred playback speed, so you don't have to adjust it every time.
 
 ## 2. Schedule Dedicated Learning Time
 
@@ -35,7 +35,7 @@ Don't try to capture everything. Focus on:
 - Questions that arise
 - Connections to things you already know
 
-TubeFlow's timestamped notes make it easy to capture these moments without disrupting your flow.
+ReplayGlowz's timestamped notes make it easy to capture these moments without disrupting your flow.
 
 ## 4. Review and Apply
 
@@ -51,7 +51,7 @@ The act of explaining solidifies your understanding and reveals gaps in your kno
 
 Every video you watch with intention becomes part of your knowledge base. Over time, your collection of notes becomes a searchable repository of everything you've learned.
 
-TubeFlow helps you build this second brain by:
+ReplayGlowz helps you build this second brain by:
 
 - Organizing notes by video and topic
 - Making everything searchable
@@ -61,4 +61,4 @@ TubeFlow helps you build this second brain by:
 
 These strategies work whether you're learning a new programming language, studying for a certification, or exploring a new hobby. The key is consistency and intentionality.
 
-Sign up for TubeFlow and transform how you learn from video.
+Sign up for ReplayGlowz and transform how you learn from video.

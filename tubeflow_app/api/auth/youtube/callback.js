@@ -8,6 +8,11 @@ const {
   sendRedirect,
 } = require('../_youtube');
 
+const REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE =
+  'replayglowz_youtube_firebase_id_token';
+const LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE =
+  'tubeflow_youtube_firebase_id_token';
+
 async function exchangeCodeForTokens({
   code,
   clientId,
@@ -117,7 +122,9 @@ module.exports = async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const storedState = cookies.youtube_oauth_state;
   const returnTo = cookies.youtube_oauth_return_to;
-  const firebaseIdToken = cookies.tubeflow_youtube_firebase_id_token;
+  const firebaseIdToken =
+    cookies[REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE] ||
+    cookies[LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE];
 
   const googleClientId = getEnv(
     'GOOGLE_CLIENT_ID',
@@ -141,7 +148,14 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 0,
     }),
-    serializeCookie('tubeflow_youtube_firebase_id_token', '', {
+    serializeCookie(REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE, '', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure,
+      maxAge: 0,
+    }),
+    serializeCookie(LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE, '', {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
@@ -173,13 +187,13 @@ module.exports = async function handler(req, res) {
   }
 
   if (!storedState || storedState !== state) {
-    redirectWithError('TubeFlow could not verify the YouTube OAuth state.');
+    redirectWithError('ReplayGlowz could not verify the YouTube OAuth state.');
     return;
   }
 
   if (!firebaseIdToken) {
     redirectWithError(
-      'TubeFlow lost the Firebase auth handoff before callback. Start YouTube connect again from the app.',
+      'ReplayGlowz lost the Firebase auth handoff before callback. Start YouTube connect again from the app.',
     );
     return;
   }
@@ -214,7 +228,7 @@ module.exports = async function handler(req, res) {
     redirectWithError(
       error instanceof Error
         ? error.message
-        : 'TubeFlow could not complete the YouTube callback.',
+        : 'ReplayGlowz could not complete the YouTube callback.',
     );
   }
 };

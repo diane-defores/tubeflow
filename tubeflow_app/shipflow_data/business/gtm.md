@@ -67,7 +67,7 @@ Working offer:
 
 "Use one web app to watch YouTube content, capture timestamped notes, manage playlists, and keep viewing context without stitching multiple personal tools together."
 
-The strongest value is workflow compression. TubeFlow is not positioned by the repo as an entertainment discovery engine, a creator growth platform, or a team knowledge base.
+The strongest value is workflow compression. ReplayGlowz is not positioned by the repo as an entertainment discovery engine, a creator growth platform, or a team knowledge base.
 
 ## Positioning
 
@@ -131,7 +131,7 @@ This is not yet a commercial funnel because pricing, plans, checkout, lifecycle 
 ## Objections
 
 - "Why not just use YouTube plus a notes app?"  
-  TubeFlow's defensible answer is the unified workflow and timestamp-specific context.
+  ReplayGlowz's defensible answer is the unified workflow and timestamp-specific context.
 
 - "Is this only a prototype?"  
   The repo shows deployment, auth, OAuth, and backend integration, but docs do not prove full launch maturity.

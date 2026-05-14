@@ -5,7 +5,7 @@ import 'package:tubeflow_app/convex/convex_errors.dart';
 import 'package:tubeflow_app/convex/convex_provider.dart';
 
 // =============================================================================
-// Convex mutation helpers for the TubeFlow app.
+// Convex mutation helpers for the ReplayGlowz app.
 //
 // Each function accepts a [Ref] (or [WidgetRef]) so it can access the
 // [ConvexService] singleton through Riverpod, then calls the appropriate

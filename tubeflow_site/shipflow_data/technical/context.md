@@ -2,7 +2,7 @@
 artifact: documentation
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-26"
 updated: "2026-04-27"
 status: "reviewed"
@@ -14,7 +14,7 @@ risk_level: "low"
 security_impact: "none"
 docs_impact: "yes"
 linked_systems:
-  - "TubeFlow app"
+  - "ReplayGlowz app"
   - "Astro content collections"
 depends_on: []
 supersedes: []
@@ -35,7 +35,7 @@ next_step: "npm run build"
 
 ## Product context
 
-TubeFlow is presented here as a learning-focused video tool. The site consistently frames the product around:
+ReplayGlowz is presented here as a learning-focused video tool. The site consistently frames the product around:
 
 - timestamped note-taking
 - distraction-free video learning

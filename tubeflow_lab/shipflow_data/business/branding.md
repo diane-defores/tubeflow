@@ -47,7 +47,7 @@ This repository uses an internal technical voice for operators and developers. I
 - Do not claim capabilities that are not implemented in `server.py`.
 - Do not imply guaranteed transcript accuracy.
 - Do not present internal rate estimates as public pricing.
-- Do not frame this repository as the whole TubeFlow platform.
+- Do not frame this repository as the whole ReplayGlowz platform.
 
 ## Terminology
 

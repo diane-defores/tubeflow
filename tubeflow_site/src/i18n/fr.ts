@@ -12,7 +12,7 @@ export default {
     badge: 'En bêta publique',
     title1: "Arrête de subir l'algorithme YouTube.",
     title2: 'Profite de ton contenu.',
-    subtitle: "TubeFlow te donne le contrôle total de ton expérience YouTube. Organise tes vidéos en playlists thématiques, gère tes abonnements à ta façon, et regarde ce que tu veux \u2014 sans interférence algorithmique.",
+    subtitle: "ReplayGlowz te donne le contrôle total de ton expérience YouTube. Organise tes vidéos en playlists thématiques, gère tes abonnements à ta façon, et regarde ce que tu veux \u2014 sans interférence algorithmique.",
     cta: 'Commencer gratuitement',
     secondaryCta: 'Découvrir comment ça marche',
     socialProof: 'Utilisé par {count}+ utilisateurs',
@@ -36,7 +36,7 @@ export default {
   },
   benefits: {
     label: 'Avantages',
-    title: 'Pourquoi choisir TubeFlow',
+    title: 'Pourquoi choisir ReplayGlowz',
     items: [
       { icon: '\uD83D\uDCDD', title: 'Prise de notes intuitive', desc: 'Capture tes pensées sans effort avec notre interface intuitive.' },
       { icon: '\u2601\uFE0F', title: 'Synchronisation fluide', desc: 'Accède à tes notes partout, à tout moment, avec une synchronisation cloud transparente.' },
@@ -61,8 +61,8 @@ export default {
     title: 'Témoignages utilisateurs',
     items: [
       { review: "Excellente application de prise de notes ! Les fonctionnalités IA rendent la prise de notes ultra simple.", name: 'Ryan Lowry', designation: 'Ingénieur & Auteur' },
-      { review: "J'adore le design épuré de TubeFlow. La recherche par IA est remarquablement précise, ajoutant une dimension personnelle à mes notes. Rapide et très facile à utiliser.", name: 'John Collins', designation: 'Ingénieur & Auteur', featured: true },
-      { review: 'Tout simplement brillant ! TubeFlow a décuplé ma productivité.', name: 'Moe Partuj', designation: 'Étudiant' },
+      { review: "J'adore le design épuré de ReplayGlowz. La recherche par IA est remarquablement précise, ajoutant une dimension personnelle à mes notes. Rapide et très facile à utiliser.", name: 'John Collins', designation: 'Ingénieur & Auteur', featured: true },
+      { review: 'Tout simplement brillant ! ReplayGlowz a décuplé ma productivité.', name: 'Moe Partuj', designation: 'Étudiant' },
     ],
   },
   pricing: {
@@ -87,15 +87,15 @@ export default {
   },
   newsletter: {
     title: 'Reste informé',
-    subtitle: 'Reçois les dernières actualités TubeFlow, conseils et astuces productivité.',
+    subtitle: 'Reçois les dernières actualités ReplayGlowz, conseils et astuces productivité.',
     placeholder: 'Ton email',
     subscribe: "S'abonner",
     noSpam: 'Pas de spam, désabonnement à tout moment.',
   },
   footer: {
-    tagline: 'Prends des notes plus efficacement avec TubeFlow',
+    tagline: 'Prends des notes plus efficacement avec ReplayGlowz',
     status: 'Tous les systèmes opérationnels',
-    copyright: '\u00A9 {year} TubeFlow. Tous droits réservés.',
+    copyright: '\u00A9 {year} ReplayGlowz. Tous droits réservés.',
     product: 'Produit',
     resources: 'Ressources',
     company: 'Entreprise',

@@ -46,11 +46,11 @@ next_step: "Keep this file aligned with AGENT.md and shipflow_data/technical/arc
 
 # CLAUDE.md
 
-Guidance for coding agents working in `tubeflow-app`, the Flutter web client for TubeFlow.
+Guidance for coding agents working in `tubeflow-app`, the Flutter web client for ReplayGlowz.
 
 ## Project overview
 
-TubeFlow App is a Flutter web application for watching YouTube videos, taking timestamped notes, organizing playlists, tracking viewing history, managing preferences, and submitting feedback.
+ReplayGlowz App is a Flutter web application for watching YouTube videos, taking timestamped notes, organizing playlists, tracking viewing history, managing preferences, and submitting feedback.
 
 This repository is the client plus Vercel OAuth helper endpoints. The shared Convex backend lives outside this repo at `/home/claude/tubeflow_expo/packages/backend/convex/` by default. Code under `lib/convex/` is client integration, not server code.
 
@@ -80,7 +80,7 @@ This repository is the client plus Vercel OAuth helper endpoints. The shared Con
 3. `ConvexService.initialize(convexUrl)` runs only when `CONVEX_URL` is non-empty.
 4. `_AppBootstrap` initializes Firebase Auth and wires Firebase ID token refresh into Convex.
 5. Protected routes redirect to the Firebase sign-in page until a session exists.
-7. The app then renders either loading UI, configuration fallback UI, or `TubeFlowApp`.
+7. The app then renders either loading UI, configuration fallback UI, or `ReplayGlowzApp`.
 
 ## Routing model
 
@@ -106,7 +106,7 @@ Flutter build-time variables:
 - `FIREBASE_STORAGE_BUCKET`
 - `FIREBASE_MESSAGING_SENDER_ID`
 - `FIREBASE_APP_ID`
-- `TUBEFLOW_APP_URL`
+- `REPLAYGLOWZ_APP_URL`
 - `BUILD_COMMIT_SHA`
 - `BUILD_ENVIRONMENT`
 - `BUILD_TIMESTAMP`
@@ -122,7 +122,7 @@ Backend-only variables documented in `README.md`, such as `FEEDBACK_ADMIN_EMAILS
 
 ```bash
 flutter pub get
-flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=TUBEFLOW_APP_URL=...
+flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=REPLAYGLOWZ_APP_URL=...
 dart analyze lib/
 bash build.sh
 dart run tool/check_shared_backend_contract.dart

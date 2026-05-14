@@ -2,7 +2,7 @@
 artifact: gtm_context
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -12,7 +12,7 @@ owner: "Diane"
 confidence: "medium"
 risk_level: "medium"
 target_segment: "Solo creators, students, educators, and learning-driven professionals evaluating structured YouTube learning workflows."
-offer: "TubeFlow app access positioned around organized YouTube learning, with LTD plus recurring subscription language in reviewed subproject contracts."
+offer: "ReplayGlowz app access positioned around organized YouTube learning, with LTD plus recurring subscription language in reviewed subproject contracts."
 channels:
   - "Astro marketing site"
   - "Blog"
@@ -45,7 +45,7 @@ next_step: "/sf-docs editorial audit"
 
 ## Promise
 
-The safe public promise is: TubeFlow helps users turn YouTube learning into organized, timestamped, revisitable knowledge workflows.
+The safe public promise is: ReplayGlowz helps users turn YouTube learning into organized, timestamped, revisitable knowledge workflows.
 
 ## Proof Limits
 

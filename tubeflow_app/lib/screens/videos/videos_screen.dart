@@ -181,7 +181,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
             return const YoutubeConnectRequiredState(
               title: 'Connect YouTube to browse videos',
               description:
-                  'TubeFlow builds your video library from your synced YouTube playlists. Connect YouTube first, then your videos will appear here.',
+                  'ReplayGlowz builds your video library from your synced YouTube playlists. Connect YouTube first, then your videos will appear here.',
               returnTo: Routes.videos,
             );
           }
@@ -228,7 +228,7 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking your YouTube library',
           description:
-              'TubeFlow is confirming whether your YouTube account is connected before loading your videos.',
+              'ReplayGlowz is confirming whether your YouTube account is connected before loading your videos.',
         ),
         error: (error, stack) => ErrorStateView(
           error: error,

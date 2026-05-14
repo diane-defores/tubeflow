@@ -291,7 +291,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking playback access',
           description:
-              'TubeFlow is confirming your YouTube connection before opening the player.',
+              'ReplayGlowz is confirming your YouTube connection before opening the player.',
         ),
         error: (error, stack) => ErrorStateView(
           error: error,

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2026-05-14]
+
+### Changed
+- Migrated worker app name, logging namespace, temp directory prefix, PM2 process label, Docker examples, and operator docs from TubeFlow to ReplayGlowz.
+
 ## [2026-05-10]
 
 ### Security

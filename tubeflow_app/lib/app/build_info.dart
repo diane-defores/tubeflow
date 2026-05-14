@@ -2,14 +2,19 @@ import 'package:flutter/foundation.dart';
 
 const convexUrl = String.fromEnvironment('CONVEX_URL', defaultValue: '');
 
-const legacyTubeFlowAppUrl = String.fromEnvironment(
+const legacyWebAppUrl = String.fromEnvironment(
   'TUBEFLOW_WEB_URL',
   defaultValue: '',
 );
 
-const tubeFlowAppUrl = String.fromEnvironment(
+const legacyAppUrl = String.fromEnvironment(
   'TUBEFLOW_APP_URL',
-  defaultValue: legacyTubeFlowAppUrl,
+  defaultValue: legacyWebAppUrl,
+);
+
+const replayGlowzAppUrl = String.fromEnvironment(
+  'REPLAYGLOWZ_APP_URL',
+  defaultValue: legacyAppUrl,
 );
 
 const legacySentryDsn = String.fromEnvironment(
@@ -70,7 +75,7 @@ String sentryEnvironmentLabel() {
 
 String sentryReleaseLabel() {
   if (sentryRelease.isNotEmpty) return sentryRelease;
-  return 'tubeflow_app@$buildCommitSha';
+  return 'replayglowz_app@$buildCommitSha';
 }
 
 double get sentryTracesSampleRate =>

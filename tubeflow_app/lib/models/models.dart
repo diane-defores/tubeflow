@@ -1,4 +1,4 @@
-/// Barrel export for all TubeFlow model classes.
+/// Barrel export for all ReplayGlowz model classes.
 ///
 /// Usage:
 /// ```dart

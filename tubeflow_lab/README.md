@@ -4,7 +4,7 @@ This worker is the piece that does the heavy transcript work outside of Convex.
 
 ## What it does
 
-When TubeFlow asks for a transcript from a provider that needs audio processing, the worker:
+When ReplayGlowz asks for a transcript from a provider that needs audio processing, the worker:
 
 1. receives a `/transcribe` request from Convex
 2. downloads the audio for the YouTube video with `yt-dlp`
@@ -115,8 +115,8 @@ disposable target directory and audit that resolved environment instead:
 
 ```bash
 cd /home/claude/tubeflow_lab
-python3 -m pip install --target /tmp/tubeflow-worker-audit --require-hashes -r requirements.lock
-pip-audit --path /tmp/tubeflow-worker-audit
+python3 -m pip install --target /tmp/replayglowz-worker-audit --require-hashes -r requirements.lock
+pip-audit --path /tmp/replayglowz-worker-audit
 ```
 
 Run:
@@ -198,7 +198,7 @@ Build:
 
 ```bash
 cd /home/claude/tubeflow_lab
-docker build -t tubeflow-transcript-worker .
+docker build -t replayglowz-transcript-worker .
 ```
 
 Run:
@@ -207,7 +207,7 @@ Run:
 docker run --rm -p 8090:8090 \
   -e TRANSCRIPT_WORKER_SECRET=change-me \
   -e TRANSCRIPT_FASTER_WHISPER_MODEL=small \
-  tubeflow-transcript-worker
+  replayglowz-transcript-worker
 ```
 
 If you deploy to a cloud container platform, keep the same contract:
@@ -221,7 +221,7 @@ If you deploy to a cloud container platform, keep the same contract:
 
 Recommended architecture on the current server:
 
-- keep the main TubeFlow app as its own PM2 environment
+- keep the main ReplayGlowz app as its own PM2 environment
 - run the transcript worker as a second PM2 environment from `tubeflow_lab`
 - publish it through your existing reverse proxy on its own path or subdomain
 
@@ -357,7 +357,7 @@ Use this order so the system comes up cleanly:
 3. Verify the worker directly with `GET /health`.
 4. Add `TRANSCRIPT_WORKER_URL`, `TRANSCRIPT_WORKER_SECRET`, and `TRANSCRIPT_SECRET_ENCRYPTION_KEY` to Convex.
 5. Redeploy Convex if needed so the new env vars are picked up.
-6. Open the TubeFlow app and confirm local worker-backed providers are shown as available.
+6. Open the ReplayGlowz app and confirm local worker-backed providers are shown as available.
 7. Save an OpenAI or Deepgram key in the UI if you want to use premium providers.
 8. Run one transcript generation from the app and confirm a transcript version is created.
 
@@ -403,7 +403,7 @@ That request may still fail for video/provider reasons, but it should no longer 
 Once `TRANSCRIPT_WORKER_URL` is set in Convex:
 
 - `faster_whisper` and `sensevoice` should become available in the provider catalog
-- `openai_mini`, `openai`, and `deepgram` additionally require a user API key saved in TubeFlow
+- `openai_mini`, `openai`, and `deepgram` additionally require a user API key saved in ReplayGlowz
 
 If the worker URL is missing, worker-backed providers remain unavailable by design.
 
@@ -422,7 +422,7 @@ From the app:
 
 1. Open a video.
 2. Trigger transcript generation.
-3. Confirm TubeFlow first attempts `youtube_captions` when enabled.
+3. Confirm ReplayGlowz first attempts `youtube_captions` when enabled.
 4. Confirm fallback reaches the selected worker-backed provider when captions are unavailable.
 5. Confirm a transcript version is stored and can be activated from the UI.
 
@@ -440,7 +440,7 @@ From the app:
   This is a YouTube/`yt-dlp` extraction block, not a worker bootstrap issue.
   Retry with another video or provide cookies if you need bot-gated videos.
 - `Missing openai API key for transcript provider openai.` or similar
-  The user has not saved the provider key in TubeFlow yet.
+  The user has not saved the provider key in ReplayGlowz yet.
 
 ## Provider notes
 
@@ -451,13 +451,13 @@ From the app:
   - alternative local provider
   - current worker returns coarse timestamps
 - `openai_mini` / `openai`
-  - require a user API key saved in TubeFlow
+  - require a user API key saved in ReplayGlowz
 - `deepgram`
-  - requires a user API key saved in TubeFlow
+  - requires a user API key saved in ReplayGlowz
 
 ## Important product note
 
-For non-technical users, this worker should generally run in the cloud and be operated by TubeFlow.
+For non-technical users, this worker should generally run in the cloud and be operated by ReplayGlowz.
 That way:
 
 - users do not install models

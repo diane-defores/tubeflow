@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: "tubeflow_lab",
+    name: "replayglowz_lab",
     cwd: __dirname,
     script: "bash",
     args: [

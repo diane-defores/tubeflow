@@ -1,6 +1,6 @@
-const DEFAULT_SITE_URL = 'https://tubeflow.winflowz.com'
-const DEFAULT_APP_URL = 'https://app.tubeflow.winflowz.com'
-const DEFAULT_EMAIL_DOMAIN = 'winflowz.com'
+const DEFAULT_SITE_URL = 'https://replayglowz.com'
+const DEFAULT_APP_URL = 'https://app.replayglowz.com'
+const DEFAULT_EMAIL_DOMAIN = 'replayglowz.com'
 
 function stripTrailingSlash(url: string): string {
   return url.replace(/\/+$/, '')

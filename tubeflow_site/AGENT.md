@@ -2,7 +2,7 @@
 artifact: documentation
 metadata_schema_version: "1.0"
 artifact_version: "1.1.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-26"
 updated: "2026-05-11"
 status: "reviewed"
@@ -14,7 +14,7 @@ risk_level: "low"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "TubeFlow app"
+  - "ReplayGlowz app"
   - "Astro"
   - "Tailwind CSS"
   - "Sentry"
@@ -35,12 +35,12 @@ next_step: "npm run build"
 
 ## Purpose
 
-This repository is the public marketing site for TubeFlow. It is an Astro site with static pages for acquisition, SEO, pricing, product education, and a small blog.
+This repository is the public marketing site for ReplayGlowz. It is an Astro site with static pages for acquisition, SEO, pricing, product education, and a small blog.
 
 ## Working assumptions
 
 - The site is content-first and mostly static.
-- Primary conversion targets point to the TubeFlow app, usually `appUrl('/videos')`.
+- Primary conversion targets point to the ReplayGlowz app, usually `appUrl('/videos')`.
 - The codebase does not include the product app itself; it only links to it.
 - Route copy and structured data matter as much as visuals because this repo is SEO-facing.
 - Sentry is intentionally not required while this remains a static marketing/content site with no authentication or user-specific runtime workflow.
@@ -59,7 +59,7 @@ This repository is the public marketing site for TubeFlow. It is an Astro site w
 - `src/pages/fr/index.astro`: French landing page implemented inline rather than through the shared component set
 - `src/pages/features.astro`: feature marketing page
 - `src/pages/pricing.astro`: pricing and FAQ page
-- `src/pages/compare.astro`: comparison page positioning TubeFlow against YouTube
+- `src/pages/compare.astro`: comparison page positioning ReplayGlowz against YouTube
 - `src/pages/blog/index.astro`: blog listing
 - `src/pages/blog/[slug].astro`: blog article route
 - `src/pages/blog/feed.xml.ts`: RSS feed

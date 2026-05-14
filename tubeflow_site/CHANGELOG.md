@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-05-14]
+
+### Changed
+- Migrated public site branding, canonical URLs, app URLs, SEO metadata, RSS metadata, i18n copy, blog copy, legal pages, and package metadata from TubeFlow to ReplayGlowz.
+
 ## [2026-05-10]
 
 ### Security

@@ -71,7 +71,7 @@ _AppBootstrapState._bootstrap()
 _AppBootstrapState.build()
 ├── loading MaterialApp while bootstrap runs
 ├── _ConfigFallbackScreen on bootstrap error or missing required config
-└── TubeFlowApp on success
+└── ReplayGlowzApp on success
 ```
 
 ## Routing and shell

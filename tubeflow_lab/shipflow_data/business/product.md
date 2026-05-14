@@ -11,7 +11,7 @@ scope: "product"
 owner: "Diane"
 confidence: "medium"
 risk_level: "medium"
-target_user: "TubeFlow operators and developers needing reliable transcript execution outside the app runtime"
+target_user: "ReplayGlowz operators and developers needing reliable transcript execution outside the app runtime"
 user_problem: "the app layer should not own long-running media downloads, ffmpeg normalization, model loading, or provider-specific transcription failures"
 desired_outcomes: "offload heavy jobs safely, keep orchestration responsive, support multiple providers, and expose clear health/limit/failure signals"
 non_goals: "being the main user-facing product, owning transcript editing UX, replacing app orchestration, or becoming a generic media-processing platform"
@@ -72,7 +72,7 @@ next_step: "Keep user-facing product claims in tubeflow-app and limit this doc t
 
 ## Scope In
 
-- YouTube transcript execution for TubeFlow pipeline needs.
+- YouTube transcript execution for ReplayGlowz pipeline needs.
 - Provider switching across local and API-backed transcription options.
 - Runtime controls for limits, timeouts, concurrency, and auth.
 - Deployment patterns for local, Docker, and server hosting.
@@ -82,7 +82,7 @@ next_step: "Keep user-facing product claims in tubeflow-app and limit this doc t
 - User-facing UI, onboarding, and pricing narrative.
 - Transcript browsing/editing experience.
 - Product packaging and commercialization decisions.
-- Non-TubeFlow media workflows.
+- Non-ReplayGlowz media workflows.
 
 ## Success Signals
 

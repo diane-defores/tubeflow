@@ -14,7 +14,7 @@ risk_level: "medium"
 security_impact: "yes"
 docs_impact: "yes"
 linked_systems:
-  - "TubeFlow Convex app"
+  - "ReplayGlowz Convex app"
   - "YouTube"
   - "OpenAI Audio Transcriptions API"
   - "Deepgram API"
@@ -41,7 +41,7 @@ next_step: "rg -n '^(def |class |@app\\.|async def )' server.py"
 
 ## Mission
 
-`tubeflow_lab` is a dedicated transcript worker for TubeFlow. Its job is to accept a transcription request from the main app, fetch and normalize YouTube audio, run one transcription provider, and return normalized transcript data plus warnings and optional cost estimates.
+`tubeflow_lab` is a dedicated transcript worker for ReplayGlowz. Its job is to accept a transcription request from the main app, fetch and normalize YouTube audio, run one transcription provider, and return normalized transcript data plus warnings and optional cost estimates.
 
 ## Source of truth
 

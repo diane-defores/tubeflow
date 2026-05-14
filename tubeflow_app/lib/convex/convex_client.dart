@@ -54,7 +54,7 @@ class ConvexService {
       await ConvexClient.initialize(
         ConvexConfig(
           deploymentUrl: deploymentUrl,
-          clientId: 'tubeflow-flutter-1.0',
+          clientId: 'replayglowz-flutter-1.0',
           operationTimeout: const Duration(seconds: 30),
         ),
       );

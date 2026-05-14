@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-05-14]
+
+### Changed
+- Migrated visible app branding, PWA metadata, diagnostics, Sentry release defaults, and YouTube OAuth copy from TubeFlow to ReplayGlowz.
+- Added `REPLAYGLOWZ_APP_URL` as the preferred app-origin build variable while keeping `TUBEFLOW_APP_URL` and `TUBEFLOW_WEB_URL` compatibility fallbacks.
+- Migrated the feedback text draft key to `replayglowz_feedback_text_draft` with a read-and-remove fallback for the legacy key.
+
 ## [2026-05-11]
 
 ### Changed

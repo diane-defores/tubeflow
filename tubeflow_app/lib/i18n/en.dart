@@ -1,4 +1,4 @@
-/// English translations for TubeFlow.
+/// English translations for ReplayGlowz.
 /// Full key structure matches the Next.js web app (942 keys).
 /// TODO: Copy remaining sections from tubeflow/apps/web/src/i18n/en.ts
 const Map<String, dynamic> en = {
@@ -121,7 +121,7 @@ const Map<String, dynamic> en = {
   },
   'preferencesPage': {
     'title': 'Preferences',
-    'subtitle': 'Customize your TubeFlow experience',
+    'subtitle': 'Customize your ReplayGlowz experience',
     'appearanceTitle': 'Appearance',
     'theme': 'Theme',
     'light': 'Light',

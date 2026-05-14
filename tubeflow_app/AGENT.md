@@ -52,7 +52,7 @@ Operational guide for agents working in `tubeflow-app`.
 
 ## Repository role
 
-`tubeflow-app` is a Flutter web client. It renders the TubeFlow UI, calls a shared Convex backend, and deploys as a Vercel static build with a small YouTube OAuth API under `api/auth/`. Flutter auth is handled by Firebase Auth.
+`tubeflow-app` is a Flutter web client. It renders the ReplayGlowz UI, calls a shared Convex backend, and deploys as a Vercel static build with a small YouTube OAuth API under `api/auth/`. Flutter auth is handled by Firebase Auth.
 
 This repository is not the Convex backend source of truth. The shared backend is expected at `/home/claude/tubeflow_expo/packages/backend/convex/`, unless `TUBEFLOW_BACKEND_ROOT` points elsewhere.
 
@@ -117,7 +117,7 @@ Flutter build-time values:
 - `FIREBASE_STORAGE_BUCKET`: optional Firebase storage bucket.
 - `FIREBASE_MESSAGING_SENDER_ID`: Firebase web messaging sender ID.
 - `FIREBASE_APP_ID`: Firebase web app ID.
-- `TUBEFLOW_APP_URL`: app origin used for OAuth callback/origin handling.
+- `REPLAYGLOWZ_APP_URL`: app origin used for OAuth callback/origin handling.
 - `BUILD_COMMIT_SHA`, `BUILD_ENVIRONMENT`, `BUILD_TIMESTAMP`: build metadata injected by `build.sh`.
 - `SENTRY_DSN`: optional Sentry DSN. Missing value leaves Sentry disabled.
 - `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`, `SENTRY_TRACES_SAMPLE_RATE`: optional Sentry metadata/tuning values injected by `build.sh`.
@@ -127,7 +127,7 @@ Vercel serverless/OAuth values:
 - `GOOGLE_CLIENT_ID`: Google OAuth client ID for YouTube consent.
 - `GOOGLE_CLIENT_SECRET`: exchanged with Google authorization codes in the callback.
 
-Compatibility fallbacks currently exist for `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, and `TUBEFLOW_WEB_URL`.
+Compatibility fallbacks currently exist for `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `TUBEFLOW_APP_URL`, and `TUBEFLOW_WEB_URL`.
 
 ## Safe change patterns
 
@@ -142,7 +142,7 @@ Compatibility fallbacks currently exist for `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBL
 
 ```bash
 flutter pub get
-flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=TUBEFLOW_APP_URL=...
+flutter run -d chrome --dart-define=CONVEX_URL=... --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_APP_ID=... --dart-define=REPLAYGLOWZ_APP_URL=...
 dart analyze lib/
 bash build.sh
 dart run tool/check_shared_backend_contract.dart

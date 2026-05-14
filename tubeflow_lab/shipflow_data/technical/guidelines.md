@@ -30,7 +30,7 @@ depends_on:
   - "CLAUDE.md@0.1.0"
 supersedes: []
 next_review: "2026-05-26"
-next_step: "Align these repository guidelines with the main TubeFlow engineering standards if a shared standard exists."
+next_step: "Align these repository guidelines with the main ReplayGlowz engineering standards if a shared standard exists."
 ---
 
 # shipflow_data/technical/guidelines.md
@@ -44,7 +44,7 @@ next_step: "Align these repository guidelines with the main TubeFlow engineering
 
 ## API change policy
 
-- Any change to request fields, response fields, auth behavior, or status-code semantics must be coordinated with the calling TubeFlow app.
+- Any change to request fields, response fields, auth behavior, or status-code semantics must be coordinated with the calling ReplayGlowz app.
 - `GET /health` may grow, but existing keys should not be removed casually because operators may depend on them.
 
 ## Environment variable policy

@@ -39,7 +39,7 @@ next_step: "Use as source of truth for bilingual copy and landing-page messaging
 
 ## Brand Role
 
-TubeFlow's brand should make the product feel like a focused personal workspace for learning from YouTube. The brand should reduce cognitive load, not add hype.
+ReplayGlowz's brand should make the product feel like a focused personal workspace for learning from YouTube. The brand should reduce cognitive load, not add hype.
 
 The brand direction is confirmed for a productivity and learning positioning aimed first at solo creators, students, and educators.
 
@@ -117,11 +117,11 @@ Short fallback (UI-constrained surfaces):
 
 Safe claims:
 
-- TubeFlow helps users capture timestamped notes from YouTube videos.
-- TubeFlow supports playlists and viewing continuity.
-- TubeFlow is built around authenticated persistence.
-- TubeFlow serves solo creators, students, and educators.
-- TubeFlow follows an `LTD + subscription` trajectory.
+- ReplayGlowz helps users capture timestamped notes from YouTube videos.
+- ReplayGlowz supports playlists and viewing continuity.
+- ReplayGlowz is built around authenticated persistence.
+- ReplayGlowz serves solo creators, students, and educators.
+- ReplayGlowz follows an `LTD + subscription` trajectory.
 
 Unsafe claims until confirmed:
 

@@ -2,7 +2,7 @@
 artifact: business_context
 metadata_schema_version: "1.0"
 artifact_version: "0.1.0"
-project: "tubeflow-flutter"
+project: "replayglowz"
 created: "2026-05-10"
 updated: "2026-05-10"
 status: "draft"
@@ -33,7 +33,7 @@ next_step: "/sf-docs audit"
 
 ## Mission
 
-TubeFlow helps learning-focused YouTube users turn watch sessions into structured notes, playlists, retrieval, and review workflows.
+ReplayGlowz helps learning-focused YouTube users turn watch sessions into structured notes, playlists, retrieval, and review workflows.
 
 ## Monorepo Role
 

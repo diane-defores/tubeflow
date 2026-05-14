@@ -2,7 +2,7 @@
 artifact: business_context
 metadata_schema_version: "1.0"
 artifact_version: "1.0.0"
-project: "tubeflow-site"
+project: "replayglowz-site"
 created: "2026-04-25"
 updated: "2026-04-27"
 status: "reviewed"
@@ -14,7 +14,7 @@ risk_level: "medium"
 security_impact: "unknown"
 docs_impact: "yes"
 target_audience: "Solo creators, students, and educators who use video for structured learning and ongoing veille"
-value_proposition: "TubeFlow turns watch time into organized learning with timestamped notes, retrieval, and focused review."
+value_proposition: "ReplayGlowz turns watch time into organized learning with timestamped notes, retrieval, and focused review."
 business_model: "LTD offer + recurring subscription"
 market: "Bilingual English/French web audience for learning-centric video workflows"
 depends_on:
@@ -27,8 +27,8 @@ depends_on:
 supersedes:
   - artifact_version: "0.1.1"
 evidence:
-  - "README.md (repo positioned as TubeFlow marketing site)"
-  - "src/config/site.ts (PUBLIC_APP_URL points to app.tubeflow.winflowz.com)"
+  - "README.md (repo positioned as ReplayGlowz marketing site)"
+  - "src/config/site.ts (PUBLIC_APP_URL points to app.replayglowz.com)"
   - "src/pages/pricing.astro (commercial offer and upgrade framing)"
   - "tubeflow_app/shipflow_data/business/business.md (canonical product business contract)"
 next_review: "2026-05-26"
@@ -38,7 +38,7 @@ next_step: "Keep public pricing copy and offer framing aligned with the canonica
 
 ## Role of This Repo in Business Decisions
 
-`tubeflow-site` is the acquisition and conversion surface for TubeFlow. It is not the canonical product contract.
+`replayglowz-site` is the acquisition and conversion surface for ReplayGlowz. It is not the canonical product contract.
 
 Canonical product truth lives in `tubeflow_app`. This site can frame, qualify, and convert demand, but it should not introduce business claims that diverge from the app contract.
 
@@ -82,7 +82,7 @@ Secondary:
 
 ## Positioning
 
-TubeFlow sits between algorithm-first video consumption and disconnected note-taking tools. The differentiation is preserving learning context at source timestamp granularity while reducing friction to retrieval.
+ReplayGlowz sits between algorithm-first video consumption and disconnected note-taking tools. The differentiation is preserving learning context at source timestamp granularity while reducing friction to retrieval.
 
 ## Conversion Metrics
 

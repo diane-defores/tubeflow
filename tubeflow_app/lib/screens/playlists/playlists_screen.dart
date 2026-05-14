@@ -146,7 +146,7 @@ class PlaylistsScreen extends ConsumerWidget {
         loading: () => const YoutubeConnectionLoadingState(
           title: 'Checking your YouTube playlists',
           description:
-              'TubeFlow is confirming your YouTube connection before loading playlist data.',
+              'ReplayGlowz is confirming your YouTube connection before loading playlist data.',
         ),
         error: (error, stack) => ErrorStateView(
           error: error,
