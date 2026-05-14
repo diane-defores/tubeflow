@@ -117,7 +117,7 @@ module.exports = async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const storedState = cookies.youtube_oauth_state;
   const returnTo = cookies.youtube_oauth_return_to;
-  const firebaseIdToken = cookies.tubeflow_youtube_firebase_id_token;
+  const firebaseIdToken = cookies.replayglowz_youtube_firebase_id_token;
 
   const googleClientId = getEnv('GOOGLE_CLIENT_ID');
   const googleClientSecret = getEnv('GOOGLE_CLIENT_SECRET');
@@ -138,7 +138,7 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 0,
     }),
-    serializeCookie('tubeflow_youtube_firebase_id_token', '', {
+    serializeCookie('replayglowz_youtube_firebase_id_token', '', {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
@@ -170,13 +170,13 @@ module.exports = async function handler(req, res) {
   }
 
   if (!storedState || storedState !== state) {
-    redirectWithError('TubeFlow could not verify the YouTube OAuth state.');
+    redirectWithError('ReplayGlowz could not verify the YouTube OAuth state.');
     return;
   }
 
   if (!firebaseIdToken) {
     redirectWithError(
-      'TubeFlow lost the Firebase auth handoff before callback. Start YouTube connect again from the app.',
+      'ReplayGlowz lost the Firebase auth handoff before callback. Start YouTube connect again from the app.',
     );
     return;
   }
@@ -211,7 +211,7 @@ module.exports = async function handler(req, res) {
     redirectWithError(
       error instanceof Error
         ? error.message
-        : 'TubeFlow could not complete the YouTube callback.',
+        : 'ReplayGlowz could not complete the YouTube callback.',
     );
   }
 };

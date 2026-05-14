@@ -13,7 +13,7 @@ confidence: high
 risk_level: medium
 security_impact: yes
 docs_impact: yes
-user_story: "As a TubeFlow user or evaluator, I can submit text or audio feedback, and authorized admins can review it from the app."
+user_story: "As a ReplayGlowz user or evaluator, I can submit text or audio feedback, and authorized admins can review it from the app."
 linked_systems: ["Flutter Web", "Convex", "Clerk", "Vercel"]
 depends_on: []
 supersedes: []

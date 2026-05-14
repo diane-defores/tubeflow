@@ -77,7 +77,7 @@ module.exports = async function handler(req, res) {
       secure,
       maxAge: 600,
     }),
-    serializeCookie('tubeflow_youtube_firebase_id_token', firebaseIdToken, {
+    serializeCookie('replayglowz_youtube_firebase_id_token', firebaseIdToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',

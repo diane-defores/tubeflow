@@ -245,16 +245,15 @@ FeedbackSubmissionService
 GET /api/auth/youtube
 ├── getRequestOrigin(req)
 ├── sanitizeReturnTo(return_to)
-├── require GOOGLE_CLIENT_ID and tubeflow_youtube_clerk_session_id cookie
+├── require GOOGLE_CLIENT_ID and Firebase bearer token
 ├── create state
 ├── set youtube_oauth_state and youtube_oauth_return_to cookies
 └── redirect to Google OAuth consent
 
 GET /api/auth/youtube/callback
 ├── validate method, code, state, and cookies
-├── require GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CLERK_SECRET_KEY, CONVEX_URL
+├── require GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CONVEX_URL, and Firebase ID token handoff
 ├── exchangeCodeForTokens()
-├── mintConvexJwt(sessionId, CLERK_SECRET_KEY) using Clerk template convex
 ├── ensureConvexUser() -> users:ensureUser
 ├── saveYoutubeTokens() -> youtube:saveYoutubeTokens
 ├── clear OAuth/session cookies

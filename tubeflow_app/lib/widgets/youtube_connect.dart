@@ -191,7 +191,7 @@ Future<void> _launchYoutubeConnect(
     showErrorSnackBar(
       context,
       error:
-          'TubeFlow could not determine the YouTube OAuth origin for this build.',
+          'ReplayGlowz could not determine the YouTube OAuth origin for this build.',
       prefix: 'YouTube connect unavailable',
     );
     return;

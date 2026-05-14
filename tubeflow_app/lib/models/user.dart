@@ -1,4 +1,4 @@
-/// Model representing an authenticated TubeFlow user.
+/// Model representing an authenticated ReplayGlowz user.
 ///
 /// Maps to the `users` table in Convex. Sensitive fields (OAuth tokens)
 /// are intentionally excluded from the client model.

@@ -140,20 +140,23 @@ The repo also contains Vercel Node handlers for YouTube OAuth under `api/auth/`.
 Flutter build-time:
 
 - `CONVEX_URL`
-- `CLERK_PUBLISHABLE_KEY`
-- `TUBEFLOW_APP_URL`
-- `CLERK_HOSTED_SIGN_IN_URL`
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+- `REPLAYGLOWZ_APP_URL`
 - `BUILD_COMMIT_SHA`
 - `BUILD_ENVIRONMENT`
 - `BUILD_TIMESTAMP`
 
 Vercel OAuth/serverless:
 
-- `CLERK_SECRET_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-Compatibility fallbacks still exist for selected legacy Vercel-style names in `build.sh` and `api/auth/**`.
+Only the exact environment variable names documented here are supported.
 
 ## Documentation confidence
 

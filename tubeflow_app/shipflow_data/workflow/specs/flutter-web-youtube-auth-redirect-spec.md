@@ -13,7 +13,7 @@ confidence: high
 risk_level: medium
 security_impact: yes
 docs_impact: yes
-user_story: "As a TubeFlow user, I can connect YouTube through a full-page OAuth redirect that works reliably on Flutter web and returns clear success or error feedback."
+user_story: "As a ReplayGlowz user, I can connect YouTube through a full-page OAuth redirect that works reliably on Flutter web and returns clear success or error feedback."
 linked_systems: ["Flutter Web", "Google OAuth", "Vercel Serverless Functions", "Clerk"]
 depends_on: []
 supersedes: []
@@ -48,12 +48,12 @@ The result is a web YouTube auth path that is harder to reason about, harder to 
 
 Replace the Flutter web popup YouTube OAuth path with a full-page redirect flow aligned with the working `tubeflow` web app:
 
-- the Flutter web client prepares the `tubeflow_youtube_clerk_session_id` transport cookie and redirects the current tab to `/api/auth/youtube`
-- the Vercel serverless OAuth handlers continue to own the Google code exchange, Clerk-to-Convex token mint, `users:ensureUser`, and `youtube:saveYoutubeTokens`
+- the Flutter web client sends a Firebase ID token to `/api/auth/youtube`
+- the Vercel serverless OAuth handlers continue to own the Google code exchange, Convex user ensure, and `youtube:saveYoutubeTokens`
 - the callback returns to the Flutter app via a normal redirect carrying `youtube_connected` or `youtube_error` in the hash route
 - after the app reloads and bootstrap completes, Flutter re-reads YouTube connection state from Convex, then runs the refresh pipeline for playlists and videos
 
-This keeps the Clerk beta workaround where needed, but removes popup orchestration and restores a transactionally clean OAuth lifecycle on the web.
+This removes popup orchestration and keeps a transactionally clean OAuth lifecycle on the web.
 
 # Scope In
 
@@ -61,15 +61,14 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 - Remove popup-specific client flow handling from the Flutter web app.
 - Simplify the Vercel OAuth handlers so redirect mode is the default and only supported web path.
 - Keep `return_to` support for hash-based Flutter routes such as `/#/preferences` and `/#/videos`.
-- Preserve server-side OAuth token exchange, Clerk Convex token minting, user ensuring, and token persistence.
+- Preserve server-side OAuth token exchange, user ensuring, and token persistence.
 - Keep the post-return Flutter feedback banner, but make it operate only on redirect-return URL params plus Convex state.
 - Keep the current refresh strategy that fetches playlists first, then playlist items, and uses Convex as the source of truth.
 - Update diagnostics and acceptance checks so failures are explained in redirect-based terms rather than popup-based terms.
 
 # Scope Out
 
-- Replacing the Clerk Flutter beta SDK or removing the Clerk web bridge.
-- Reworking sign-in / hosted Clerk flows outside the YouTube connect path.
+- Reworking sign-in flows outside the YouTube connect path.
 - Rewriting the Convex auth bootstrap layer.
 - Changing Convex schema or backend function names.
 - Migrating `youtubeConnectionProvider` from one-shot query to realtime subscription in this change.
@@ -77,12 +76,12 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 # Constraints
 
-- `CLERK_PUBLISHABLE_KEY` and `CONVEX_URL` remain build-time `--dart-define` inputs and must not be hardcoded.
-- The Clerk Flutter beta limitation remains real; web still needs the JS bridge and `clerkWebPrepareSessionCookie()`.
+- `CONVEX_URL`, `FIREBASE_*`, and `REPLAYGLOWZ_APP_URL` remain build-time `--dart-define` inputs and must not be hardcoded.
+- Firebase Auth is the supported auth path for Flutter web.
 - The Flutter web app uses hash routing, so OAuth return URLs must remain compatible with `/#/...`.
 - Convex writes must continue to go through the established mutation/action helpers on the Flutter side.
-- The serverless callback must remain able to recover the Clerk session from `tubeflow_youtube_clerk_session_id` without clearing Clerk's own browser session state.
-- The implementation must preserve the existing auth bootstrap order in `main.dart` and `ClerkService`.
+- The serverless callback must remain able to recover the Firebase ID token handoff cookie without clearing Firebase's browser session state.
+- The implementation must preserve the existing auth bootstrap order in `main.dart` and `AuthService`.
 
 # Dependencies
 
@@ -128,7 +127,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 # Edge Cases
 
 - The browser returns from Google with `youtube_error` and the app lands on `/#/preferences`.
-- The `tubeflow_youtube_clerk_session_id` cookie is missing or expired before `/api/auth/youtube` or the callback runs.
+- The Firebase ID token handoff is missing or expired before `/api/auth/youtube` or the callback runs.
 - Google returns success but Convex status is not yet visible on the first query after redirect.
 - `return_to` is absent, malformed, absolute, or points to `/`.
 - The user starts connect from a route with its own query string, for example `/#/videos?sortOrder=newest`.
@@ -190,13 +189,13 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
 
 # Acceptance Criteria
 
-- [ ] CA 1: Given a signed-in Flutter web user on `/#/preferences`, when they press “Connect YouTube”, then the current tab redirects to `/api/auth/youtube?return_to=%2F%23%2Fpreferences` after preparing `tubeflow_youtube_clerk_session_id`.
+- [ ] CA 1: Given a signed-in Flutter web user on `/#/preferences`, when they press “Connect YouTube”, then the current tab requests `/api/auth/youtube?return_to=%2F%23%2Fpreferences` with a Firebase bearer token and redirects the current tab to Google OAuth.
 - [ ] CA 2: Given a successful Google OAuth flow, when the callback finishes server-side persistence, then the browser returns to the original in-app hash route with `youtube_connected=true` and no popup is involved.
-- [ ] CA 3: Given a failed Google OAuth flow or a missing Clerk session during callback, when the browser returns to the app, then the route contains `youtube_error=...` and the Flutter UI displays a visible error state without crashing.
+- [ ] CA 3: Given a failed Google OAuth flow or a missing Firebase auth handoff during callback, when the browser returns to the app, then the route contains `youtube_error=...` and the Flutter UI displays a visible error state without crashing.
 - [ ] CA 4: Given a redirect return with `youtube_connected=true`, when the app bootstrap completes, then Flutter invalidates YouTube state, confirms connection via Convex with bounded retries, and starts playlist refresh.
 - [ ] CA 5: Given that Convex status is still delayed on the first post-return read, when retries exhaust, then the user sees a recoverable “connected but setup needs attention” state and can retry sync manually.
 - [ ] CA 6: Given the user starts connect from `/#/videos` or `/#/play`, when OAuth succeeds, then the app returns to the same logical route rather than always forcing `/#/playlists`.
-- [ ] CA 7: Given the server callback succeeds, when temporary OAuth cookies are cleaned up, then `youtube_oauth_state`, `youtube_oauth_return_to`, and `tubeflow_youtube_clerk_session_id` are removed from the browser, and Flutter web session restoration still succeeds from the Clerk JS session after redirect.
+- [ ] CA 7: Given the server callback succeeds, when temporary OAuth cookies are cleaned up, then `youtube_oauth_state`, `youtube_oauth_return_to`, and `replayglowz_youtube_firebase_id_token` are removed from the browser, and Flutter web session restoration still succeeds from Firebase after redirect.
 - [ ] CA 8: Given the user opens the preferences diagnostics after this change, when they read the help text, then no copy incorrectly states that Google opened in a popup on web.
 - [ ] CA 9: Given connect is initiated from any existing CTA surface, when the implementation is complete, then all surfaces use the same redirect-based path and none relies on popup completion payloads.
 - [ ] CA 10: Given the app is already connected to YouTube, when the user manually triggers sync, then the refresh pipeline still fetches playlists first and playlist items second using the current Convex action names.
@@ -211,7 +210,7 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
   - retry after an intentional OAuth denial
   - retry after disconnect
 - Serverless callback verification:
-  - success path with valid `tubeflow_youtube_clerk_session_id`
+  - success path with valid `replayglowz_youtube_firebase_id_token`
   - missing session path
   - invalid state path
   - missing env var path
@@ -263,8 +262,8 @@ This keeps the Clerk beta workaround where needed, but removes popup orchestrati
   - hit `/api/auth/youtube` and callback through a browser, not just unit-like checks
   - run static checks available in the environment after implementation
 - Implementation verification checklist:
-  - confirm the final flow still matches the working `tubeflow` pattern: set Clerk session cookie, redirect to server auth route, let server callback persist tokens, return with URL flag, then refresh from Convex
-  - confirm `tubeflow_youtube_clerk_session_id` is treated as a temporary transport cookie only and not as the source of truth for the restored session after redirect
+  - confirm the final flow sets the Firebase token handoff cookie, redirects to the server auth route, lets the server callback persist tokens, returns with a URL flag, then refreshes from Convex
+  - confirm `replayglowz_youtube_firebase_id_token` is treated as a temporary transport cookie only and not as the source of truth for the restored session after redirect
 - Stop conditions / reroute:
   - if `return_to` reconstruction fails for hash routes, pause and validate `buildReturnUrl(...)` behavior before changing more UI code
   - if server callback persistence succeeds but Convex status never reflects tokens after redirect, reroute investigation to backend `youtube:getYoutubeConnectionStatus` and Convex auth propagation before changing Flutter UI further
