@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2026-05-15]
+
+### Changed
+- Batched full YouTube playlist sync calls to reduce sequential backend waits during manual refresh.
+- Deferred the all-notes subscription on the Videos screen until the Notes view is active.
+
 ## [2026-05-14]
 
 ### Changed

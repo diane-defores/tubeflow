@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-05-15]
+
+### Removed
+- Removed the unused Lenis smooth-scroll runtime so the static site no longer emits a client JavaScript chunk for global scrolling.
+- Removed unused public headshot payloads that were copied into production builds without any source references.
+
 ## [2026-05-14]
 
 ### Changed

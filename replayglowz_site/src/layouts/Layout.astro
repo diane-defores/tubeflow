@@ -121,22 +121,6 @@ const allSchemas = [...defaultSchemas, ...jsonLd]
     <script>
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-      // Lenis smooth scroll (skip if reduced motion)
-      if (!prefersReducedMotion) {
-        import('lenis').then(({ default: Lenis }) => {
-          const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smoothWheel: true,
-          })
-          function raf(time: number) {
-            lenis.raf(time)
-            requestAnimationFrame(raf)
-          }
-          requestAnimationFrame(raf)
-        })
-      }
-
       // IntersectionObserver for scroll-triggered animations
       // If reduced motion, reveal everything immediately
       if (prefersReducedMotion) {

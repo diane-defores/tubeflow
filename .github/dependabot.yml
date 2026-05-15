@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/tubeflow_site"
+    directory: "/replayglowz_site"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -10,7 +10,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "tubeflow_site"
+      - "replayglowz_site"
     groups:
       npm-patch-minor:
         update-types:
@@ -18,7 +18,7 @@ updates:
           - "minor"
 
   - package-ecosystem: "pip"
-    directory: "/tubeflow_lab"
+    directory: "/replayglowz_lab"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -27,7 +27,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "tubeflow_lab"
+      - "replayglowz_lab"
     groups:
       pip-patch-minor:
         update-types:
@@ -35,7 +35,7 @@ updates:
           - "minor"
 
   - package-ecosystem: "pub"
-    directory: "/tubeflow_app"
+    directory: "/replayglowz_app"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -44,7 +44,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "tubeflow_app"
+      - "replayglowz_app"
     groups:
       pub-patch-minor:
         update-types:
@@ -69,7 +69,7 @@ updates:
           - "minor"
 
   - package-ecosystem: "docker"
-    directory: "/tubeflow_lab"
+    directory: "/replayglowz_lab"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -78,7 +78,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "tubeflow_lab"
+      - "replayglowz_lab"
       - "docker"
     groups:
       docker-patch-minor:

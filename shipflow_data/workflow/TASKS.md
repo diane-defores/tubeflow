@@ -14,3 +14,14 @@
 | Pri | Task | Status |
 |-----|------|--------|
 | 🟠 | Align root and subproject ShipFlow docs under canonical `shipflow_data/` paths | ✅ done |
+
+## Audit: Perf
+
+| Pri | Task | Status |
+|-----|------|--------|
+| ✅ | Remove unused `replayglowz_site/public/professional-headshot-*.png` payloads that were copied into every static build despite having no source references | ✅ done |
+| ✅ | Remove global `lenis` smooth-scroll dependency and layout script so the Astro site build emits no client JavaScript chunks | ✅ done |
+| ✅ | Batch `youtube:fetchPlaylistItems` calls in `syncAllPlaylists` instead of waiting for each playlist sync sequentially | ✅ done |
+| ✅ | Defer the all-notes subscription on `VideosScreen` until the Notes view is active | ✅ done |
+| 🟡 | Decide whether to self-host/subset the Google and Cal Sans font stack to remove remaining render-blocking remote font CSS | 📋 todo |
+| 🟡 | Evaluate transcript worker preflight/download duplication if `/transcribe` latency becomes an operational bottleneck | 📋 todo |

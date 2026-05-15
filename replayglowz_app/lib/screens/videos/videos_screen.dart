@@ -114,10 +114,13 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     final youtubeConnectionAsync = ref.watch(youtubeConnectionProvider);
     final youtubeConnected =
         youtubeConnectionAsync.asData?.value?['connected'] == true;
+    final isNotesView = _tabController.index == 2;
     final videosAsync = youtubeConnected
         ? ref.watch(videosProvider(const VideosArgs()))
         : null;
-    final notesAsync = youtubeConnected ? ref.watch(notesProvider) : null;
+    final notesAsync = youtubeConnected && isNotesView
+        ? ref.watch(notesProvider)
+        : null;
 
     return Scaffold(
       appBar: AppBar(

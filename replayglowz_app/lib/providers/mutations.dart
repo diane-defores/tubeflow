@@ -204,6 +204,20 @@ List<String> _extractYoutubePlaylistIds(dynamic rawPlaylists) {
       .toList(growable: false);
 }
 
+const _playlistSyncBatchSize = 3;
+
+Future<void> _runInBatches<T>(
+  List<T> items, {
+  required int batchSize,
+  required Future<void> Function(T item) run,
+}) async {
+  for (var start = 0; start < items.length; start += batchSize) {
+    final end = (start + batchSize).clamp(0, items.length);
+    final batch = items.sublist(start, end);
+    await Future.wait(batch.map(run));
+  }
+}
+
 Future<dynamic> _syncAllPlaylistsWithService(ConvexService service) async {
   final rawPlaylists = await service.action<dynamic>(
     'youtube:fetchYoutubePlaylists',
@@ -211,11 +225,15 @@ Future<dynamic> _syncAllPlaylistsWithService(ConvexService service) async {
   );
   final playlistIds = _extractYoutubePlaylistIds(rawPlaylists);
 
-  for (final playlistId in playlistIds) {
-    await service.action<dynamic>('youtube:fetchPlaylistItems', {
-      'playlistId': playlistId,
-    });
-  }
+  await _runInBatches<String>(
+    playlistIds,
+    batchSize: _playlistSyncBatchSize,
+    run: (playlistId) async {
+      await service.action<dynamic>('youtube:fetchPlaylistItems', {
+        'playlistId': playlistId,
+      });
+    },
+  );
 
   return <String, dynamic>{'playlistCount': playlistIds.length};
 }
