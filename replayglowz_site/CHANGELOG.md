@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [2026-05-15]
 
+### Changed
+- Self-hosted the marketing site fonts and preloaded only critical local WOFF2 files to remove render-blocking external font CSS.
+
 ### Removed
 - Removed the unused Lenis smooth-scroll runtime so the static site no longer emits a client JavaScript chunk for global scrolling.
 - Removed unused public headshot payloads that were copied into production builds without any source references.
