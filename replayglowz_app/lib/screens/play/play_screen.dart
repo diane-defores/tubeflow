@@ -69,11 +69,14 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
   bool _isGeneratingTranscript = false;
   int _lastSyncedSecond = -1;
   double _currentTimestamp = 0.0;
+  int _activeTabIndex = 0;
+  YouTubeVideo? _currentVideoCache;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_syncActiveTab);
     _loadedVideoId = widget.videoId;
     _playerController = YoutubePlayerController(
       initialVideoId: _initialPlayerVideoId(widget.videoId),
@@ -96,6 +99,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     _progressRestored = false;
     _currentTimestamp = 0;
     _lastSyncedSecond = -1;
+    _currentVideoCache = null;
 
     if (_isPlayerReady && _loadedVideoId.isNotEmpty) {
       _playerController.load(_loadedVideoId);
@@ -105,11 +109,19 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
   @override
   void dispose() {
     _saveProgress();
+    _tabController.removeListener(_syncActiveTab);
     _playerController.removeListener(_syncPlayerState);
     _playerController.dispose();
     _tabController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  void _syncActiveTab() {
+    if (!mounted || _activeTabIndex == _tabController.index) {
+      return;
+    }
+    setState(() => _activeTabIndex = _tabController.index);
   }
 
   /// Save playback progress to Convex on dispose / pause.
@@ -156,21 +168,21 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     final progressAsync = youtubeConnected && hasVideoId
         ? ref.watch(videoProgressProvider(widget.videoId))
         : const AsyncValue<VideoProgress?>.data(null);
-    final videosAsync = youtubeConnected
-        ? ref.watch(videosProvider(const VideosArgs()))
-        : const AsyncValue<List<YouTubeVideo>>.data(<YouTubeVideo>[]);
 
     final settings = ref.watch(settingsProvider).asData?.value;
     final transcriptLanguage = _effectiveTranscriptLanguage(settings);
-    final transcriptArgs = TranscriptArgs(
-      youtubeVideoId: widget.videoId,
-      language: transcriptLanguage,
-    );
-    final transcriptAsync = youtubeConnected && hasVideoId
-        ? ref.watch(activeTranscriptProvider(transcriptArgs))
+    final isTranscriptTabActive = _activeTabIndex == 1;
+    final transcriptAsync =
+        youtubeConnected && hasVideoId && isTranscriptTabActive
+        ? ref.watch(
+            activeTranscriptProvider(
+              TranscriptArgs(
+                youtubeVideoId: widget.videoId,
+                language: transcriptLanguage,
+              ),
+            ),
+          )
         : const AsyncValue<Map<String, dynamic>?>.data(null);
-
-    final currentVideo = _findCurrentVideo(videosAsync.asData?.value);
 
     // Restore saved progress once per video load.
     progressAsync.whenData((progress) {
@@ -188,7 +200,11 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
       });
     });
 
-    final title = currentVideo?.title ?? 'Now Playing';
+    final currentVideo = _currentVideoCache;
+    final playerTitle = _playerController.metadata.title.trim();
+    final title =
+        currentVideo?.title ??
+        (playerTitle.isEmpty ? 'Now Playing' : playerTitle);
 
     return Scaffold(
       appBar: AppBar(
@@ -202,7 +218,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                 await startYoutubeConnectFlow(context, returnTo: Routes.play);
                 return;
               }
-              await _showQueueDrawer(currentVideo);
+              await _showQueueDrawer();
             },
           ),
           IconButton(
@@ -277,10 +293,12 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                   controller: _tabController,
                   children: [
                     _buildNotesTab(notesAsync),
-                    _buildTranscriptTab(
-                      transcriptAsync,
-                      language: transcriptLanguage,
-                    ),
+                    isTranscriptTabActive
+                        ? _buildTranscriptTab(
+                            transcriptAsync,
+                            language: transcriptLanguage,
+                          )
+                        : const SizedBox.shrink(),
                     _buildCommentsTab(),
                   ],
                 ),
@@ -666,13 +684,38 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     return 'M7lc1UVf-VE';
   }
 
-  YouTubeVideo? _findCurrentVideo(List<YouTubeVideo>? videos) {
-    if (videos == null || videos.isEmpty || widget.videoId.isEmpty) {
+  Future<YouTubeVideo?> _loadCurrentVideoFromLibrary() async {
+    if (widget.videoId.isEmpty) {
       return null;
     }
-    for (final video in videos) {
-      if (video.youtubeVideoId == widget.videoId) {
-        return video;
+
+    final cached = _currentVideoCache;
+    if (cached?.youtubeVideoId == widget.videoId) {
+      return cached;
+    }
+
+    final service = ref.read(convexServiceProvider);
+    final raw = await service.query<dynamic>('youtube:getAllVideos', {
+      'sortOrder': 'newest',
+      'includeWatched': true,
+    });
+
+    final decoded = raw is String ? jsonDecode(raw) : raw;
+    if (decoded is! List) {
+      return null;
+    }
+
+    for (final item in decoded) {
+      if (item is Map<String, dynamic>) {
+        final video = YouTubeVideo.fromJson(item);
+        if (video.youtubeVideoId == widget.videoId) {
+          if (mounted) {
+            setState(() => _currentVideoCache = video);
+          } else {
+            _currentVideoCache = video;
+          }
+          return video;
+        }
       }
     }
     return null;
@@ -808,7 +851,20 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     return videos;
   }
 
-  Future<void> _showQueueDrawer(YouTubeVideo? currentVideo) async {
+  Future<void> _showQueueDrawer() async {
+    late final YouTubeVideo? currentVideo;
+    try {
+      currentVideo = await _loadCurrentVideoFromLibrary();
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, error: e, prefix: 'Queue unavailable');
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
     if (currentVideo == null) {
       showErrorSnackBar(
         context,
@@ -819,6 +875,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
     }
 
     final currentVideoId = widget.videoId;
+    final playlistId = currentVideo.playlistId;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -829,7 +886,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           child: SizedBox(
             height: MediaQuery.sizeOf(sheetContext).height * 0.65,
             child: FutureBuilder<List<YouTubeVideo>>(
-              future: _loadPlaylistQueue(currentVideo.playlistId),
+              future: _loadPlaylistQueue(playlistId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
