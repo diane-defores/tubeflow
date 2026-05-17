@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,7 +10,9 @@ import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
 import 'package:replayglowz_app/utils/color_utils.dart';
 import 'package:replayglowz_app/utils/duration_utils.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/media/video_list_tile.dart';
 
 /// Playlist detail screen showing the playlist header and its video list.
 ///
@@ -102,17 +103,25 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
   }
 
   Widget _buildShimmerList() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Column(
-        children: List.generate(
-          5,
-          (index) => ListTile(
-            leading: Container(width: 100, height: 56, color: Colors.white),
-            title: Container(height: 14, width: 160, color: Colors.white),
-            subtitle: Container(height: 10, width: 100, color: Colors.white),
-          ),
+    return AppLoadingListSkeleton(
+      itemCount: 5,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) => ListTile(
+        leading: Container(
+          width: 100,
+          height: 56,
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        title: Container(
+          height: 14,
+          width: 160,
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        subtitle: Container(
+          height: 10,
+          width: 100,
+          color: Theme.of(context).colorScheme.surface,
         ),
       ),
     );
@@ -285,14 +294,10 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
   Widget _buildVideoList(List<YouTubeVideo> videos) {
     if (videos.isEmpty) {
       return const SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(32),
-            child: Text(
-              'No videos in this playlist',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ),
+        child: AppEmptyState(
+          icon: Icons.playlist_play,
+          title: 'No videos in this playlist',
+          description: 'Sync the playlist to import items from YouTube.',
         ),
       );
     }
@@ -300,52 +305,10 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
         final video = videos[index];
-        final durationSec = parseDuration(video.duration);
-
-        return ListTile(
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: video.thumbnailUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: video.thumbnailUrl!,
-                    width: 100,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 100,
-                      height: 56,
-                      color: Colors.grey[300],
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 100,
-                      height: 56,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(Icons.play_circle_outline, size: 28),
-                      ),
-                    ),
-                  )
-                : Container(
-                    width: 100,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.play_circle_outline, size: 28),
-                    ),
-                  ),
-          ),
-          title: Text(
-            video.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${video.channelTitle}'
-            '${durationSec != null ? ' - ${formatDuration(durationSec)}' : ''}',
-          ),
+        return VideoListTile(
+          video: video,
+          leadingWidth: 100,
+          leadingHeight: 56,
           trailing: PopupMenuButton<String>(
             onSelected: (value) async {
               switch (value) {

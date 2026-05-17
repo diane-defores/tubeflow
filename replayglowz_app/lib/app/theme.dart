@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
-
-/// Theme mode provider for Riverpod.
-///
-/// Manages light/dark/system theme switching across the app.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:replayglowz_app/models/settings.dart';
+import 'package:replayglowz_app/providers/providers.dart';
 
-final themeModeProvider = Provider<ThemeMode>((ref) => ThemeMode.system);
+ThemeMode appThemeModeToThemeMode(AppThemeMode? mode) {
+  switch (mode) {
+    case AppThemeMode.light:
+      return ThemeMode.light;
+    case AppThemeMode.dark:
+      return ThemeMode.dark;
+    case AppThemeMode.system:
+    case null:
+      return ThemeMode.system;
+  }
+}
+
+/// Maps persisted app settings to runtime [ThemeMode].
+///
+/// Fallback remains [ThemeMode.system] while settings are loading
+/// or when no settings document exists yet.
+final themeModeProvider = Provider<ThemeMode>((ref) {
+  final appThemeMode = ref.watch(settingsProvider).asData?.value?.theme;
+  return appThemeModeToThemeMode(appThemeMode);
+});
 
 /// Design tokens for the ReplayGlowz app.
 ///

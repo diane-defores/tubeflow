@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:replayglowz_app/app/router.dart';
 import 'package:replayglowz_app/models/models.dart';
 import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
-import 'package:replayglowz_app/utils/date_utils.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/common_app_bar_actions.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/media/playlist_card.dart';
 import 'package:replayglowz_app/widgets/youtube_connect.dart';
 
 /// Playlists overview screen showing all user playlists.
@@ -99,40 +98,39 @@ class PlaylistsScreen extends ConsumerWidget {
                 },
               );
             },
-            loading: () => Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: 4,
-                itemBuilder: (context, index) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Container(width: 120, height: 90, color: Colors.white),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 14,
-                                width: 100,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                height: 10,
-                                width: 60,
-                                color: Colors.white,
-                              ),
-                            ],
-                          ),
+            loading: () => AppLoadingListSkeleton(
+              itemCount: 4,
+              itemBuilder: (context, index) => Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 90,
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 14,
+                              width: 100,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 10,
+                              width: 60,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -171,114 +169,32 @@ class PlaylistsScreen extends ConsumerWidget {
     WidgetRef ref,
     YouTubePlaylist playlist,
   ) {
-    final color = playlist.color != null
-        ? _parseColor(playlist.color!)
-        : Colors.purple;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          context.go(Routes.playlistDetail(playlist.id));
-        },
-        child: Row(
-          children: [
-            // Thumbnail area with color accent
-            Container(
-              width: 120,
-              height: 90,
-              color: color.withValues(alpha: 0.2),
-              child: Stack(
-                children: [
-                  playlist.effectiveThumbnailUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: playlist.effectiveThumbnailUrl!,
-                          width: 120,
-                          height: 90,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) => const Center(
-                            child: Icon(Icons.playlist_play, size: 40),
-                          ),
-                        )
-                      : const Center(
-                          child: Icon(Icons.playlist_play, size: 40),
-                        ),
-                  // Color bar
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(width: 4, color: color),
-                  ),
-                ],
-              ),
-            ),
-            // Playlist info
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      playlist.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${playlist.videoCount} video${playlist.videoCount == 1 ? '' : 's'}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      playlist.cachedAt > 0
-                          ? 'Updated ${formatDate(playlist.cachedAt)}'
-                          : '',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Overflow menu
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                switch (value) {
-                  case 'hide':
-                    try {
-                      await hidePlaylist(ref, playlist.youtubePlaylistId);
-                    } catch (e) {
-                      if (context.mounted) {
-                        showErrorSnackBar(context, error: e, prefix: 'Error');
-                      }
-                    }
-                    break;
-                  case 'delete':
-                    // TODO: confirm and delete playlist
-                    break;
+    return PlaylistCard(
+      playlist: playlist,
+      onTap: () => context.go(Routes.playlistDetail(playlist.id)),
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) async {
+          switch (value) {
+            case 'hide':
+              try {
+                await hidePlaylist(ref, playlist.youtubePlaylistId);
+              } catch (e) {
+                if (context.mounted) {
+                  showErrorSnackBar(context, error: e, prefix: 'Error');
                 }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                const PopupMenuItem(value: 'hide', child: Text('Hide')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete')),
-              ],
-            ),
-          ],
-        ),
+              }
+              break;
+            case 'delete':
+              // TODO: confirm and delete playlist
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          const PopupMenuItem(value: 'hide', child: Text('Hide')),
+          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        ],
       ),
     );
-  }
-
-  Color _parseColor(String hex) {
-    final hexCode = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 }

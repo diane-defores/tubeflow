@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:replayglowz_app/app/router.dart';
 import 'package:replayglowz_app/models/models.dart';
 import 'package:replayglowz_app/providers/providers.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/common_app_bar_actions.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/notes/note_group_header.dart';
+import 'package:replayglowz_app/widgets/notes/note_tile.dart';
 import 'package:replayglowz_app/widgets/youtube_connect.dart';
 
 /// Notes overview screen with search and grouped display.
@@ -123,17 +125,21 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   }
 
   Widget _buildShimmerLoading() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: 6,
-        itemBuilder: (context, index) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(width: 50, height: 14, color: Colors.white),
-            title: Container(height: 12, width: 200, color: Colors.white),
+    return AppLoadingListSkeleton(
+      itemCount: 6,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemBuilder: (context, index) => Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: Container(
+            width: 50,
+            height: 14,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          title: Container(
+            height: 12,
+            width: 200,
+            color: Theme.of(context).colorScheme.surface,
           ),
         ),
       ),
@@ -170,30 +176,12 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         );
       }
 
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _searchQuery.isNotEmpty ? Icons.search_off : Icons.note_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty ? 'No matching notes' : 'No notes yet',
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-            if (_searchQuery.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text(
-                  'Notes you take during video playback will appear here',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ),
-          ],
-        ),
+      return AppEmptyState(
+        icon: _searchQuery.isNotEmpty ? Icons.search_off : Icons.note_outlined,
+        title: _searchQuery.isNotEmpty ? 'No matching notes' : 'No notes yet',
+        description: _searchQuery.isEmpty
+            ? 'Notes you take during video playback will appear here'
+            : 'Try another search term.',
       );
     }
 
@@ -235,64 +223,17 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Video header
-        Padding(
-          padding: const EdgeInsets.only(top: 16, bottom: 8),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Icon(Icons.play_arrow, size: 16),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  videoTitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Text(
-                '${notes.length} note${notes.length == 1 ? '' : 's'}',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
+        NoteGroupHeader(title: videoTitle, noteCount: notes.length),
         // Notes for this video
         ...notes.map((note) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              leading: note.isTimestamped
-                  ? Text(
-                      '[${note.formattedTimestamp}]',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    )
-                  : null,
-              title: Text(
-                note.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              trailing: const Icon(Icons.chevron_right, size: 20),
-              onTap: () {
-                context.go(Routes.noteDetail(note.id));
-              },
-            ),
+          return NoteTile(
+            content: note.content,
+            timestampLabel: note.isTimestamped
+                ? '[${note.formattedTimestamp}]'
+                : null,
+            compactText: true,
+            trailing: const Icon(Icons.chevron_right, size: 20),
+            onTap: () => context.go(Routes.noteDetail(note.id)),
           );
         }),
         if (groupIndex < totalGroups - 1) const Divider(),

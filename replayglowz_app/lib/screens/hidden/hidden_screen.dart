@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 
 import 'package:replayglowz_app/models/models.dart';
 import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
 import 'package:replayglowz_app/utils/date_utils.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
 
 /// Hidden items screen with tabs for hidden videos and hidden playlists.
@@ -79,18 +79,25 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
   }
 
   Widget _buildShimmerLoading() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 3,
-        itemBuilder: (context, index) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(width: 80, height: 45, color: Colors.white),
-            title: Container(height: 14, width: 120, color: Colors.white),
-            subtitle: Container(height: 10, width: 100, color: Colors.white),
+    return AppLoadingListSkeleton(
+      itemCount: 3,
+      itemBuilder: (context, index) => Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: Container(
+            width: 80,
+            height: 45,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          title: Container(
+            height: 14,
+            width: 120,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          subtitle: Container(
+            height: 10,
+            width: 100,
+            color: Theme.of(context).colorScheme.surface,
           ),
         ),
       ),
@@ -231,28 +238,7 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen>
     required String title,
     required String subtitle,
   }) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-          ),
-        ],
-      ),
-    );
+    return AppEmptyState(icon: icon, title: title, description: subtitle);
   }
 
   void _confirmUnhide(

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:replayglowz_app/app/router.dart';
 import 'package:replayglowz_app/models/models.dart';
 import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
-import 'package:replayglowz_app/utils/color_utils.dart';
 import 'package:replayglowz_app/utils/duration_utils.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/common_app_bar_actions.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/media/video_card.dart';
+import 'package:replayglowz_app/widgets/media/video_list_tile.dart';
 import 'package:replayglowz_app/widgets/youtube_connect.dart';
 
 /// Video feed screen with multiple view modes.
@@ -267,35 +267,41 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
   }
 
   Widget _buildShimmerLoading() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(height: 200, color: Colors.white),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(height: 16, width: 200, color: Colors.white),
-                      const SizedBox(height: 8),
-                      Container(height: 12, width: 120, color: Colors.white),
-                    ],
-                  ),
+    return AppLoadingListSkeleton(
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 200,
+                color: Theme.of(context).colorScheme.surface,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 16,
+                      width: 200,
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 12,
+                      width: 120,
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -305,102 +311,9 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
       itemCount: videos.length,
       itemBuilder: (context, index) {
         final video = videos[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              _openVideo(context, video.youtubeVideoId);
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Thumbnail
-                video.thumbnailUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: video.thumbnailUrl!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          height: 200,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          height: 200,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: Icon(Icons.play_circle_outline, size: 64),
-                          ),
-                        ),
-                      )
-                    : Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.play_circle_outline, size: 64),
-                        ),
-                      ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        video.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              video.channelTitle,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                          if (video.duration != null)
-                            Text(
-                              formatDuration(
-                                parseDuration(video.duration) ?? 0,
-                              ),
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                        ],
-                      ),
-                      if (video.playlistTitle != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            if (video.playlistColor != null)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                margin: const EdgeInsets.only(right: 4),
-                                decoration: BoxDecoration(
-                                  color: parseHexColor(video.playlistColor!),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            Text(
-                              video.playlistTitle!,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+        return VideoCard(
+          video: video,
+          onTap: () => _openVideo(context, video.youtubeVideoId),
         );
       },
     );
@@ -411,47 +324,10 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
       itemCount: videos.length,
       itemBuilder: (context, index) {
         final video = videos[index];
-        return ListTile(
-          leading: video.thumbnailUrl != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CachedNetworkImage(
-                    imageUrl: video.thumbnailUrl!,
-                    width: 120,
-                    height: 68,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 68,
-                      color: Colors.grey[300],
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 68,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.play_circle_outline),
-                    ),
-                  ),
-                )
-              : Container(
-                  width: 120,
-                  height: 68,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.play_circle_outline),
-                ),
-          title: Text(
-            video.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${video.channelTitle}'
-            '${video.duration != null ? ' - ${formatDuration(parseDuration(video.duration) ?? 0)}' : ''}',
-          ),
+        return VideoListTile(
+          video: video,
           trailing: const Icon(Icons.more_vert),
-          onTap: () {
-            _openVideo(context, video.youtubeVideoId);
-          },
+          onTap: () => _openVideo(context, video.youtubeVideoId),
         );
       },
     );

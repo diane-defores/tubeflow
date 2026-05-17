@@ -13,6 +13,7 @@ import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
 import 'package:replayglowz_app/utils/app_logger.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/settings/settings_rows.dart';
 import 'package:replayglowz_app/widgets/youtube_connect.dart';
 
 /// Preferences screen with grouped settings sections.
@@ -54,7 +55,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
       appBar: AppBar(title: const Text('Preferences')),
       body: ListView(
         children: [
-          _buildSectionHeader(context, 'Account'),
+          const SettingsSection(title: 'Account'),
           _AccountTile(authState: authState),
           const _DiagnosticsCard(),
           const _LogsCard(),
@@ -177,38 +178,34 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Appearance'),
-        ListTile(
-          leading: const Icon(Icons.palette_outlined),
-          title: const Text('Theme'),
-          subtitle: Text(themeMode.name),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        const SettingsSection(title: 'Appearance'),
+        SettingsChoiceTile(
+          icon: Icons.palette_outlined,
+          title: 'Theme',
+          value: themeMode.name,
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Theme',
             options: const ['light', 'dark', 'system'],
             currentValue: themeMode.name,
-            onSelected: (value) {
-              _persistSettings({'theme': value});
-            },
+            onSelected: (value) => _persistSettings({'theme': value}),
           ),
         ),
-        ListTile(
-          leading: const Icon(Icons.language),
-          title: const Text('Language'),
-          subtitle: Text(settings.language ?? 'en'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        SettingsChoiceTile(
+          icon: Icons.language,
+          title: 'Language',
+          value: settings.language ?? 'en',
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Language',
             options: const ['en', 'fr', 'es', 'de', 'pt'],
             currentValue: settings.language ?? 'en',
-            onSelected: (value) {
-              _persistSettings({'language': value});
-            },
+            onSelected: (value) => _persistSettings({'language': value}),
           ),
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Account'),
+        const SettingsSection(title: 'Account'),
         const YoutubeConnectionSettingsCard(),
         if (user != null)
           Padding(
@@ -223,74 +220,60 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Notifications'),
-        SwitchListTile(
-          secondary: const Icon(Icons.alternate_email),
-          title: const Text('Email notifications'),
-          subtitle: const Text('Receive updates by email'),
+        const SettingsSection(title: 'Notifications'),
+        SettingsSwitchTile(
+          icon: Icons.alternate_email,
+          title: 'Email notifications',
+          subtitle: 'Receive updates by email',
           value: notifications.email,
-          onChanged: (value) {
-            _persistSettings({
-              'notifications': notifications.copyWith(email: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notifications': notifications.copyWith(email: value).toJson(),
+          }),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.notifications),
-          title: const Text('Push notifications'),
-          subtitle: const Text('Master notification toggle'),
+        SettingsSwitchTile(
+          icon: Icons.notifications,
+          title: 'Push notifications',
+          subtitle: 'Master notification toggle',
           value: notifications.push,
-          onChanged: (value) {
-            _persistSettings({
-              'notifications': notifications.copyWith(push: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notifications': notifications.copyWith(push: value).toJson(),
+          }),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.comment_outlined),
-          title: const Text('New comments'),
-          subtitle: const Text('Notify about comment activity'),
+        SettingsSwitchTile(
+          icon: Icons.comment_outlined,
+          title: 'New comments',
+          subtitle: 'Notify about comment activity',
           value: notifications.newComments,
-          onChanged: (value) {
-            _persistSettings({
-              'notifications': notifications
-                  .copyWith(newComments: value)
-                  .toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notifications': notifications
+                .copyWith(newComments: value)
+                .toJson(),
+          }),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.thumb_up_alt_outlined),
-          title: const Text('New likes'),
-          subtitle: const Text('Notify when notes get likes'),
+        SettingsSwitchTile(
+          icon: Icons.thumb_up_alt_outlined,
+          title: 'New likes',
+          subtitle: 'Notify when notes get likes',
           value: notifications.newLikes,
-          onChanged: (value) {
-            _persistSettings({
-              'notifications': notifications.copyWith(newLikes: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notifications': notifications.copyWith(newLikes: value).toJson(),
+          }),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.video_library_outlined),
-          title: const Text('New video alerts'),
-          subtitle: const Text('Notify when subscribed channels upload'),
+        SettingsSwitchTile(
+          icon: Icons.video_library_outlined,
+          title: 'New video alerts',
+          subtitle: 'Notify when subscribed channels upload',
           value: notifications.newVideos,
-          onChanged: (value) {
-            _persistSettings({
-              'notifications': notifications
-                  .copyWith(newVideos: value)
-                  .toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notifications': notifications.copyWith(newVideos: value).toJson(),
+          }),
         ),
-        ListTile(
-          leading: const Icon(Icons.schedule),
-          title: const Text('Feed check interval'),
-          subtitle: Text(
-            _intervalLabel(notifications.feedRefreshIntervalMinutes),
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        SettingsChoiceTile(
+          icon: Icons.schedule,
+          title: 'Feed check interval',
+          value: _intervalLabel(notifications.feedRefreshIntervalMinutes),
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Feed check interval',
             options: const [
               'Off',
@@ -303,138 +286,122 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             currentValue: _intervalLabel(
               notifications.feedRefreshIntervalMinutes,
             ),
-            onSelected: (value) {
-              _persistSettings({
-                'notifications': notifications
-                    .copyWith(
-                      feedRefreshIntervalMinutes: _intervalFromLabel(value),
-                    )
-                    .toJson(),
-              });
-            },
+            onSelected: (value) => _persistSettings({
+              'notifications': notifications
+                  .copyWith(
+                    feedRefreshIntervalMinutes: _intervalFromLabel(value),
+                  )
+                  .toJson(),
+            }),
           ),
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Playback'),
-        SwitchListTile(
-          secondary: const Icon(Icons.play_circle),
-          title: const Text('Autoplay'),
-          subtitle: const Text('Play next video automatically'),
+        const SettingsSection(title: 'Playback'),
+        SettingsSwitchTile(
+          icon: Icons.play_circle,
+          title: 'Autoplay',
+          subtitle: 'Play next video automatically',
           value: playback.autoplay,
-          onChanged: (value) {
-            _persistSettings({
-              'playback': playback.copyWith(autoplay: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'playback': playback.copyWith(autoplay: value).toJson(),
+          }),
         ),
-        ListTile(
-          leading: const Icon(Icons.hd_outlined),
-          title: const Text('Default quality'),
-          subtitle: Text(playback.defaultQuality ?? 'auto'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        SettingsChoiceTile(
+          icon: Icons.hd_outlined,
+          title: 'Default quality',
+          value: playback.defaultQuality ?? 'auto',
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Default quality',
             options: const ['auto', '1080p', '720p', '480p', '360p'],
             currentValue: playback.defaultQuality ?? 'auto',
-            onSelected: (value) {
-              _persistSettings({
-                'playback': playback.copyWith(defaultQuality: value).toJson(),
-              });
-            },
+            onSelected: (value) => _persistSettings({
+              'playback': playback.copyWith(defaultQuality: value).toJson(),
+            }),
           ),
         ),
-        ListTile(
-          leading: const Icon(Icons.speed),
-          title: const Text('Default speed'),
-          subtitle: Text('${playback.defaultSpeed ?? 1.0}x'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        SettingsChoiceTile(
+          icon: Icons.speed,
+          title: 'Default speed',
+          value: '${playback.defaultSpeed ?? 1.0}x',
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Default speed',
             options: const ['0.5', '0.75', '1', '1.25', '1.5', '1.75', '2'],
             currentValue: '${playback.defaultSpeed ?? 1.0}'.replaceAll(
               '.0',
               '',
             ),
-            onSelected: (value) {
-              _persistSettings({
-                'playback': playback
-                    .copyWith(defaultSpeed: double.tryParse(value) ?? 1.0)
-                    .toJson(),
-              });
-            },
+            onSelected: (value) => _persistSettings({
+              'playback': playback
+                  .copyWith(defaultSpeed: double.tryParse(value) ?? 1.0)
+                  .toJson(),
+            }),
           ),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.closed_caption_disabled_outlined),
-          title: const Text('Captions enabled'),
-          subtitle: const Text('Show captions by default'),
+        SettingsSwitchTile(
+          icon: Icons.closed_caption_disabled_outlined,
+          title: 'Captions enabled',
+          subtitle: 'Show captions by default',
           value: playback.captionsEnabled ?? false,
-          onChanged: (value) {
-            _persistSettings({
-              'playback': playback.copyWith(captionsEnabled: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'playback': playback.copyWith(captionsEnabled: value).toJson(),
+          }),
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Notes'),
-        SwitchListTile(
-          secondary: const Icon(Icons.pause_circle),
-          title: const Text('Auto timestamp'),
-          subtitle: const Text('Create note prompt when pausing video'),
+        const SettingsSection(title: 'Notes'),
+        SettingsSwitchTile(
+          icon: Icons.pause_circle,
+          title: 'Auto timestamp',
+          subtitle: 'Create note prompt when pausing video',
           value: notes.defaultTimestamped,
-          onChanged: (value) {
-            _persistSettings({
-              'notes': notes.copyWith(defaultTimestamped: value).toJson(),
-            });
-          },
+          onChanged: (value) => _persistSettings({
+            'notes': notes.copyWith(defaultTimestamped: value).toJson(),
+          }),
         ),
-        ListTile(
-          leading: const Icon(Icons.sort),
-          title: const Text('Sort order'),
-          subtitle: Text((notes.sortOrder ?? NoteSortOrder.asc).name),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        SettingsChoiceTile(
+          icon: Icons.sort,
+          title: 'Sort order',
+          value: (notes.sortOrder ?? NoteSortOrder.asc).name,
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Sort order',
             options: const ['asc', 'desc'],
             currentValue: (notes.sortOrder ?? NoteSortOrder.asc).name,
-            onSelected: (value) {
-              _persistSettings({
-                'notes': notes
-                    .copyWith(sortOrder: NoteSortOrder.fromJson(value))
-                    .toJson(),
-              });
-            },
+            onSelected: (value) => _persistSettings({
+              'notes': notes
+                  .copyWith(sortOrder: NoteSortOrder.fromJson(value))
+                  .toJson(),
+            }),
           ),
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Transcripts'),
-        ListTile(
-          leading: const Icon(Icons.translate),
-          title: const Text('Transcript Language'),
-          subtitle: Text(transcriptLanguage ?? 'Auto-detect'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChoiceDialog(
+        const SettingsSection(title: 'Transcripts'),
+        SettingsChoiceTile(
+          icon: Icons.translate,
+          title: 'Transcript Language',
+          value: transcriptLanguage ?? 'Auto-detect',
+          onTap: () => showSettingsChoiceDialog(
+            context,
             title: 'Transcript Language',
             options: ['Auto-detect', 'English', 'French', 'Spanish', 'German'],
             currentValue: transcriptLanguage ?? 'Auto-detect',
-            onSelected: (value) {
-              _persistSettings({
-                'transcripts': {
-                  ...settings.transcripts.toJson(),
-                  'defaultLanguage': value == 'Auto-detect'
-                      ? null
-                      : value.toLowerCase(),
-                },
-              });
-            },
+            onSelected: (value) => _persistSettings({
+              'transcripts': {
+                ...settings.transcripts.toJson(),
+                'defaultLanguage': value == 'Auto-detect'
+                    ? null
+                    : value.toLowerCase(),
+              },
+            }),
           ),
         ),
         const Divider(),
 
-        _buildSectionHeader(context, 'Support'),
+        const SettingsSection(title: 'Support'),
         ListTile(
           leading: const Icon(Icons.feedback_outlined),
           title: const Text('Send feedback'),
@@ -476,19 +443,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   String _intervalLabel(int minutes) {
     switch (minutes) {
       case 0:
@@ -525,36 +479,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
       default:
         return 60;
     }
-  }
-
-  void _showChoiceDialog({
-    required String title,
-    required List<String> options,
-    required String currentValue,
-    required ValueChanged<String> onSelected,
-  }) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(title),
-        children: options.map((option) {
-          return RadioListTile<String>(
-            title: Text(option),
-            value: option,
-            // TODO: Migrate to RadioGroup after the app updates its selection dialogs.
-            // ignore: deprecated_member_use
-            groupValue: currentValue,
-            // ignore: deprecated_member_use
-            onChanged: (value) {
-              if (value != null) {
-                onSelected(value);
-                Navigator.of(context).pop();
-              }
-            },
-          );
-        }).toList(),
-      ),
-    );
   }
 }
 

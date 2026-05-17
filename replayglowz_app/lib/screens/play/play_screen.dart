@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'package:replayglowz_app/app/router.dart';
@@ -14,8 +13,14 @@ import 'package:replayglowz_app/models/models.dart';
 import 'package:replayglowz_app/providers/mutations.dart';
 import 'package:replayglowz_app/providers/providers.dart';
 import 'package:replayglowz_app/utils/duration_utils.dart';
+import 'package:replayglowz_app/widgets/app_states.dart';
 import 'package:replayglowz_app/widgets/common_app_bar_actions.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
+import 'package:replayglowz_app/widgets/notes/note_tile.dart';
+import 'package:replayglowz_app/widgets/play/comments_placeholder.dart';
+import 'package:replayglowz_app/widgets/play/playback_controls.dart';
+import 'package:replayglowz_app/widgets/play/player_panel.dart';
+import 'package:replayglowz_app/widgets/transcripts/transcript_entry_tile.dart';
 import 'package:replayglowz_app/widgets/youtube_connect.dart';
 
 class _TranscriptEntry {
@@ -321,35 +326,26 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
   }
 
   Widget _buildPlayerArea() {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: YoutubePlayer(
-        controller: _playerController,
-        showVideoProgressIndicator: true,
-        progressIndicatorColor: Theme.of(context).colorScheme.primary,
-        progressColors: ProgressBarColors(
-          playedColor: Theme.of(context).colorScheme.primary,
-          handleColor: Theme.of(context).colorScheme.primary,
-        ),
-        onReady: () {
-          if (!mounted) return;
-          if (!_isPlayerReady) {
-            setState(() => _isPlayerReady = true);
-          }
-          if (_loadedVideoId.isNotEmpty &&
-              _playerController.metadata.videoId != _loadedVideoId) {
-            _playerController.load(_loadedVideoId);
-          }
-        },
-        onEnded: (_) {
-          setState(() {
-            _isPlaying = false;
-            _currentTimestamp = _playerController.metadata.duration.inSeconds
-                .toDouble();
-          });
-          _saveProgress();
-        },
-      ),
+    return PlayerPanel(
+      controller: _playerController,
+      onReady: () {
+        if (!mounted) return;
+        if (!_isPlayerReady) {
+          setState(() => _isPlayerReady = true);
+        }
+        if (_loadedVideoId.isNotEmpty &&
+            _playerController.metadata.videoId != _loadedVideoId) {
+          _playerController.load(_loadedVideoId);
+        }
+      },
+      onEnded: () {
+        setState(() {
+          _isPlaying = false;
+          _currentTimestamp = _playerController.metadata.duration.inSeconds
+              .toDouble();
+        });
+        _saveProgress();
+      },
     );
   }
 
@@ -359,43 +355,18 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
         .clamp(0, maxSeconds.toDouble())
         .toDouble();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        children: [
-          Slider(
-            value: sliderValue,
-            max: maxSeconds.toDouble(),
-            onChanged: (value) {
-              setState(() => _currentTimestamp = value);
-            },
-            onChangeEnd: _seekToSeconds,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(_formatTime(_currentTimestamp)),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.replay_10),
-                    onPressed: () => _seekToSeconds(_currentTimestamp - 10),
-                  ),
-                  IconButton(
-                    icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                    onPressed: _togglePlayPause,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.forward_10),
-                    onPressed: () => _seekToSeconds(_currentTimestamp + 10),
-                  ),
-                ],
-              ),
-              Text(_formatTime(maxSeconds.toDouble())),
-            ],
-          ),
-        ],
-      ),
+    return PlaybackControlsPanel(
+      currentSeconds: sliderValue,
+      maxSeconds: maxSeconds.toDouble(),
+      isPlaying: _isPlaying,
+      onChanged: (value) {
+        setState(() => _currentTimestamp = value);
+      },
+      onSeekEnd: _seekToSeconds,
+      onBackTen: () => _seekToSeconds(_currentTimestamp - 10),
+      onTogglePlayPause: _togglePlayPause,
+      onForwardTen: () => _seekToSeconds(_currentTimestamp + 10),
+      formatTime: _formatTime,
     );
   }
 
@@ -454,11 +425,12 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
           child: notesAsync.when(
             data: (notes) {
               if (notes.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No notes yet. Add one above!',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                return const AppEmptyState(
+                  icon: Icons.note_add_outlined,
+                  title: 'No notes yet',
+                  description:
+                      'Add a note above to keep timestamped highlights.',
+                  maxWidth: 360,
                 );
               }
               return ListView.builder(
@@ -466,56 +438,42 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
                 itemCount: notes.length,
                 itemBuilder: (context, index) {
                   final note = notes[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: note.isTimestamped
-                          ? TextButton(
-                              onPressed: () => _seekToSeconds(note.timestamp!),
-                              child: Text(
-                                '[${note.formattedTimestamp}]',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : null,
-                      title: Text(
-                        note.content,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        onPressed: () async {
-                          try {
-                            await deleteNote(ref, note.id);
-                          } catch (e) {
-                            if (context.mounted) {
-                              showErrorSnackBar(
-                                context,
-                                error: e,
-                                prefix: 'Failed to delete note',
-                              );
-                            }
+                  return NoteTile(
+                    content: note.content,
+                    timestampLabel: note.isTimestamped
+                        ? '[${note.formattedTimestamp}]'
+                        : null,
+                    onTimestampTap: note.isTimestamped
+                        ? () => _seekToSeconds(note.timestamp!)
+                        : null,
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: () async {
+                        try {
+                          await deleteNote(ref, note.id);
+                        } catch (e) {
+                          if (context.mounted) {
+                            showErrorSnackBar(
+                              context,
+                              error: e,
+                              prefix: 'Failed to delete note',
+                            );
                           }
-                        },
-                      ),
+                        }
+                      },
                     ),
                   );
                 },
               );
             },
-            loading: () => Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: 3,
-                itemBuilder: (context, index) => Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Container(height: 56, color: Colors.white),
+            loading: () => AppLoadingListSkeleton(
+              itemCount: 3,
+              padding: const EdgeInsets.all(12),
+              itemBuilder: (context, index) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  height: 56,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
             ),
@@ -596,52 +554,12 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
             final isActive =
                 _currentTimestamp >= entry.startSeconds &&
                 _currentTimestamp < entry.endSeconds;
-
-            return Card(
-              color: isActive
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : null,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => _seekToSeconds(entry.startSeconds),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 58,
-                        child: Text(
-                          _formatTime(entry.startSeconds),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (entry.speaker != null &&
-                                entry.speaker!.trim().isNotEmpty) ...[
-                              Text(
-                                entry.speaker!.trim(),
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                              const SizedBox(height: 4),
-                            ],
-                            Text(entry.text),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            return TranscriptEntryTile(
+              timestampLabel: _formatTime(entry.startSeconds),
+              text: entry.text,
+              speaker: entry.speaker,
+              isActive: isActive,
+              onTap: () => _seekToSeconds(entry.startSeconds),
             );
           },
         );
@@ -650,21 +568,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen>
   }
 
   Widget _buildCommentsTab() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.comment_outlined, size: 48, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('Comments coming soon', style: TextStyle(color: Colors.grey)),
-          SizedBox(height: 8),
-          Text(
-            'In-app comments will appear here',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        ],
-      ),
-    );
+    return const CommentsPlaceholderPanel();
   }
 
   String _effectiveTranscriptLanguage(UserSettings? settings) {
