@@ -42,7 +42,7 @@ dependencies:
   url_launcher: ^6.3.0
   sentry_flutter: ^9.20.0
   firebase_core: ^4.7.0
-  firebase_auth: ^6.4.0
+  firebase_auth: ^6.5.1
 
 dev_dependencies:
   flutter_test:
