@@ -46,7 +46,7 @@ The Flutter values are required at **build time** (`--dart-define`), not runtime
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID used for the YouTube consent screen. |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret used to exchange the YouTube authorization code for tokens. |
 
-See `.env.example`. Preferred names are the plain variables above; `build.sh` also accepts the legacy Vercel-style `NEXT_PUBLIC_CONVEX_URL` plus the older `TUBEFLOW_APP_URL` and `TUBEFLOW_WEB_URL` as compatibility fallbacks. The OAuth handlers also accept `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` as compatibility fallbacks.
+See `.env.example`. The variables above are the only supported names.
 
 Convex deployment variables used by backend features:
 

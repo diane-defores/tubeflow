@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [2026-05-15]
 
 ### Changed
+- Updated site environment examples to canonical production domains (`replayglowz.com` / `app.replayglowz.com`) for deploy-ready defaults.
 - Self-hosted the marketing site fonts and preloaded only critical local WOFF2 files to remove render-blocking external font CSS.
 
 ### Removed

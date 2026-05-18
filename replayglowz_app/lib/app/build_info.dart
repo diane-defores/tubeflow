@@ -2,29 +2,14 @@ import 'package:flutter/foundation.dart';
 
 const convexUrl = String.fromEnvironment('CONVEX_URL', defaultValue: '');
 
-const legacyWebAppUrl = String.fromEnvironment(
-  'TUBEFLOW_WEB_URL',
-  defaultValue: '',
-);
-
-const legacyAppUrl = String.fromEnvironment(
-  'TUBEFLOW_APP_URL',
-  defaultValue: legacyWebAppUrl,
-);
-
 const replayGlowzAppUrl = String.fromEnvironment(
   'REPLAYGLOWZ_APP_URL',
-  defaultValue: legacyAppUrl,
-);
-
-const legacySentryDsn = String.fromEnvironment(
-  'NEXT_PUBLIC_SENTRY_DSN',
   defaultValue: '',
 );
 
 const sentryDsn = String.fromEnvironment(
   'SENTRY_DSN',
-  defaultValue: legacySentryDsn,
+  defaultValue: '',
 );
 
 const sentryEnvironment = String.fromEnvironment(

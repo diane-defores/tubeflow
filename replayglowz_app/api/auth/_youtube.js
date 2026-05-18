@@ -15,11 +15,7 @@ function stripTrailingSlash(value) {
 }
 
 function getRequestOrigin(req) {
-  const configured = getEnv(
-    'REPLAYGLOWZ_APP_URL',
-    'TUBEFLOW_APP_URL',
-    'NEXT_PUBLIC_APP_URL',
-  );
+  const configured = getEnv('REPLAYGLOWZ_APP_URL');
   if (configured) return stripTrailingSlash(configured);
 
   const forwardedProto = req.headers['x-forwarded-proto'];

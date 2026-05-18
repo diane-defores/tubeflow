@@ -7,6 +7,7 @@
 | ✅ | Remove beta auth packages `clerk_flutter` / `clerk_auth` and replace the disabled path with stable Firebase Auth | ✅ done |
 | ✅ | Remove unused Flutter codegen packages: `riverpod_annotation`, `build_runner`, and `riverpod_generator` | ✅ done |
 | ✅ | Upgrade direct non-beta dependencies to latest resolvable versions, including `go_router`, `sentry_flutter`, and `flutter_lints` | ✅ done |
+| ✅ | Remove legacy app/domain fallbacks (`TUBEFLOW_APP_URL`, `TUBEFLOW_WEB_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SENTRY_DSN`) from app config and OAuth runtime | ✅ done |
 | 🟠 | Validate Firebase Auth, Convex token acceptance, and YouTube OAuth on the deployed Vercel/Convex environment | ⏳ pending `/sf-prod` |
 
 ## Documentation Governance

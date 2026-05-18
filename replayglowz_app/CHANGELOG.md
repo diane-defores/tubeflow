@@ -6,6 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [2026-05-15]
 
 ### Changed
+- Removed legacy environment-variable compatibility fallbacks for app URL and OAuth handling (`TUBEFLOW_*`, `NEXT_PUBLIC_*`) in favor of `REPLAYGLOWZ_APP_URL`, `GOOGLE_CLIENT_ID`, and `CONVEX_URL`.
 - Batched full YouTube playlist sync calls to reduce sequential backend waits during manual refresh.
 - Deferred the all-notes subscription on the Videos screen until the Notes view is active.
 

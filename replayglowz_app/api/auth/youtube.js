@@ -11,8 +11,6 @@ const {
 
 const REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE =
   'replayglowz_youtube_firebase_id_token';
-const LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE =
-  'tubeflow_youtube_firebase_id_token';
 
 function sendJsonError(res, statusCode, message) {
   res.statusCode = statusCode;
@@ -36,10 +34,7 @@ module.exports = async function handler(req, res) {
   const firebaseIdToken = authHeader.startsWith('Bearer ')
     ? authHeader.slice('Bearer '.length).trim()
     : '';
-  const googleClientId = getEnv(
-    'GOOGLE_CLIENT_ID',
-    'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
-  );
+  const googleClientId = getEnv('GOOGLE_CLIENT_ID');
 
   if (!googleClientId) {
     sendJsonError(
@@ -91,13 +86,6 @@ module.exports = async function handler(req, res) {
       sameSite: 'Lax',
       secure,
       maxAge: 3000,
-    }),
-    serializeCookie(LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE, '', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Lax',
-      secure,
-      maxAge: 0,
     }),
   ]);
   res.end(JSON.stringify({ authUrl: authUrl.toString() }));

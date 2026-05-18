@@ -10,8 +10,6 @@ const {
 
 const REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE =
   'replayglowz_youtube_firebase_id_token';
-const LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE =
-  'tubeflow_youtube_firebase_id_token';
 
 async function exchangeCodeForTokens({
   code,
@@ -122,16 +120,11 @@ module.exports = async function handler(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const storedState = cookies.youtube_oauth_state;
   const returnTo = cookies.youtube_oauth_return_to;
-  const firebaseIdToken =
-    cookies[REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE] ||
-    cookies[LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE];
+  const firebaseIdToken = cookies[REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE];
 
-  const googleClientId = getEnv(
-    'GOOGLE_CLIENT_ID',
-    'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
-  );
+  const googleClientId = getEnv('GOOGLE_CLIENT_ID');
   const googleClientSecret = getEnv('GOOGLE_CLIENT_SECRET');
-  const convexUrl = getEnv('CONVEX_URL', 'NEXT_PUBLIC_CONVEX_URL');
+  const convexUrl = getEnv('CONVEX_URL');
 
   const cleanupCookies = [
     serializeCookie('youtube_oauth_state', '', {
@@ -149,13 +142,6 @@ module.exports = async function handler(req, res) {
       maxAge: 0,
     }),
     serializeCookie(REPLAYGLOWZ_FIREBASE_TOKEN_COOKIE, '', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Lax',
-      secure,
-      maxAge: 0,
-    }),
-    serializeCookie(LEGACY_TUBEFLOW_FIREBASE_TOKEN_COOKIE, '', {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
