@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:replayglowz_app/app/router.dart';
 import 'package:replayglowz_app/auth/auth_state.dart';
 import 'package:replayglowz_app/auth/auth_service.dart';
+import 'package:replayglowz_app/utils/app_logger.dart';
 import 'package:replayglowz_app/widgets/error_feedback.dart';
 
 class AuthSignInPage extends ConsumerStatefulWidget {
@@ -81,6 +83,8 @@ class _AuthSignInPageState extends ConsumerState<AuthSignInPage> {
                 ) when error != null && error.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   InlineErrorCard(error: error, prefix: 'Auth unavailable'),
+                  const SizedBox(height: 12),
+                  const _AuthDebugPanel(),
                 ],
                 const SizedBox(height: 24),
                 FilledButton.icon(
@@ -103,6 +107,102 @@ class _AuthSignInPageState extends ConsumerState<AuthSignInPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AuthDebugPanel extends StatefulWidget {
+  const _AuthDebugPanel();
+
+  @override
+  State<_AuthDebugPanel> createState() => _AuthDebugPanelState();
+}
+
+class _AuthDebugPanelState extends State<_AuthDebugPanel> {
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.instance.addListener(_onLogsChanged);
+  }
+
+  @override
+  void dispose() {
+    AppLogger.instance.removeListener(_onLogsChanged);
+    super.dispose();
+  }
+
+  void _onLogsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _logsText() {
+    final entries = AppLogger.instance.entries
+        .where((entry) => entry.source == 'AuthService')
+        .toList()
+        .reversed
+        .take(8)
+        .toList()
+        .reversed;
+    if (entries.isEmpty) {
+      return 'No auth logs yet.';
+    }
+    return entries.map(_formatLogEntry).join('\n\n');
+  }
+
+  String _formatLogEntry(LogEntry entry) {
+    final lines = <String>[
+      '[${entry.timestamp.toIso8601String()}] '
+          '${entry.level.name.toUpperCase()} ${entry.source}: ${entry.message}',
+      if (entry.error != null) 'error: ${entry.error}',
+      if (entry.stackTrace != null)
+        'stack: ${entry.stackTrace.toString().split('\n').take(8).join('\n')}',
+    ];
+    return lines.join('\n');
+  }
+
+  Future<void> _copyLogs() async {
+    await Clipboard.setData(ClipboardData(text: _logsText()));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Auth logs copied.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final logs = _logsText();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Auth diagnostics', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          SelectableText(
+            logs,
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: _copyLogs,
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text('Copy logs'),
+            ),
+          ),
+        ],
       ),
     );
   }

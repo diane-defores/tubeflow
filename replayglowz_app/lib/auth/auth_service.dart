@@ -119,6 +119,17 @@ class AuthService {
       } else {
         await auth.signInWithProvider(provider);
       }
+    } on firebase_auth.FirebaseAuthException catch (e, st) {
+      final message = _firebaseAuthErrorMessage(e);
+      authNotifier.setUnauthenticated(error: message);
+      AppLogger.instance.log(
+        'Firebase Google sign-in failed',
+        source: 'AuthService',
+        level: LogLevel.error,
+        error: e,
+        stackTrace: st,
+      );
+      rethrow;
     } catch (e, st) {
       authNotifier.setUnauthenticated(error: '$e');
       AppLogger.instance.log(
@@ -130,6 +141,23 @@ class AuthService {
       );
       rethrow;
     }
+  }
+
+  String _firebaseAuthErrorMessage(firebase_auth.FirebaseAuthException error) {
+    final details = <String>[
+      'Firebase Auth ${error.code}',
+      if (error.message != null && error.message!.trim().isNotEmpty)
+        error.message!.trim(),
+    ];
+
+    if (error.code == 'internal-error') {
+      details.add(
+        'Check the browser console for a blocked popup, blocked frame, or '
+        'Firebase authorized-domain error.',
+      );
+    }
+
+    return details.join(': ');
   }
 
   Future<String?> getConvexToken({bool forceRefresh = false}) async {
