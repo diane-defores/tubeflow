@@ -1,8 +1,16 @@
 (function () {
   let loadPromise = null;
   const CONVEX_SCRIPT_ID = 'replayglowz-convex-js';
-  const CONVEX_BUNDLE_SRC =
-    'https://unpkg.com/convex@1.29.3/dist/browser.bundle.js';
+  const CONVEX_BUNDLE_SOURCES = [
+    {
+      src: 'convex_browser.bundle.js',
+      id: `${CONVEX_SCRIPT_ID}-local`,
+    },
+    {
+      src: 'https://unpkg.com/convex@1.29.3/dist/browser.bundle.js',
+      id: `${CONVEX_SCRIPT_ID}-cdn`,
+    },
+  ];
 
   function loadScript(src, id) {
     return new Promise((resolve, reject) => {
@@ -45,11 +53,24 @@
 
     if (!loadPromise) {
       loadPromise = (async () => {
-        await loadScript(CONVEX_BUNDLE_SRC, CONVEX_SCRIPT_ID);
-        if (!window.convex || !window.convex.ConvexHttpClient) {
-          throw new Error('Convex browser bundle loaded but ConvexHttpClient is unavailable');
+        let lastError;
+        for (const source of CONVEX_BUNDLE_SOURCES) {
+          try {
+            await loadScript(source.src, source.id);
+            if (window.convex && window.convex.ConvexHttpClient) {
+              return window.convex;
+            }
+            lastError = new Error(
+              `Convex script loaded but ConvexHttpClient is unavailable (${source.src})`,
+            );
+          } catch (error) {
+            lastError = error;
+          }
         }
-        return window.convex;
+        throw lastError ??
+          new Error(
+            'Failed to load Convex browser bundle; no source succeeded.',
+          );
       })();
     }
 

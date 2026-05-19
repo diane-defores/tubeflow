@@ -25,7 +25,7 @@
 
 #### High
 - [x] Defer `convex_bridge.js` and `flutter_bootstrap.js` in `web/index.html` to avoid render-blocking startup work on web.
-- [ ] Decide whether Convex web subscriptions should use a less chatty poll strategy than every 10 seconds for all query streams.
+- [x] Make web Convex subscription polling adaptive (short burst + exponential backoff when data is stable or errors occur) to reduce unnecessary wakeups.
 
 #### Medium
 - [x] Cache the lowercased search query in `NotesScreen` so filtering does not recompute `toLowerCase()` per row.

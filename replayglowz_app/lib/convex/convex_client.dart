@@ -401,6 +401,17 @@ class ConvexService {
     Timer? timer;
     var running = false;
     String? lastEncoded;
+    var pollInterval = const Duration(seconds: 10);
+    const minPollInterval = Duration(seconds: 3);
+    const maxPollInterval = Duration(seconds: 30);
+
+    Duration nextPollInterval(Duration current) {
+      if (current >= maxPollInterval) {
+        return maxPollInterval;
+      }
+      final next = Duration(seconds: current.inSeconds * 2);
+      return next > maxPollInterval ? maxPollInterval : next;
+    }
 
     Future<void> tick() async {
       if (running || controller.isClosed) {
@@ -413,20 +424,29 @@ class ConvexService {
         if (encoded != lastEncoded && !controller.isClosed) {
           lastEncoded = encoded;
           controller.add(value);
+          pollInterval = minPollInterval;
+        } else {
+          pollInterval = nextPollInterval(pollInterval);
         }
       } catch (e, st) {
         if (!controller.isClosed) {
           controller.addError(e, st);
         }
+        pollInterval = nextPollInterval(pollInterval);
       } finally {
         running = false;
+        if (!controller.isClosed) {
+          timer?.cancel();
+          timer = Timer(pollInterval, tick);
+        }
       }
     }
 
     controller = StreamController<T>.broadcast(
       onListen: () {
-        tick();
-        timer ??= Timer.periodic(const Duration(seconds: 10), (_) => tick());
+        pollInterval = const Duration(seconds: 10);
+        timer?.cancel();
+        timer = Timer(const Duration(milliseconds: 1), tick);
       },
       onCancel: () {
         timer?.cancel();
