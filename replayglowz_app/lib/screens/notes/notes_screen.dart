@@ -151,18 +151,16 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
     List<Note> allNotes,
     bool youtubeConnected,
   ) {
+    final normalizedQuery = _searchQuery.trim().toLowerCase();
+
     // Filter notes by search query.
-    final filtered = _searchQuery.isEmpty
+    final filtered = normalizedQuery.isEmpty
         ? allNotes
         : allNotes
               .where(
                 (n) =>
-                    n.title.toLowerCase().contains(
-                      _searchQuery.toLowerCase(),
-                    ) ||
-                    n.content.toLowerCase().contains(
-                      _searchQuery.toLowerCase(),
-                    ),
+                    n.title.toLowerCase().contains(normalizedQuery) ||
+                    n.content.toLowerCase().contains(normalizedQuery),
               )
               .toList();
 

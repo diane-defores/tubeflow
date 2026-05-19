@@ -17,3 +17,15 @@
 - [x] Add CSP/HSTS hardening headers in `vercel.json`
 - [x] Tighten Dart analyzer settings (`strict-casts`, `strict-inference`, `strict-raw-types`)
 - [ ] Verify Clerk + Convex bootstrap and WebSocket startup end-to-end in a real Flutter environment
+
+### Audit: Perf
+
+#### Critical
+- [ ] None
+
+#### High
+- [x] Defer `convex_bridge.js` and `flutter_bootstrap.js` in `web/index.html` to avoid render-blocking startup work on web.
+- [ ] Decide whether Convex web subscriptions should use a less chatty poll strategy than every 10 seconds for all query streams.
+
+#### Medium
+- [x] Cache the lowercased search query in `NotesScreen` so filtering does not recompute `toLowerCase()` per row.
